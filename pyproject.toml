@@ -21,6 +21,7 @@ dependencies = [
     "aiohttp>=3.8.5",       # Async HTTP client
     "pydantic>=2.4.2",      # Data validation
     "sqlitedict>=2.1.0",    # Simple SQLite-based dict storage
+    "pandas>=2.0.0",        # Data manipulation and analysis
 ]
 
 [project.optional-dependencies]

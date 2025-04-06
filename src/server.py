@@ -11,7 +11,8 @@ from mcp.server.fastmcp import FastMCP
 
 from src.config import SERVER_NAME, SERVER_VERSION
 from src.wds_client import WDSClient
-from src.cache import metadata_cache, data_cache
+from src.cache import metadata_cache, data_cache, cube_cache, vector_cache, search_cache, preload_hot_cache
+from src.integrations.integrations import MCPIntegrations
 
 logger = logging.getLogger(__name__)
 
@@ -30,9 +31,17 @@ class StatCanMCPServer:
         self.app = FastMCP(name, version=version)
         self.wds_client = WDSClient()
         
+        # Initialize integrations
+        self.integrations = MCPIntegrations()
+        
         # Register MCP handlers
         self._register_tools()
         self._register_resources()
+        self._register_integration_tools()
+        
+        # Note: Preload hot cache will be done when the server starts running
+        # This is commented out here to avoid issues during testing
+        # asyncio.create_task(preload_hot_cache(self.wds_client))
         
         logger.info(f"Initialized StatCan MCP server '{name}' v{version}")
     
@@ -1281,6 +1290,310 @@ class StatCanMCPServer:
             except Exception as e:
                 logger.error(f"Error accessing series resource: {e}")
                 return f"Error accessing time series data for {vector}: {str(e)}"
+    
+    def _register_integration_tools(self):
+        """Register MCP tools for integrations with other MCP servers."""
+        
+        @self.app.tool()
+        async def get_dataset_visualization(pid: str, chart_type: str = "line"):
+            """Get visualization code for a StatCan dataset.
+            
+            Args:
+                pid: StatCan Product ID (PID)
+                chart_type: Type of chart to create (line, bar, area)
+            """
+            logger.info(f"Getting visualization for dataset {pid} with chart type {chart_type}")
+            
+            try:
+                # Get the dataset metadata
+                metadata_key = f"metadata_{pid}"
+                metadata = metadata_cache.get(metadata_key)
+                
+                if metadata is None:
+                    metadata = await self.wds_client.get_cube_metadata(pid)
+                    if metadata.get("status") == "SUCCESS":
+                        metadata_cache.set(metadata_key, metadata)
+                
+                if metadata and metadata.get("status") == "SUCCESS":
+                    # Get dataset info
+                    cube_metadata = metadata.get("object", {})
+                    title = cube_metadata.get("cubeTitleEn", f"Dataset {pid}")
+                    start_date = cube_metadata.get("cubeStartDate", "")
+                    end_date = cube_metadata.get("cubeEndDate", "")
+                    
+                    # Try to get a sample vector from this dataset
+                    vectors = cube_metadata.get("vectorArray", [])
+                    if vectors and len(vectors) > 0:
+                        # Get the first vector's data
+                        vector_id = vectors[0].get("vectorId", "")
+                        vector_data = await self.wds_client.get_data_from_vectors([f"v{vector_id}"], 10)
+                        
+                        if vector_data.get("status") == "SUCCESS":
+                            # Extract data points
+                            data_object = vector_data.get("object", [])
+                            if isinstance(data_object, list) and len(data_object) > 0:
+                                observations = data_object[0].get("vectorDataPoint", [])
+                                
+                                # Create data points for visualization
+                                data_points = []
+                                for obs in observations:
+                                    ref_period = obs.get("refPer", "")
+                                    value = obs.get("value", "")
+                                    data_points.append({"date": ref_period, "value": value})
+                                
+                                # Create dataset info
+                                dataset_info = {
+                                    "pid": pid,
+                                    "title": title,
+                                    "time_range": f"{start_date} to {end_date}"
+                                }
+                                
+                                # Generate visualization command
+                                viz_suggestions = self.integrations.generate_visualization_suggestions(
+                                    dataset_info, data_points
+                                )
+                                
+                                # Return the appropriate chart type
+                                if chart_type == "bar":
+                                    return viz_suggestions.get("line_chart", "").replace("\"line\"", "\"bar\"")
+                                elif chart_type == "area":
+                                    return viz_suggestions.get("line_chart", "").replace("\"line\"", "\"area\"")
+                                else:
+                                    return viz_suggestions.get("line_chart", "")
+                    
+                    # If we couldn't get vector data, return a general message
+                    return (
+                        "To visualize this dataset, you need to retrieve specific vector data first "
+                        "using the get_data_series tool, then use the isaacwasserman/mcp-vegalite-server "
+                        "for visualization."
+                    )
+                else:
+                    return f"Error retrieving dataset metadata for PID {pid}"
+            except Exception as e:
+                logger.error(f"Error in get_dataset_visualization: {e}")
+                return f"Error generating visualization: {str(e)}"
+                
+        @self.app.tool()
+        async def analyze_dataset(pid: str, analysis_type: str = "trends"):
+            """Get advanced analysis for a StatCan dataset.
+            
+            Args:
+                pid: StatCan Product ID (PID)
+                analysis_type: Type of analysis (trends, growth_rates, seasonality, outliers)
+            """
+            logger.info(f"Analyzing dataset {pid} with analysis type {analysis_type}")
+            
+            try:
+                # Get the dataset metadata
+                metadata_key = f"metadata_{pid}"
+                metadata = metadata_cache.get(metadata_key)
+                
+                if metadata is None:
+                    metadata = await self.wds_client.get_cube_metadata(pid)
+                    if metadata.get("status") == "SUCCESS":
+                        metadata_cache.set(metadata_key, metadata)
+                
+                if metadata and metadata.get("status") == "SUCCESS":
+                    # Get dataset info
+                    cube_metadata = metadata.get("object", {})
+                    title = cube_metadata.get("cubeTitleEn", f"Dataset {pid}")
+                    
+                    # Try to get a sample vector from this dataset
+                    vectors = cube_metadata.get("vectorArray", [])
+                    if vectors and len(vectors) > 0:
+                        # Get the first vector's data
+                        vector_id = vectors[0].get("vectorId", "")
+                        vector_data = await self.wds_client.get_data_from_vectors([f"v{vector_id}"], 20)
+                        
+                        if vector_data.get("status") == "SUCCESS":
+                            # Extract data points
+                            data_object = vector_data.get("object", [])
+                            if isinstance(data_object, list) and len(data_object) > 0:
+                                observations = data_object[0].get("vectorDataPoint", [])
+                                
+                                # Create data points for analysis
+                                data_points = []
+                                for obs in observations:
+                                    data_points.append(obs)
+                                
+                                # Create dataset info
+                                dataset_info = {
+                                    "pid": pid,
+                                    "title": title,
+                                }
+                                
+                                # Generate analysis command
+                                analysis_suggestions = self.integrations.generate_analysis_suggestions(
+                                    dataset_info, data_points
+                                )
+                                
+                                # Return the appropriate analysis
+                                return analysis_suggestions.get(analysis_type, 
+                                    analysis_suggestions.get("trends", "No analysis available"))
+                    
+                    # If we couldn't get vector data, return a general message
+                    return (
+                        "To analyze this dataset, you need to retrieve specific vector data first "
+                        "using the get_data_series tool, then use specialized analysis tools."
+                    )
+                else:
+                    return f"Error retrieving dataset metadata for PID {pid}"
+            except Exception as e:
+                logger.error(f"Error in analyze_dataset: {e}")
+                return f"Error generating analysis: {str(e)}"
+                
+        @self.app.tool()
+        async def deep_research_dataset(pid: str, research_focus: str = None):
+            """Get deep research context for a StatCan dataset.
+            
+            Args:
+                pid: StatCan Product ID (PID)
+                research_focus: Specific focus for the research
+            """
+            logger.info(f"Performing deep research on dataset {pid} with focus {research_focus}")
+            
+            try:
+                # Get the dataset metadata
+                metadata_key = f"metadata_{pid}"
+                metadata = metadata_cache.get(metadata_key)
+                
+                if metadata is None:
+                    metadata = await self.wds_client.get_cube_metadata(pid)
+                    if metadata.get("status") == "SUCCESS":
+                        metadata_cache.set(metadata_key, metadata)
+                
+                if metadata and metadata.get("status") == "SUCCESS":
+                    # Get dataset info
+                    cube_metadata = metadata.get("object", {})
+                    title = cube_metadata.get("cubeTitleEn", f"Dataset {pid}")
+                    start_date = cube_metadata.get("cubeStartDate", "")
+                    end_date = cube_metadata.get("cubeEndDate", "")
+                    freq_code = cube_metadata.get("frequencyCode", 0)
+                    
+                    # Map frequency code to human-readable format
+                    freq_map = {
+                        1: "Annual",
+                        2: "Semi-annual",
+                        4: "Quarterly",
+                        6: "Monthly",
+                        7: "Biweekly",
+                        8: "Weekly",
+                        9: "Daily",
+                        0: "Unknown"
+                    }
+                    frequency = freq_map.get(freq_code, "Unknown")
+                    
+                    # Get dimensions
+                    dimensions = []
+                    for dim in cube_metadata.get("dimension", []):
+                        dim_name = dim.get("dimensionNameEn", "")
+                        if dim_name:
+                            dimensions.append(dim_name)
+                    
+                    # Create dataset info
+                    dataset_info = {
+                        "pid": pid,
+                        "title": title,
+                        "description": title,  # Use title as description if none available
+                        "time_range": f"{start_date} to {end_date}",
+                        "frequency": frequency,
+                        "dimensions": dimensions
+                    }
+                    
+                    # Try to get a sample of data
+                    data_points = []
+                    vectors = cube_metadata.get("vectorArray", [])
+                    if vectors and len(vectors) > 0:
+                        # Get the first vector's data
+                        vector_id = vectors[0].get("vectorId", "")
+                        vector_data = await self.wds_client.get_data_from_vectors([f"v{vector_id}"], 5)
+                        
+                        if vector_data.get("status") == "SUCCESS":
+                            data_object = vector_data.get("object", [])
+                            if isinstance(data_object, list) and len(data_object) > 0:
+                                observations = data_object[0].get("vectorDataPoint", [])
+                                data_points = observations
+                    
+                    # Generate deep research command
+                    from src.integrations.deep_research import DeepResearchIntegration
+                    research_command = DeepResearchIntegration.get_deep_research_command(
+                        dataset_info, data_points, research_focus
+                    )
+                    
+                    return research_command
+                else:
+                    return f"Error retrieving dataset metadata for PID {pid}"
+            except Exception as e:
+                logger.error(f"Error in deep_research_dataset: {e}")
+                return f"Error generating deep research: {str(e)}"
+        
+        @self.app.tool()
+        async def explore_dataset(pid: str):
+            """Get data exploration options for a StatCan dataset.
+            
+            Args:
+                pid: StatCan Product ID (PID)
+            """
+            logger.info(f"Exploring dataset {pid}")
+            
+            try:
+                # Get the dataset metadata
+                metadata_key = f"metadata_{pid}"
+                metadata = metadata_cache.get(metadata_key)
+                
+                if metadata is None:
+                    metadata = await self.wds_client.get_cube_metadata(pid)
+                    if metadata.get("status") == "SUCCESS":
+                        metadata_cache.set(metadata_key, metadata)
+                
+                if metadata and metadata.get("status") == "SUCCESS":
+                    # Get dataset info
+                    cube_metadata = metadata.get("object", {})
+                    title = cube_metadata.get("cubeTitleEn", f"Dataset {pid}")
+                    start_date = cube_metadata.get("cubeStartDate", "")
+                    end_date = cube_metadata.get("cubeEndDate", "")
+                    
+                    # Get dimensions
+                    dimensions = []
+                    for dim in cube_metadata.get("dimension", []):
+                        dim_name = dim.get("dimensionNameEn", "")
+                        members = len(dim.get("member", []))
+                        if dim_name:
+                            dimensions.append(f"{dim_name} ({members} members)")
+                    
+                    # Get sample data
+                    data_sample = []
+                    vectors = cube_metadata.get("vectorArray", [])
+                    if vectors and len(vectors) > 0:
+                        # Get the first vector's data
+                        vector_id = vectors[0].get("vectorId", "")
+                        vector_data = await self.wds_client.get_data_from_vectors([f"v{vector_id}"], 5)
+                        
+                        if vector_data.get("status") == "SUCCESS":
+                            data_object = vector_data.get("object", [])
+                            if isinstance(data_object, list) and len(data_object) > 0:
+                                observations = data_object[0].get("vectorDataPoint", [])
+                                data_sample = observations
+                    
+                    # Create dataset info
+                    dataset_info = {
+                        "pid": pid,
+                        "title": title,
+                        "time_range": f"{start_date} to {end_date}",
+                        "dimensions": dimensions
+                    }
+                    
+                    # Format the dataset summary with integration options
+                    summary = self.integrations.format_dataset_summary(
+                        dataset_info, data_sample, include_integrations=True
+                    )
+                    
+                    return summary
+                else:
+                    return f"Error retrieving dataset metadata for PID {pid}"
+            except Exception as e:
+                logger.error(f"Error in explore_dataset: {e}")
+                return f"Error exploring dataset: {str(e)}"
     
     # We don't need a custom run method anymore
     # FastMCP.run() is called directly from __main__.py
