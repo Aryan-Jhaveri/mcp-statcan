@@ -277,7 +277,9 @@ def is_hot_cache_item(item_type: str, item_id: str) -> bool:
         clean_id = str(item_id)
         if len(clean_id) == 10:
             clean_id = clean_id[:8]
-        return any(c == clean_id for c in HOT_CACHE_CUBES)
+        # Also clean the hot cache cubes for comparison
+        clean_hot_cubes = [str(c)[:8] if len(str(c)) == 10 else str(c) for c in HOT_CACHE_CUBES]
+        return clean_id in clean_hot_cubes
     else:
         return False
 
