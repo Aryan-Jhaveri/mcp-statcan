@@ -41,18 +41,30 @@ class Cache:
         self.cache_dir = cache_dir
         self.max_size = max_size
         self.expiry_seconds = expiry_seconds
+        self.in_memory_only = False
         
-        # Ensure cache directory exists
-        self.cache_dir.mkdir(parents=True, exist_ok=True)
-        
-        self.db_path = self.cache_dir / f"{name}.sqlite"
-        self.cache = SqliteDict(str(self.db_path), autocommit=True)
-        
-        # Keep track of access times for LRU eviction
-        self.access_times: Dict[str, float] = {}
-        
-        logger.info(f"Initialized cache '{name}' at {self.db_path}")
-        self._load_access_times()
+        try:
+            # Ensure cache directory exists
+            self.cache_dir.mkdir(parents=True, exist_ok=True)
+            
+            self.db_path = self.cache_dir / f"{name}.sqlite"
+            self.cache = SqliteDict(str(self.db_path), autocommit=True)
+            
+            # Keep track of access times for LRU eviction
+            self.access_times: Dict[str, float] = {}
+            
+            logger.info(f"Initialized cache '{name}' at {self.db_path}")
+            self._load_access_times()
+        except Exception as e:
+            import sys
+            print(f"Error initializing cache '{name}': {e}", file=sys.stderr)
+            print(f"Falling back to in-memory cache for '{name}'", file=sys.stderr)
+            
+            # Fallback to in-memory dictionary
+            self.cache = {}
+            self.access_times = {}
+            self.in_memory_only = True
+            logger.warning(f"Using in-memory cache for '{name}' due to error: {e}")
     
     def _load_access_times(self):
         """Load access times from the cache."""
@@ -161,7 +173,8 @@ class Cache:
     
     def close(self):
         """Close the cache."""
-        self.cache.close()
+        if not self.in_memory_only and hasattr(self.cache, 'close'):
+            self.cache.close()
         logger.info(f"Closed cache '{self.name}'")
     
     def keys(self) -> List[str]:

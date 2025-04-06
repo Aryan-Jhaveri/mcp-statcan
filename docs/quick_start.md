@@ -42,13 +42,21 @@ pip install -e .
 
 ### Step 3: Configure the Server
 
-Create a configuration file:
+The default configuration should work for most users. If you want to customize the server:
 
-```bash
-cp .env.example .env
+1. Create a `.env` file in the project root
+2. Add configuration values like:
+
+```
+# Server configuration
+MCP_SERVER_NAME=My StatCan Server
+MCP_SERVER_PORT=5001
+
+# Logging
+LOG_LEVEL=DEBUG
 ```
 
-Edit the `.env` file if needed (the default values should work for most users).
+All configuration is optional with sensible defaults.
 
 ### Step 4: Start the Server Manually (Optional)
 

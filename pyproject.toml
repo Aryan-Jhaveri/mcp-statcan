@@ -35,7 +35,7 @@ dev = [
 ]
 
 [tool.setuptools]
-packages = ["mcp_statcan"]
+packages = ["src"]
 
 [tool.black]
 line-length = 88

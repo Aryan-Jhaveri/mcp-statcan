@@ -90,6 +90,7 @@ class WDSClient:
             params: API parameters (for POST requests)
             endpoint: API endpoint path (defaults to method name)
             use_get: Whether to use GET instead of POST
+            with_date: Date to append to the URL (for some endpoints)
             
         Returns:
             API response as a dictionary
@@ -149,6 +150,13 @@ class WDSClient:
                         logger.error(f"API error: {error_msg}")
                         raise ValueError(f"API error: {error_msg}")
                     logger.debug(f"Received array response from {method}: {len(str(data))} bytes")
+                    
+                    # Special handling for vector data responses
+                    if method == "getDataFromVectorsAndLatestNPeriods":
+                        # Check if the response contains vectorId
+                        if "vectorId" in data[0].get("object", {}):
+                            return {"status": "SUCCESS", "object": [obj.get("object", {}) for obj in data]}
+                    
                     return data[0]  # Most API calls expect object, not array
                 else:
                     # Just a plain array without status
@@ -283,9 +291,8 @@ class WDSClient:
         Returns:
             Dictionary containing search results
         """
-        # Note: This is a custom method as StatCan's API doesn't have a direct search endpoint
-        # For a production implementation, we'd use a better approach
-        logger.warning("search_cubes is not fully implemented - using getAllCubesList method")
+        # Better implementation with tokenized search and prioritized results
+        logger.info(f"Searching for cubes with query: '{search_text}'")
         
         try:
             # Get all cubes and filter client-side
@@ -297,8 +304,10 @@ class WDSClient:
                 # Fall back to full list if lite fails
                 all_cubes = await self._request("getAllCubesList", use_get=True)
             
-            search_text = search_text.lower()
+            # Normalize the search text
+            search_text = search_text.lower().strip()
             
+            # Extract cubes list from response
             if isinstance(all_cubes, list):
                 # Direct list of cubes (some endpoints return direct lists)
                 cubes = all_cubes
@@ -312,14 +321,104 @@ class WDSClient:
                     "object": "Unexpected response format from API"
                 }
             
-            # Filter cubes that match the search term
-            results = [
-                cube for cube in cubes
-                if search_text in str(cube.get("productTitle", "")).lower()
-                or search_text in str(cube.get("cubeTitleEn", "")).lower()
-                or search_text in str(cube.get("cansimId", "")).lower()
-                or search_text in str(cube.get("productId", "")).lower()
-            ]
+            # Tokenize search terms for more flexible matching
+            search_tokens = search_text.split()
+            
+            # Try different search approaches with scoring
+            scored_results = []
+            
+            for cube in cubes:
+                # Prepare fields to search in
+                title = str(cube.get("cubeTitleEn", "")).lower()
+                product_title = str(cube.get("productTitle", "")).lower()
+                cansim_id = str(cube.get("cansimId", "")).lower()
+                product_id = str(cube.get("productId", "")).lower()
+                
+                # Calculate match score
+                score = 0
+                
+                # Direct match on whole phrase (highest value)
+                if search_text in title or search_text in product_title:
+                    score += 100
+                
+                # Check if all tokens appear in the title or product title
+                all_tokens_present = True
+                for token in search_tokens:
+                    if token not in title and token not in product_title:
+                        all_tokens_present = False
+                        break
+                        
+                if all_tokens_present:
+                    score += 50
+                
+                # Count individual token matches
+                token_matches = 0
+                for token in search_tokens:
+                    if token in title or token in product_title:
+                        token_matches += 1
+                        
+                # Add score based on number of matching tokens
+                score += token_matches * 10
+                
+                # Direct ID matches
+                if search_text in cansim_id or search_text in product_id:
+                    score += 75
+                    
+                # If there's any score, add to results
+                if score > 0:
+                    scored_results.append((cube, score))
+            
+            # Sort by score (descending)
+            scored_results.sort(key=lambda x: x[1], reverse=True)
+            
+            # Extract just the cubes for the final result
+            results = [item[0] for item in scored_results]
+            
+            # If we got no results, try some common synonym substitutions
+            if not results and len(search_tokens) > 0:
+                logger.debug(f"No results found with direct search, trying synonyms")
+                
+                # Define some common substitutions for statistical terms
+                synonyms = {
+                    "housing": ["house", "home", "property", "real estate", "dwelling"],
+                    "prices": ["price", "cost", "value", "index"],
+                    "employment": ["job", "labor", "labour", "work", "workforce"],
+                    "income": ["earnings", "wage", "salary", "compensation"],
+                    "inflation": ["cpi", "consumer price", "price index"],
+                    "industry": ["sector", "business", "commercial"]
+                }
+                
+                # Try replacing each token with synonyms
+                alternative_searches = []
+                
+                for i, token in enumerate(search_tokens):
+                    if token in synonyms:
+                        for synonym in synonyms[token]:
+                            new_search = search_tokens.copy()
+                            new_search[i] = synonym
+                            alternative_searches.append(" ".join(new_search))
+                
+                # Also try some common prefix substitutions
+                if "canada" in search_text:
+                    alternative_searches.append(search_text.replace("canada", "canadian"))
+                elif "canadian" in search_text:
+                    alternative_searches.append(search_text.replace("canadian", "canada"))
+                
+                # Try each alternative search
+                for alt_search in alternative_searches:
+                    logger.debug(f"Trying alternative search: '{alt_search}'")
+                    
+                    for cube in cubes:
+                        title = str(cube.get("cubeTitleEn", "")).lower()
+                        product_title = str(cube.get("productTitle", "")).lower()
+                        
+                        if alt_search in title or alt_search in product_title:
+                            # If it's a direct match on the alternative search
+                            results.append(cube)
+                            break
+            
+            # Log some debug info about the search
+            logger.info(f"Found {len(results)} results for search '{search_text}'")
             
             return {
                 "status": "SUCCESS",
