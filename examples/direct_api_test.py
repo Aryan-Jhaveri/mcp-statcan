@@ -2,7 +2,7 @@
 """
 Script to directly test StatCan API endpoints without our client.
 
-Run with: python scripts/direct_api_test.py
+Run with: python -m examples.direct_api_test
 """
 
 import asyncio

@@ -5,7 +5,7 @@ Script to test the StatCan MCP server functionalities directly.
 This script bypasses the MCP server framework and directly tests the
 underlying functions to verify the enhanced implementations.
 
-Run with: python scripts/test_mcp_server.py
+Run with: python -m tests.integration.test_mcp_server
 """
 
 import asyncio

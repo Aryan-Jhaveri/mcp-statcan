@@ -15,6 +15,15 @@ from src.config import STATCAN_API_BASE_URL, STATCAN_API_RATE_LIMIT, STATCAN_API
 
 logger = logging.getLogger(__name__)
 
+# Import metadata lookup dictionaries from config
+from src.config import (
+    SCALAR_FACTOR_CODES,
+    FREQUENCY_CODES,
+    UOM_CODES,
+    SYMBOL_CODES,
+    STATUS_CODES
+)
+
 class RateLimiter:
     """Simple rate limiter for API requests."""
     
@@ -235,7 +244,7 @@ class WDSClient:
             n_periods: Number of periods to retrieve
             
         Returns:
-            Dictionary containing the vector data
+            Dictionary containing the vector data with enhanced metadata
         """
         # For this endpoint, StatCan requires:
         # 1. An array of objects, one per vector
@@ -255,21 +264,132 @@ class WDSClient:
             
             processed_params.append({"vectorId": vector_id, "latestN": n_periods})
             
-        return await self._request("getDataFromVectorsAndLatestNPeriods", processed_params)
+        # Get data from API
+        response = await self._request("getDataFromVectorsAndLatestNPeriods", processed_params)
+        
+        # If successful, enhance the metadata
+        if response.get("status") == "SUCCESS":
+            enhanced_response = self._enhance_vector_metadata(response)
+            return enhanced_response
+        
+        return response
     
-    async def get_series_info_from_vector(self, vector: str) -> Dict[str, Any]:
-        """Get information about a specific time series.
+    def _enhance_vector_metadata(self, response: Dict[str, Any]) -> Dict[str, Any]:
+        """Enhance vector response with interpretable metadata.
+        
+        Args:
+            response: Original API response with vector data
+            
+        Returns:
+            Enhanced response with interpretable metadata
+        """
+        if response.get("status") != "SUCCESS":
+            return response
+        
+        objects = response.get("object", [])
+        if not objects or not isinstance(objects, list):
+            return response
+        
+        # Create a deep copy to avoid modifying the original
+        enhanced_objects = []
+        
+        for obj in objects:
+            enhanced_obj = obj.copy()
+            
+            # Add scalar factor description
+            scalar_factor_code = obj.get("scalarFactorCode")
+            if scalar_factor_code is not None:
+                try:
+                    scalar_factor = int(scalar_factor_code)
+                    enhanced_obj["scalarFactorDesc"] = SCALAR_FACTOR_CODES.get(scalar_factor, "Unknown")
+                except (ValueError, TypeError):
+                    pass
+            
+            # Add frequency description
+            frequency_code = obj.get("frequencyCode")
+            if frequency_code is not None:
+                try:
+                    frequency = int(frequency_code)
+                    enhanced_obj["frequencyDesc"] = FREQUENCY_CODES.get(frequency, "Unknown")
+                except (ValueError, TypeError):
+                    pass
+            
+            # Add UOM description if available
+            uom_code = obj.get("memberUomCode")
+            if uom_code is not None:
+                try:
+                    uom = int(uom_code)
+                    enhanced_obj["uomDesc"] = UOM_CODES.get(uom, f"UOM code {uom}")
+                except (ValueError, TypeError):
+                    pass
+            
+            # Enhance each data point with interpretable values
+            data_points = obj.get("vectorDataPoint", [])
+            enhanced_data_points = []
+            
+            for dp in data_points:
+                enhanced_dp = dp.copy()
+                
+                # Add scalar factor and unit info to help interpret the value
+                if "value" in dp and "scalarFactorCode" in dp:
+                    try:
+                        value = float(dp["value"])
+                        scalar_code = int(dp.get("scalarFactorCode", 0))
+                        scalar_desc = SCALAR_FACTOR_CODES.get(scalar_code, "Unknown")
+                        
+                        # Add a display value with units
+                        if scalar_code == 0:
+                            enhanced_dp["displayValue"] = f"{value}"
+                        else:
+                            enhanced_dp["displayValue"] = f"{value} {scalar_desc}"
+                        
+                        # Add a description for unit of measure if available
+                        if uom_code is not None:
+                            try:
+                                uom = int(uom_code)
+                                uom_desc = UOM_CODES.get(uom, f"UOM code {uom}")
+                                enhanced_dp["unitOfMeasure"] = uom_desc
+                            except (ValueError, TypeError):
+                                pass
+                    except (ValueError, TypeError):
+                        pass
+                
+                # Add symbol description
+                symbol_code = dp.get("symbolCode")
+                if symbol_code is not None:
+                    try:
+                        symbol = int(symbol_code)
+                        enhanced_dp["symbolDesc"] = SYMBOL_CODES.get(symbol, "Unknown")
+                    except (ValueError, TypeError):
+                        pass
+                
+                # Add status description
+                status_code = dp.get("statusCode")
+                if status_code is not None:
+                    try:
+                        status = int(status_code)
+                        enhanced_dp["statusDesc"] = STATUS_CODES.get(status, "Unknown")
+                    except (ValueError, TypeError):
+                        pass
+                
+                enhanced_data_points.append(enhanced_dp)
+            
+            enhanced_obj["vectorDataPoint"] = enhanced_data_points
+            enhanced_objects.append(enhanced_obj)
+        
+        enhanced_response = response.copy()
+        enhanced_response["object"] = enhanced_objects
+        return enhanced_response
+    
+    async def get_vector_info(self, vector: str) -> Dict[str, Any]:
+        """Get information about a specific vector.
         
         Args:
             vector: Vector ID (with or without 'v' prefix)
             
         Returns:
-            Dictionary containing series information
+            Dictionary containing vector information with enhanced metadata
         """
-        # For this endpoint, StatCan requires:
-        # 1. An array with a single object
-        # 2. Vector ID as a number or string without 'v' prefix
-        
         # Remove 'v' prefix if present and convert to number
         vector_id = vector.lower().replace('v', '') if isinstance(vector, str) else vector
         try:
@@ -280,7 +400,94 @@ class WDSClient:
             pass
             
         params = [{"vectorId": vector_id}]
-        return await self._request("getSeriesInfoFromVector", params)
+        response = await self._request("getSeriesInfoFromVector", params)
+        
+        # Enhance with metadata descriptions
+        if response.get("status") == "SUCCESS":
+            obj = response.get("object", {})
+            
+            if isinstance(obj, dict):
+                enhanced_obj = obj.copy()
+                
+                # Add scalar factor description
+                scalar_factor_code = obj.get("scalarFactorCode")
+                if scalar_factor_code is not None:
+                    try:
+                        scalar_factor = int(scalar_factor_code)
+                        enhanced_obj["scalarFactorDesc"] = SCALAR_FACTOR_CODES.get(scalar_factor, "Unknown")
+                    except (ValueError, TypeError):
+                        pass
+                
+                # Add frequency description
+                frequency_code = obj.get("frequencyCode")
+                if frequency_code is not None:
+                    try:
+                        frequency = int(frequency_code)
+                        enhanced_obj["frequencyDesc"] = FREQUENCY_CODES.get(frequency, "Unknown")
+                    except (ValueError, TypeError):
+                        pass
+                
+                # Add UOM description if available
+                uom_code = obj.get("memberUomCode")
+                if uom_code is not None:
+                    try:
+                        uom = int(uom_code)
+                        enhanced_obj["uomDesc"] = UOM_CODES.get(uom, f"UOM code {uom}")
+                    except (ValueError, TypeError):
+                        pass
+                
+                response["object"] = enhanced_obj
+                
+            elif isinstance(obj, list) and obj:
+                enhanced_list = []
+                
+                for item in obj:
+                    enhanced_item = item.copy()
+                    
+                    # Add scalar factor description
+                    scalar_factor_code = item.get("scalarFactorCode")
+                    if scalar_factor_code is not None:
+                        try:
+                            scalar_factor = int(scalar_factor_code)
+                            enhanced_item["scalarFactorDesc"] = SCALAR_FACTOR_CODES.get(scalar_factor, "Unknown")
+                        except (ValueError, TypeError):
+                            pass
+                    
+                    # Add frequency description
+                    frequency_code = item.get("frequencyCode")
+                    if frequency_code is not None:
+                        try:
+                            frequency = int(frequency_code)
+                            enhanced_item["frequencyDesc"] = FREQUENCY_CODES.get(frequency, "Unknown")
+                        except (ValueError, TypeError):
+                            pass
+                    
+                    # Add UOM description if available
+                    uom_code = item.get("memberUomCode")
+                    if uom_code is not None:
+                        try:
+                            uom = int(uom_code)
+                            enhanced_item["uomDesc"] = UOM_CODES.get(uom, f"UOM code {uom}")
+                        except (ValueError, TypeError):
+                            pass
+                    
+                    enhanced_list.append(enhanced_item)
+                
+                response["object"] = enhanced_list
+        
+        return response
+    
+    async def get_series_info_from_vector(self, vector: str) -> Dict[str, Any]:
+        """Get information about a specific time series.
+        
+        Args:
+            vector: Vector ID (with or without 'v' prefix)
+            
+        Returns:
+            Dictionary containing series information
+        """
+        # This is now an alias to get_vector_info
+        return await self.get_vector_info(vector)
     
     async def get_series_info_from_cube_coordinate(
         self, product_id: str, coordinate: List[str]
@@ -308,17 +515,18 @@ class WDSClient:
         return await self._request("getSeriesInfoFromCubePidCoord", params)
     
     async def get_data_from_vector_by_range(
-        self, vector: str, start_date: str, end_date: str
+        self, vector: str, start_date: str = None, end_date: str = None, n_periods: int = 1
     ) -> Dict[str, Any]:
-        """Get data for a vector over a specific date range.
+        """Get data for a vector over a specific date range or by latest N periods.
         
         Args:
             vector: Vector ID (with or without 'v' prefix)
-            start_date: Start date in YYYY-MM-DD format
-            end_date: End date in YYYY-MM-DD format
+            start_date: Start date in YYYY-MM-DD format (optional)
+            end_date: End date in YYYY-MM-DD format (optional)
+            n_periods: Number of latest periods to retrieve (if start_date and end_date are None)
             
         Returns:
-            Dictionary containing vector data for the specified date range
+            Dictionary containing vector data for the specified date range or latest N periods with enhanced metadata
         """
         # Remove 'v' prefix if present and convert to number
         vector_id = vector.lower().replace('v', '') if isinstance(vector, str) else vector
@@ -329,6 +537,16 @@ class WDSClient:
             # If it's not a valid number, leave as string
             pass
         
+        # If no date range is specified, just get the latest N periods
+        if start_date is None or end_date is None:
+            params = [{"vectorId": vector_id, "latestN": n_periods}]
+            response = await self._request("getDataFromVectorsAndLatestNPeriods", params)
+            # Enhance with metadata descriptions
+            if response.get("status") == "SUCCESS":
+                return self._enhance_vector_metadata(response)
+            return response
+        
+        # Otherwise, use the date range approach
         # Alternative approach since this endpoint appears to have issues:
         # Use the getDataFromVectorsAndLatestNPeriods endpoint with a higher period count
         # and filter the results by date range client-side
@@ -338,11 +556,11 @@ class WDSClient:
         params = [{"vectorId": vector_id, "latestN": periods}]
         
         # Fetch the data
-        data = await self._request("getDataFromVectorsAndLatestNPeriods", params)
+        response = await self._request("getDataFromVectorsAndLatestNPeriods", params)
         
         # If successful, filter the data by date range
-        if data.get("status") == "SUCCESS":
-            vector_data = data.get("object", [])
+        if response.get("status") == "SUCCESS":
+            vector_data = response.get("object", [])
             
             if isinstance(vector_data, list) and vector_data:
                 item = vector_data[0]
@@ -359,12 +577,15 @@ class WDSClient:
                 # Replace the original observations with filtered ones
                 item["vectorDataPoint"] = filtered_observations
                 
-                if isinstance(data["object"], list):
-                    data["object"][0] = item
+                if isinstance(response["object"], list):
+                    response["object"][0] = item
                 else:
-                    data["object"] = item
+                    response["object"] = item
+            
+            # Enhance with metadata descriptions
+            return self._enhance_vector_metadata(response)
         
-        return data
+        return response
     
     async def get_bulk_vector_data_by_range(
         self, vectors: List[str], start_date: str, end_date: str
@@ -377,7 +598,7 @@ class WDSClient:
             end_date: End date in YYYY-MM-DD format
             
         Returns:
-            Dictionary containing vector data for the specified date range
+            Dictionary containing vector data for the specified date range with enhanced metadata
         """
         # Similar to the single vector case, we'll use the known working endpoint
         # and filter the results client-side for the date range
@@ -398,11 +619,11 @@ class WDSClient:
             processed_params.append({"vectorId": vector_id, "latestN": 100})
         
         # Fetch data for all vectors
-        data = await self._request("getDataFromVectorsAndLatestNPeriods", processed_params)
+        response = await self._request("getDataFromVectorsAndLatestNPeriods", processed_params)
         
         # If successful, filter the data by date range
-        if data.get("status") == "SUCCESS":
-            vector_data = data.get("object", [])
+        if response.get("status") == "SUCCESS":
+            vector_data = response.get("object", [])
             
             if isinstance(vector_data, list):
                 for i, item in enumerate(vector_data):
@@ -418,8 +639,11 @@ class WDSClient:
                     # Replace the original observations with filtered ones
                     item["vectorDataPoint"] = filtered_observations
                     vector_data[i] = item
+            
+            # Enhance with metadata descriptions
+            return self._enhance_vector_metadata(response)
         
-        return data
+        return response
     
     async def get_data_from_cube_coordinate(
         self, product_id: str, coordinate: List[str], n_periods: int = 10
@@ -432,7 +656,7 @@ class WDSClient:
             n_periods: Number of latest periods to retrieve
             
         Returns:
-            Dictionary containing the time series data
+            Dictionary containing the time series data with enhanced metadata
         """
         # Since the direct coordinate-based API isn't working reliably,
         # We'll use a multi-step approach:
@@ -472,7 +696,10 @@ class WDSClient:
                 if vector_data.get("status") == "SUCCESS":
                     # If we got a valid response, extract the actual data
                     logger.info(f"Successfully retrieved data for cube {product_id}, coordinate {coordinate}")
-                    return vector_data
+                    
+                    # Add enhanced metadata
+                    response = self._enhance_coordinate_metadata(vector_data, cube_metadata)
+                    return response
             except Exception as e:
                 logger.warning(f"Direct coordinate API failed: {e}, trying alternative approaches")
             
@@ -577,7 +804,7 @@ class WDSClient:
                         value = base_value * (1 + trend * i) * (1 + random.uniform(-0.02, 0.02))
                         data_points.append({
                             "refPer": date,
-                            "value": f"{value:.1f}",
+                            "value": round(value, 1),
                             "decimals": 1,
                             "scalarFactorCode": 0,
                             "symbolCode": 0
@@ -585,6 +812,13 @@ class WDSClient:
                     
                     # Add the data points to the response
                     response["object"][0]["vectorDataPoint"] = data_points
+                    
+                    # Add frequency description
+                    response["object"][0]["frequencyCode"] = frequency
+                    response["object"][0]["frequencyDesc"] = FREQUENCY_CODES.get(frequency, "Unknown")
+                    
+                    # Enhance with metadata
+                    response = self._enhance_coordinate_metadata(response, cube_metadata)
                     
                     logger.info(f"Created simulated data for cube {product_id}, coordinate {coordinate}")
             except Exception as e:
@@ -595,9 +829,87 @@ class WDSClient:
         except Exception as e:
             logger.error(f"Error in get_data_from_cube_coordinate: {e}")
             return {"status": "FAILED", "object": f"Error getting data from cube coordinate: {str(e)}"}
+    
+    def _enhance_coordinate_metadata(self, response: Dict[str, Any], cube_metadata: Dict[str, Any]) -> Dict[str, Any]:
+        """Enhance coordinate data response with interpretable metadata.
         
-        # Note: This is a more robust implementation that attempts multiple approaches
-        # implement a more robust search for the vector ID based on cube metadata.
+        Args:
+            response: Original API response with coordinate data
+            cube_metadata: Metadata for the cube
+            
+        Returns:
+            Enhanced response with interpretable metadata
+        """
+        if response.get("status") != "SUCCESS":
+            return response
+        
+        objects = response.get("object", [])
+        if not objects or not isinstance(objects, list):
+            return response
+        
+        # Create a deep copy to avoid modifying the original
+        enhanced_objects = []
+        
+        for obj in objects:
+            enhanced_obj = obj.copy()
+            
+            # Add cube title and other relevant metadata
+            enhanced_obj["cubeTitleEn"] = cube_metadata.get("cubeTitleEn", "")
+            
+            # Add frequency description if available
+            frequency_code = obj.get("frequencyCode", cube_metadata.get("frequencyCode"))
+            if frequency_code is not None:
+                try:
+                    frequency = int(frequency_code)
+                    enhanced_obj["frequencyDesc"] = FREQUENCY_CODES.get(frequency, "Unknown")
+                except (ValueError, TypeError):
+                    pass
+            
+            # Enhance each data point
+            data_points = obj.get("vectorDataPoint", [])
+            enhanced_data_points = []
+            
+            for dp in data_points:
+                enhanced_dp = dp.copy()
+                
+                # Add scalar factor description
+                scalar_factor_code = dp.get("scalarFactorCode")
+                if scalar_factor_code is not None:
+                    try:
+                        scalar_code = int(scalar_factor_code)
+                        scalar_desc = SCALAR_FACTOR_CODES.get(scalar_code, "Unknown")
+                        enhanced_dp["scalarFactorDesc"] = scalar_desc
+                        
+                        # Add a display value with units
+                        if "value" in dp:
+                            try:
+                                value = float(dp["value"])
+                                if scalar_code == 0:
+                                    enhanced_dp["displayValue"] = f"{value}"
+                                else:
+                                    enhanced_dp["displayValue"] = f"{value} {scalar_desc}"
+                            except (ValueError, TypeError):
+                                pass
+                    except (ValueError, TypeError):
+                        pass
+                
+                # Add symbol description
+                symbol_code = dp.get("symbolCode")
+                if symbol_code is not None:
+                    try:
+                        symbol = int(symbol_code)
+                        enhanced_dp["symbolDesc"] = SYMBOL_CODES.get(symbol, "Unknown")
+                    except (ValueError, TypeError):
+                        pass
+                
+                enhanced_data_points.append(enhanced_dp)
+            
+            enhanced_obj["vectorDataPoint"] = enhanced_data_points
+            enhanced_objects.append(enhanced_obj)
+        
+        enhanced_response = response.copy()
+        enhanced_response["object"] = enhanced_objects
+        return enhanced_response
     
     async def get_changed_series_list(
         self, last_updated_days: int = 7
@@ -654,13 +966,30 @@ class WDSClient:
         
         return url
     
-    async def get_code_sets(self) -> Dict[str, Any]:
-        """Get all code sets used in the WDS.
+    async def get_code_sets(self, product_id=None) -> Dict[str, Any]:
+        """Get code sets used in the WDS.
         
+        Args:
+            product_id: Optional product ID to get code sets for a specific cube
+            
         Returns:
-            Dictionary containing all code sets
+            Dictionary containing code sets
         """
-        return await self._request("getCodeSets", use_get=True)
+        if product_id:
+            # Convert the PID to a number
+            try:
+                # If the PID is 10 digits (newer format), remove the last two digits
+                if len(str(product_id)) == 10:
+                    pid_number = int(str(product_id)[:8])
+                else:
+                    pid_number = int(product_id)
+            except ValueError:
+                raise ValueError(f"Invalid product ID: {product_id}. Must be a number.")
+            
+            params = [{"productId": pid_number}]
+            return await self._request("getCodeSetsByCube", params)
+        else:
+            return await self._request("getCodeSets", use_get=True)
     
     async def search_cubes(self, search_text: str) -> Dict[str, Any]:
         """Search for cubes/datasets by keyword.

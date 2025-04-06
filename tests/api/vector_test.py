@@ -2,7 +2,7 @@
 """
 Script to test different vector data request formats for StatCan WDS API.
 
-Run with: python scripts/vector_test.py
+Run with: python -m tests.api.vector_test
 """
 
 import asyncio

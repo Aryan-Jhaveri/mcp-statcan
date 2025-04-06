@@ -2,7 +2,7 @@
 """
 Script to test different request formats for StatCan WDS API.
 
-Run with: python scripts/format_test.py
+Run with: python -m tests.api.format_test
 """
 
 import asyncio

@@ -5,7 +5,7 @@ Script to test the cube data retrieval and visualization capabilities.
 This script tests the get_series_from_cube functionality with the enhanced data retrieval
 and visualization features.
 
-Run with: python scripts/test_cube_data.py
+Run with: python -m tests.integration.test_cube_data
 """
 
 import asyncio

@@ -4,7 +4,7 @@ Script to test the MCP server integrations.
 
 This script tests the integration with other MCP servers.
 
-Run with: python scripts/test_integrations.py
+Run with: python -m tests.integration.test_integrations
 """
 
 import asyncio

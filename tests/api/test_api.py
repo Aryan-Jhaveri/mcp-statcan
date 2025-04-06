@@ -2,7 +2,7 @@
 """
 Script to test the StatCan WDS API client with the new methods.
 
-Run with: python scripts/test_api.py
+Run with: python -m tests.api.test_api
 """
 
 import asyncio

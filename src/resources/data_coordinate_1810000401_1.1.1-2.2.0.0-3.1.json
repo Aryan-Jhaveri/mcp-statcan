@@ -1,0 +1,21 @@
+[
+  {
+    "vectorId": "unknown_1810000401_1.1.1-2.2.0.0-3.1",
+    "coordinate": [
+      "1.1.1",
+      "2.2.0.0",
+      "3.1"
+    ],
+    "productId": "1810000401",
+    "vectorDataPoint": [
+      {
+        "refPer": "2025-02-01",
+        "value": "130.4",
+        "decimals": 1,
+        "scalarFactorCode": 0,
+        "symbolCode": 0
+      }
+    ],
+    "SeriesTitleEn": "Consumer Price Index, monthly, not seasonally adjusted"
+  }
+]

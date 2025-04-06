@@ -1,0 +1,14 @@
+{
+  "1": "Annual",
+  "2": "Semi-annual",
+  "4": "Quarterly",
+  "6": "Monthly",
+  "7": "Bimonthly",
+  "8": "Weekly",
+  "9": "Daily",
+  "12": "Semi-monthly",
+  "13": "Every 2 years",
+  "18": "Occasional",
+  "19": "Every 5 years",
+  "50": "Variable"
+}

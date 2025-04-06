@@ -387,6 +387,19 @@ class StatCanMCPServer:
                 response_text += "Access full time series data at:\n"
                 for vector in vectors:
                     response_text += f"- statcan://series/{vector}\n"
+                    
+                    # Extract product ID if possible - vector data is associated with a table
+                    vector_item = next((v for v in vector_data if str(v.get("vectorId", "")).replace("v", "") == vector.replace("v", "")), None)
+                    if vector_item and "productId" in vector_item:
+                        pid = vector_item.get("productId")
+                        # Format the PID to make sure it has 10 digits
+                        if len(str(pid)) <= 8:  # 8-digit or shorter needs formatting
+                            # The web URL format for tables requires 10 digits (pid with 8 digits + 01)
+                            # Format: AAAAAAABB where AAAAAAAA is 8-digit PID and BB is 01
+                            pid_str = str(pid).zfill(8) + "01"
+                        else:
+                            pid_str = str(pid)
+                        response_text += f"  View online at: https://www150.statcan.gc.ca/t1/tbl1/en/cv.action?pid={pid_str}\n"
                 
                 # If we have a single vector with observations, add visualization suggestion
                 if len(vector_data) == 1 and len(observations) > 1:
@@ -581,6 +594,19 @@ class StatCanMCPServer:
                 response_text += "Access full time series data at:\n"
                 for vector in vectors:
                     response_text += f"- statcan://series/{vector}\n"
+                    
+                    # Extract product ID if possible - vector data is associated with a table
+                    vector_item = next((v for v in vector_data if str(v.get("vectorId", "")).replace("v", "") == vector.replace("v", "")), None)
+                    if vector_item and "productId" in vector_item:
+                        pid = vector_item.get("productId")
+                        # Format the PID to make sure it has 10 digits
+                        if len(str(pid)) <= 8:  # 8-digit or shorter needs formatting
+                            # The web URL format for tables requires 10 digits (pid with 8 digits + 01)
+                            # Format: AAAAAAABB where AAAAAAAA is 8-digit PID and BB is 01
+                            pid_str = str(pid).zfill(8) + "01"
+                        else:
+                            pid_str = str(pid)
+                        response_text += f"  View online at: https://www150.statcan.gc.ca/t1/tbl1/en/cv.action?pid={pid_str}\n"
                 
                 # If we have a single vector with observations, add visualization suggestion
                 if len(vector_data) == 1 and len(observations) > 1:
@@ -804,6 +830,15 @@ class StatCanMCPServer:
                 # Add resource link if vector ID is available
                 if series_id != "Unknown":
                     response_text += f"\nAccess full time series data at: statcan://series/{series_id}\n"
+                    
+                    # Format the PID to ensure proper URL format
+                    pid_str = product_id
+                    if len(product_id) <= 8:  # 8-digit or shorter needs formatting
+                        # The web URL format for tables requires 10 digits (pid with 8 digits + 01)
+                        # Format: AAAAAAABB where AAAAAAAA is 8-digit PID and BB is 01
+                        pid_str = str(product_id).zfill(8) + "01"
+                    
+                    response_text += f"View online at: https://www150.statcan.gc.ca/t1/tbl1/en/cv.action?pid={pid_str}\n"
                 
                 # Add visualization suggestion if we have data points
                 if observations and len(observations) > 1:

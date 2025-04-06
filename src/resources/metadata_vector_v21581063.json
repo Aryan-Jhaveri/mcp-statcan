@@ -1,0 +1,13 @@
+{
+  "responseStatusCode": 0,
+  "productId": 14100287,
+  "coordinate": "2.3.1.8.1.1.0.0.0.0",
+  "vectorId": 21581063,
+  "frequencyCode": 6,
+  "scalarFactorCode": 3,
+  "decimals": 1,
+  "terminated": 0,
+  "SeriesTitleEn": "Newfoundland and Labrador;Employment;Total - Gender;15 to 64 years;Estimate;Seasonally adjusted",
+  "SeriesTitleFr": "Terre-Neuve-et-Labrador;Emploi;Total - Genre;15 \u00e0 64 ans;Estimation;D\u00e9saisonnalis\u00e9es",
+  "memberUomCode": 428
+}

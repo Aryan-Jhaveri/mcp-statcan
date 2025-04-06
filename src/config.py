@@ -69,9 +69,80 @@ STATCAN_API_TIMEOUT = int(os.getenv("STATCAN_API_TIMEOUT", "30"))
 STATCAN_API_RETRIES = int(os.getenv("STATCAN_API_RETRIES", "3"))
 STATCAN_API_RETRY_DELAY = float(os.getenv("STATCAN_API_RETRY_DELAY", "1.5"))  # seconds
 
+# Scalar factor descriptions
+SCALAR_FACTOR_CODES = {
+    0: "Units",
+    1: "Tens",
+    2: "Hundreds", 
+    3: "Thousands",
+    4: "Tens of thousands",
+    5: "Hundreds of thousands",
+    6: "Millions",
+    7: "Tens of millions",
+    8: "Hundreds of millions",
+    9: "Billions",
+    10: "Trillions"
+}
+
+# Frequency descriptions
+FREQUENCY_CODES = {
+    1: "Annual",
+    2: "Semi-annual",
+    4: "Quarterly",
+    6: "Monthly",
+    7: "Bimonthly",
+    8: "Weekly",
+    9: "Daily",
+    12: "Semi-monthly",
+    13: "Every 2 years",
+    18: "Occasional",
+    19: "Every 5 years",
+    50: "Variable"
+}
+
+# Units of measurement codes - this is a partial mapping of known codes
+UOM_CODES = {
+    # Common economic indicators
+    17: "Index (2002=100)",  # CPI
+    223: "Persons",  # Employment
+    428: "Thousands of persons",  # Labour force
+    
+    # Add more mappings as they are discovered through API responses
+    0: "Units",
+    205: "Dollars",
+    237: "Percent",
+    280: "Ratio",
+    289: "Cubic metres",
+    290: "Square metres",
+    288: "Tonnes",
+}
+
+# Symbol codes for data point interpretation
+SYMBOL_CODES = {
+    0: "",  # Regular value
+    1: "x",  # Suppressed for confidentiality
+    2: "...",  # Data not available
+    3: "F",  # Too unreliable to be published
+    4: "..",  # Not applicable
+    5: "r",  # Revised
+    6: "p",  # Preliminary
+    7: "e",  # Estimated
+    8: "E",  # Use with caution
+    9: "c",  # Confidential
+    10: "D",  # Withheld for data quality reasons
+}
+
+# Status codes
+STATUS_CODES = {
+    0: "Normal",
+    1: "Preliminary",
+    2: "Revised",
+    3: "Discontinued"
+}
+
 # Logging configuration
 LOG_LEVEL = os.getenv("LOG_LEVEL", "INFO")
-LOG_FILE = os.getenv("LOG_FILE", os.path.expanduser("~/statcan_logs/mcp-statcan.log"))
+LOG_FILE = os.getenv("LOG_FILE", os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "logs", "mcp-statcan.log"))
 LOG_FORMAT = os.getenv(
     "LOG_FORMAT", 
     "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
@@ -136,6 +207,13 @@ def get_config() -> Dict[str, Any]:
             "timeout": STATCAN_API_TIMEOUT,
             "retries": STATCAN_API_RETRIES,
             "retry_delay": STATCAN_API_RETRY_DELAY,
+        },
+        "metadata": {
+            "scalar_factors": SCALAR_FACTOR_CODES,
+            "frequencies": FREQUENCY_CODES,
+            "units_of_measure": UOM_CODES,
+            "symbols": SYMBOL_CODES,
+            "statuses": STATUS_CODES,
         },
         "logging": {
             "level": LOG_LEVEL,

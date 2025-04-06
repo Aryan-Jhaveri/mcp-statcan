@@ -1,0 +1,114 @@
+{
+  "title": "Key Canadian Economic Indicators",
+  "description": "Comparison of key economic indicators over time",
+  "series": [
+    {
+      "id": "v21581063",
+      "name": "GDP",
+      "units": "Unknown units",
+      "frequency": "Unknown frequency",
+      "data": [
+        {
+          "date": "2024-11-01",
+          "value": 226.7,
+          "display": "226.7 Thousands",
+          "status": "Normal",
+          "symbol": ""
+        },
+        {
+          "date": "2024-12-01",
+          "value": 228.9,
+          "display": "228.9 Thousands",
+          "status": "Normal",
+          "symbol": ""
+        },
+        {
+          "date": "2025-01-01",
+          "value": 229.7,
+          "display": "229.7 Thousands",
+          "status": "Normal",
+          "symbol": ""
+        },
+        {
+          "date": "2025-02-01",
+          "value": 229.6,
+          "display": "229.6 Thousands",
+          "status": "Normal",
+          "symbol": ""
+        },
+        {
+          "date": "2025-03-01",
+          "value": 229.8,
+          "display": "229.8 Thousands",
+          "status": "Normal",
+          "symbol": ""
+        }
+      ]
+    },
+    {
+      "id": "v41690973",
+      "name": "CPI All-items",
+      "units": "Unknown units",
+      "frequency": "Unknown frequency",
+      "data": [
+        {
+          "date": "2024-10-01",
+          "value": 161.8,
+          "display": "161.8",
+          "status": "Normal",
+          "symbol": ""
+        },
+        {
+          "date": "2024-11-01",
+          "value": 161.8,
+          "display": "161.8",
+          "status": "Normal",
+          "symbol": ""
+        },
+        {
+          "date": "2024-12-01",
+          "value": 161.2,
+          "display": "161.2",
+          "status": "Normal",
+          "symbol": ""
+        },
+        {
+          "date": "2025-01-01",
+          "value": 161.3,
+          "display": "161.3",
+          "status": "Normal",
+          "symbol": ""
+        },
+        {
+          "date": "2025-02-01",
+          "value": 163.0,
+          "display": "163.0",
+          "status": "Normal",
+          "symbol": ""
+        }
+      ]
+    },
+    {
+      "id": "v111955426",
+      "name": "Employment",
+      "units": "Unknown units",
+      "frequency": "Unknown frequency",
+      "data": [
+        {
+          "date": "2011-01-01",
+          "value": null,
+          "display": null,
+          "status": "Preliminary",
+          "symbol": ""
+        },
+        {
+          "date": "2016-01-01",
+          "value": 0.0,
+          "display": "0.0",
+          "status": "Normal",
+          "symbol": ""
+        }
+      ]
+    }
+  ]
+}
