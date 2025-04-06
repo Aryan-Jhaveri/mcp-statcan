@@ -98,9 +98,19 @@ async def test_vector_data():
             result = await client.get_data_from_vectors([vector], 5)
             
             if result["status"] == "SUCCESS":
-                series = result["object"]
-                if series:
-                    data = series[0]
+                # The API response format varies, handle different formats
+                obj = result["object"]
+                
+                if isinstance(obj, list) and len(obj) > 0:
+                    # If it's a list, take the first element
+                    data = obj[0]
+                elif isinstance(obj, dict):
+                    # If it's a direct dictionary
+                    data = obj
+                else:
+                    data = None
+                
+                if data and "vectorDataPoint" in data:
                     print(f"Series: {data.get('SeriesTitleEn', 'Unknown')}")
                     
                     points = data.get("vectorDataPoint", [])
@@ -110,7 +120,7 @@ async def test_vector_data():
                         value = point.get("value", "N/A")
                         print(f"  {period}: {value}")
                 else:
-                    print("No data found.")
+                    print("No data found or unexpected data format.")
             else:
                 print(f"Error: {result.get('object', 'Unknown error')}")
     finally:

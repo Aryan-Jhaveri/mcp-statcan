@@ -78,15 +78,18 @@ class WDSClient:
     async def _request(
         self,
         method: str,
-        params: Dict[str, Any],
-        endpoint: str = "/rest/getDataFromVectorsAndLatestNPeriods",
+        params: Dict[str, Any] = None,
+        endpoint: str = None,
+        use_get: bool = False,
+        with_date: str = None,
     ) -> Dict[str, Any]:
         """Make a request to the WDS API.
         
         Args:
             method: API method name (e.g., 'getDataFromVectorsAndLatestNPeriods')
-            params: API parameters
-            endpoint: API endpoint path
+            params: API parameters (for POST requests)
+            endpoint: API endpoint path (defaults to method name)
+            use_get: Whether to use GET instead of POST
             
         Returns:
             API response as a dictionary
@@ -98,23 +101,66 @@ class WDSClient:
         await self._ensure_session()
         await self.rate_limiter.acquire()
         
-        url = f"{self.base_url}{endpoint}"
-        request_params = {"user_id": "0"} | params
+        # Use the method name as the endpoint if not specified
+        if endpoint is None:
+            if with_date:
+                endpoint = f"/{method}/{with_date}"
+            else:
+                endpoint = f"/{method}"
         
-        logger.debug(f"Making {method} request to {url} with params: {request_params}")
+        url = f"{self.base_url}{endpoint}"
+        
+        # For StatCan API, we need to ensure params is wrapped correctly
+        if params is None:
+            params = {}
+        
+        # The StatCan API has different formats for different endpoints
+        # For POST requests with parameters, the format varies by endpoint
+        
+        logger.debug(f"Making {method} request to {url}")
         
         try:
-            async with self.session.post(url, json=request_params) as response:
-                response.raise_for_status()
-                data = await response.json()
+            if use_get:
+                # For GET requests, no params in body 
+                # (parameters are included in URL for some endpoints)
+                async with self.session.get(url) as response:
+                    response.raise_for_status()
+                    data = await response.json()
+            else:
+                # For POST requests, send params directly as JSON body
+                # The StatCan API wants parameters directly in the body, not wrapped
+                async with self.session.post(url, json=params) as response:
+                    response.raise_for_status()
+                    data = await response.json()
                 
-                # Check for API errors
+            # Handle different response formats
+            # Some endpoints return arrays, others return objects
+            # Normalize responses for consistency
+            if isinstance(data, list):
+                # Handle array response (common for cube metadata, vector data)
+                if len(data) == 0:
+                    # Empty response
+                    return {"status": "SUCCESS", "object": []}
+                elif "status" in data[0]:
+                    # Response is an array with status in each item
+                    # For API consistency, return the first element's object
+                    if data[0]["status"] == "FAILED":
+                        error_msg = data[0].get("object", "Unknown API error")
+                        logger.error(f"API error: {error_msg}")
+                        raise ValueError(f"API error: {error_msg}")
+                    logger.debug(f"Received array response from {method}: {len(str(data))} bytes")
+                    return data[0]  # Most API calls expect object, not array
+                else:
+                    # Just a plain array without status
+                    return {"status": "SUCCESS", "object": data}
+            else:
+                # Handle object response
                 if "status" in data and data["status"] == "FAILED":
                     error_msg = data.get("object", "Unknown API error")
                     logger.error(f"API error: {error_msg}")
                     raise ValueError(f"API error: {error_msg}")
                 
-                logger.debug(f"Received response from {method}: {len(str(data))} bytes")
+                logger.debug(f"Received object response from {method}: {len(str(data))} bytes")
                 return data
                 
         except aiohttp.ClientError as e:
@@ -127,7 +173,7 @@ class WDSClient:
             await self.session.close()
     
     async def get_changed_cube_list(
-        self, last_updated_days: int = 1
+        self, last_updated_days: int = 7
     ) -> Dict[str, Any]:
         """Get a list of cubes that have been updated within the specified time period.
         
@@ -137,8 +183,12 @@ class WDSClient:
         Returns:
             Dictionary containing the list of updated cubes
         """
-        params = {"lastUpdatedDays": last_updated_days}
-        return await self._request("getChangedCubeList", params, "/rest/getChangedCubeList")
+        # This API endpoint needs a date in YYYY-MM-DD format
+        from datetime import datetime, timedelta
+        date = (datetime.now() - timedelta(days=last_updated_days)).strftime("%Y-%m-%d")
+        
+        # This endpoint uses GET with a date parameter in the URL
+        return await self._request("getChangedCubeList", use_get=True, with_date=date)
     
     async def get_cube_metadata(self, product_id: str) -> Dict[str, Any]:
         """Get metadata for a specific cube/dataset.
@@ -149,8 +199,23 @@ class WDSClient:
         Returns:
             Dictionary containing cube metadata
         """
-        params = {"productId": product_id}
-        return await self._request("getCubeMetadata", params, "/rest/getCubeMetadata")
+        # For this endpoint, StatCan requires:
+        # 1. An array with a single object
+        # 2. ProductId as a number, not string
+        # 3. Exactly 8 digits for the product ID
+        
+        # Convert the PID to a number
+        try:
+            # If the PID is 10 digits (newer format), remove the last two digits
+            if len(str(product_id)) == 10:
+                pid_number = int(str(product_id)[:8])
+            else:
+                pid_number = int(product_id)
+        except ValueError:
+            raise ValueError(f"Invalid product ID: {product_id}. Must be a number.")
+        
+        params = [{"productId": pid_number}]
+        return await self._request("getCubeMetadata", params)
     
     async def get_data_from_vectors(
         self, vectors: List[str], n_periods: int = 10
@@ -158,32 +223,56 @@ class WDSClient:
         """Get data for specific vectors for the latest N periods.
         
         Args:
-            vectors: List of vector IDs
+            vectors: List of vector IDs (with or without 'v' prefix)
             n_periods: Number of periods to retrieve
             
         Returns:
             Dictionary containing the vector data
         """
-        params = {"vectors": vectors, "latestN": n_periods}
-        return await self._request(
-            "getDataFromVectorsAndLatestNPeriods",
-            params,
-            "/rest/getDataFromVectorsAndLatestNPeriods",
-        )
+        # For this endpoint, StatCan requires:
+        # 1. An array of objects, one per vector
+        # 2. Vector IDs as numbers or strings without 'v' prefix
+        # 3. The latestN parameter in each object
+        
+        processed_params = []
+        for vector in vectors:
+            # Remove 'v' prefix if present and convert to number or numeric string
+            vector_id = vector.lower().replace('v', '') if isinstance(vector, str) else vector
+            try:
+                # Try to convert to a number
+                vector_id = int(vector_id)
+            except ValueError:
+                # If it's not a valid number, leave as string
+                pass
+            
+            processed_params.append({"vectorId": vector_id, "latestN": n_periods})
+            
+        return await self._request("getDataFromVectorsAndLatestNPeriods", processed_params)
     
     async def get_series_info_from_vector(self, vector: str) -> Dict[str, Any]:
         """Get information about a specific time series.
         
         Args:
-            vector: Vector ID
+            vector: Vector ID (with or without 'v' prefix)
             
         Returns:
             Dictionary containing series information
         """
-        params = {"vectorId": vector}
-        return await self._request(
-            "getSeriesInfoFromVector", params, "/rest/getSeriesInfoFromVector"
-        )
+        # For this endpoint, StatCan requires:
+        # 1. An array with a single object
+        # 2. Vector ID as a number or string without 'v' prefix
+        
+        # Remove 'v' prefix if present and convert to number
+        vector_id = vector.lower().replace('v', '') if isinstance(vector, str) else vector
+        try:
+            # Try to convert to a number
+            vector_id = int(vector_id)
+        except ValueError:
+            # If it's not a valid number, leave as string
+            pass
+            
+        params = [{"vectorId": vector_id}]
+        return await self._request("getSeriesInfoFromVector", params)
     
     async def search_cubes(self, search_text: str) -> Dict[str, Any]:
         """Search for cubes/datasets by keyword.
@@ -195,31 +284,46 @@ class WDSClient:
             Dictionary containing search results
         """
         # Note: This is a custom method as StatCan's API doesn't have a direct search endpoint
-        # In a real implementation, we would need to download a catalog or use another approach
-        # This is a placeholder that would be properly implemented
-        logger.warning("search_cubes is not fully implemented - this is a placeholder")
+        # For a production implementation, we'd use a better approach
+        logger.warning("search_cubes is not fully implemented - using getAllCubesList method")
         
-        # For now, we'll just try to get all cubes and filter them client-side
-        # This is inefficient but works for a prototype
         try:
-            all_cubes = await self.get_changed_cube_list(last_updated_days=3650)  # ~10 years
+            # Get all cubes and filter client-side
+            # First try to use getAllCubesListLite which is more efficient
+            try:
+                all_cubes = await self._request("getAllCubesListLite", use_get=True)
+            except Exception as e:
+                logger.debug(f"getAllCubesListLite failed: {e}, falling back to getAllCubesList")
+                # Fall back to full list if lite fails
+                all_cubes = await self._request("getAllCubesList", use_get=True)
+            
             search_text = search_text.lower()
             
-            if "object" in all_cubes and isinstance(all_cubes["object"], list):
-                results = [
-                    cube for cube in all_cubes["object"]
-                    if search_text in str(cube.get("productTitle", "")).lower()
-                    or search_text in str(cube.get("cubeTitleEn", "")).lower()
-                ]
-                
+            if isinstance(all_cubes, list):
+                # Direct list of cubes (some endpoints return direct lists)
+                cubes = all_cubes
+            elif "object" in all_cubes and isinstance(all_cubes["object"], list):
+                # Wrapped in object field
+                cubes = all_cubes["object"]
+            else:
+                logger.error(f"Unexpected response format: {all_cubes}")
                 return {
-                    "status": "SUCCESS",
-                    "object": results
+                    "status": "FAILED",
+                    "object": "Unexpected response format from API"
                 }
             
+            # Filter cubes that match the search term
+            results = [
+                cube for cube in cubes
+                if search_text in str(cube.get("productTitle", "")).lower()
+                or search_text in str(cube.get("cubeTitleEn", "")).lower()
+                or search_text in str(cube.get("cansimId", "")).lower()
+                or search_text in str(cube.get("productId", "")).lower()
+            ]
+            
             return {
-                "status": "FAILED",
-                "object": "Failed to search cubes. No results found."
+                "status": "SUCCESS",
+                "object": results
             }
             
         except Exception as e:
