@@ -10,7 +10,23 @@ An MCP (Model Context Protocol) server that provides access to Statistics Canada
 - 📈 **Basic Analysis**: Perform simple statistical operations and generate visualizations
 - 🔄 **Change Tracking**: Monitor updates to datasets
 
-## Installation
+## Current Status
+
+This is a prototype implementation of an MCP server for StatCan data. We've completed:
+
+- Working StatCan WDS API client with proper error handling and response normalization
+- Project structure and architecture design
+- Support for basic data retrieval and search functionality
+
+See [CLAUDE.md](CLAUDE.md) for the full development roadmap and plans.
+
+## Dependencies
+
+```bash
+pip install sqlitedict aiohttp mcp pydantic python-dotenv
+```
+
+## Quick Start
 
 ```bash
 # Clone the repository
@@ -23,18 +39,27 @@ source venv/bin/activate  # On Windows: venv\Scripts\activate
 
 # Install dependencies
 pip install -e .
-```
 
-## Quick Start
-
-```bash
-# Set up environment variables
-cp .env.example .env
-# Edit .env with your settings
+# Create logs directory
+mkdir -p logs
 
 # Start the MCP server
-python -m mcp_statcan
+python -m src
 ```
+
+## Testing the API Client
+
+To verify the API client works correctly:
+
+```bash
+python scripts/test_api.py
+```
+
+This will run a series of tests against the StatCan WDS API to retrieve:
+- Recent changed cubes
+- Metadata for common datasets (CPI, GDP, Labor Force)
+- Time series data for key indicators
+- Search results for different keywords
 
 ## Usage with Claude Desktop
 
@@ -42,7 +67,7 @@ python -m mcp_statcan
 2. Go to Settings > MCP Servers
 3. Add a new server with the following configuration:
    - Name: StatCan Data
-   - Command: `path/to/venv/bin/python -m mcp_statcan`
+   - Command: `path/to/venv/bin/python -m src`
 4. Start chatting with Claude and ask about Canadian statistics!
 
 ## Example Queries
@@ -52,29 +77,3 @@ python -m mcp_statcan
 - "Show me a chart of Canada's GDP growth since 2010"
 - "What's the latest population data for major Canadian cities?"
 - "Compare inflation rates across provinces for 2022"
-
-## Development
-
-```bash
-# Install development dependencies
-pip install -e ".[dev]"
-
-# Run tests
-pytest
-
-# Format code
-black .
-ruff check --fix .
-```
-
-## Project Status
-
-This project is in early development. See the [CLAUDE.md](CLAUDE.md) file for the development roadmap.
-
-## License
-
-MIT
-
-## Acknowledgements
-
-This project uses Statistics Canada's Web Data Service (WDS). All data retrieved is subject to Statistics Canada's [terms of use](https://www.statcan.gc.ca/en/reference/terms-conditions).
