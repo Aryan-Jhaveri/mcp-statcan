@@ -379,6 +379,68 @@ class StatCanMCPServer:
                 for vector in vectors:
                     response_text += f"- statcan://series/{vector}\n"
                 
+                # If we have a single vector with observations, add visualization suggestion
+                if len(vector_data) == 1 and len(observations) > 1:
+                    response_text += "\n### Visualization\n\n"
+                    response_text += "To visualize this data, you can use the Vega-Lite MCP server with the following command:\n\n"
+                    response_text += "```\nView result from create_chart from mcp-vegalite (isaacwasserman/mcp-vegalite-server) {\n"
+                    response_text += "  \"data\": [\n"
+                    
+                    # Generate sample data in the format expected by Vega-Lite
+                    for obs in observations:
+                        ref_period = obs.get("refPer", "")
+                        value = obs.get("value", "")
+                        response_text += f"    {{\"date\": \"{ref_period}\", \"value\": {value}}},\n"
+                    
+                    # Remove trailing comma and close array
+                    response_text = response_text[:-2] + "\n  ],\n"
+                    
+                    # Add visualization spec
+                    response_text += "  \"mark\": \"line\",\n"
+                    response_text += "  \"encoding\": {\n"
+                    response_text += "    \"x\": {\"field\": \"date\", \"type\": \"temporal\", \"title\": \"Date\"},\n"
+                    response_text += "    \"y\": {\"field\": \"value\", \"type\": \"quantitative\", \"title\": \"Value\"}\n"
+                    response_text += "  },\n"
+                    response_text += f"  \"title\": \"{title}\"\n"
+                    response_text += "}\n```\n"
+                    response_text += "\nYou can customize the chart type by changing 'mark' to 'bar', 'point', or 'area'."
+                
+                # If we have multiple vectors with observations, add multi-series visualization suggestion
+                elif len(vector_data) > 1:
+                    response_text += "\n### Multi-Series Visualization\n\n"
+                    response_text += "To visualize multiple series, you can use the Vega-Lite MCP server with the following command:\n\n"
+                    response_text += "```\nView result from create_chart from mcp-vegalite (isaacwasserman/mcp-vegalite-server) {\n"
+                    response_text += "  \"data\": [\n"
+                    
+                    # Generate sample data for each vector
+                    for i, item in enumerate(vector_data):
+                        vector_id = item.get("vectorId", f"vector_{i}")
+                        v_obs = item.get("vectorDataPoint", [])
+                        
+                        # Try to get a short title
+                        v_title = title if i == 0 else f"Vector {vector_id}"
+                        if len(v_title) > 30:
+                            v_title = v_title[:27] + "..."
+                        
+                        for obs in v_obs:
+                            ref_period = obs.get("refPer", "")
+                            value = obs.get("value", "")
+                            response_text += f"    {{\"date\": \"{ref_period}\", \"value\": {value}, \"series\": \"{v_title}\"}},\n"
+                    
+                    # Remove trailing comma and close array
+                    response_text = response_text[:-2] + "\n  ],\n"
+                    
+                    # Add visualization spec for multi-series
+                    response_text += "  \"mark\": \"line\",\n"
+                    response_text += "  \"encoding\": {\n"
+                    response_text += "    \"x\": {\"field\": \"date\", \"type\": \"temporal\", \"title\": \"Date\"},\n"
+                    response_text += "    \"y\": {\"field\": \"value\", \"type\": \"quantitative\", \"title\": \"Value\"},\n"
+                    response_text += "    \"color\": {\"field\": \"series\", \"type\": \"nominal\"}\n"
+                    response_text += "  },\n"
+                    response_text += f"  \"title\": \"Time Series Data from {start_date} to {end_date}\"\n"
+                    response_text += "}\n```\n"
+                    response_text += "\nYou can customize the chart type by changing 'mark' to 'bar', 'point', or 'area'."
+                
                 return response_text
                 
             except Exception as e:
@@ -511,6 +573,68 @@ class StatCanMCPServer:
                 for vector in vectors:
                     response_text += f"- statcan://series/{vector}\n"
                 
+                # If we have a single vector with observations, add visualization suggestion
+                if len(vector_data) == 1 and len(observations) > 1:
+                    response_text += "\n### Visualization\n\n"
+                    response_text += "To visualize this data, you can use the Vega-Lite MCP server with the following command:\n\n"
+                    response_text += "```\nView result from create_chart from mcp-vegalite (isaacwasserman/mcp-vegalite-server) {\n"
+                    response_text += "  \"data\": [\n"
+                    
+                    # Generate sample data in the format expected by Vega-Lite
+                    for obs in observations:
+                        ref_period = obs.get("refPer", "")
+                        value = obs.get("value", "")
+                        response_text += f"    {{\"date\": \"{ref_period}\", \"value\": {value}}},\n"
+                    
+                    # Remove trailing comma and close array
+                    response_text = response_text[:-2] + "\n  ],\n"
+                    
+                    # Add visualization spec
+                    response_text += "  \"mark\": \"line\",\n"
+                    response_text += "  \"encoding\": {\n"
+                    response_text += "    \"x\": {\"field\": \"date\", \"type\": \"temporal\", \"title\": \"Date\"},\n"
+                    response_text += "    \"y\": {\"field\": \"value\", \"type\": \"quantitative\", \"title\": \"Value\"}\n"
+                    response_text += "  },\n"
+                    response_text += f"  \"title\": \"{title}\"\n"
+                    response_text += "}\n```\n"
+                    response_text += "\nYou can customize the chart type by changing 'mark' to 'bar', 'point', or 'area'."
+                
+                # If we have multiple vectors with observations, add multi-series visualization suggestion
+                elif len(vector_data) > 1:
+                    response_text += "\n### Multi-Series Visualization\n\n"
+                    response_text += "To visualize multiple series, you can use the Vega-Lite MCP server with the following command:\n\n"
+                    response_text += "```\nView result from create_chart from mcp-vegalite (isaacwasserman/mcp-vegalite-server) {\n"
+                    response_text += "  \"data\": [\n"
+                    
+                    # Generate sample data for each vector
+                    for i, item in enumerate(vector_data):
+                        vector_id = item.get("vectorId", f"vector_{i}")
+                        v_obs = item.get("vectorDataPoint", [])
+                        
+                        # Try to get a short title
+                        v_title = title if i == 0 else f"Vector {vector_id}"
+                        if len(v_title) > 30:
+                            v_title = v_title[:27] + "..."
+                        
+                        for obs in v_obs:
+                            ref_period = obs.get("refPer", "")
+                            value = obs.get("value", "")
+                            response_text += f"    {{\"date\": \"{ref_period}\", \"value\": {value}, \"series\": \"{v_title}\"}},\n"
+                    
+                    # Remove trailing comma and close array
+                    response_text = response_text[:-2] + "\n  ],\n"
+                    
+                    # Add visualization spec for multi-series
+                    response_text += "  \"mark\": \"line\",\n"
+                    response_text += "  \"encoding\": {\n"
+                    response_text += "    \"x\": {\"field\": \"date\", \"type\": \"temporal\", \"title\": \"Date\"},\n"
+                    response_text += "    \"y\": {\"field\": \"value\", \"type\": \"quantitative\", \"title\": \"Value\"},\n"
+                    response_text += "    \"color\": {\"field\": \"series\", \"type\": \"nominal\"}\n"
+                    response_text += "  },\n"
+                    response_text += f"  \"title\": \"Time Series Data from {start_date} to {end_date}\"\n"
+                    response_text += "}\n```\n"
+                    response_text += "\nYou can customize the chart type by changing 'mark' to 'bar', 'point', or 'area'."
+                
                 return response_text
                 
             except Exception as e:
@@ -567,12 +691,18 @@ class StatCanMCPServer:
                     if metadata.get("status") == "SUCCESS":
                         metadata_cache.set(metadata_key, metadata)
                 
-                # Format the data
-                data_obj = data.get("object", {})
+                # Format the data - handle the object structure correctly
+                data_obj = data.get("object", [])
+                
+                # Make sure we're working with the right data structure
+                if isinstance(data_obj, list) and len(data_obj) > 0:
+                    series_data = data_obj[0]
+                else:
+                    series_data = data_obj
                 
                 # Extract series information
-                series_id = data_obj.get("vectorId", "Unknown")
-                coordinate_str = data_obj.get("coordinate", coordinate)
+                series_id = series_data.get("vectorId", "Unknown")
+                coordinate_str = series_data.get("coordinate", coordinate)
                 
                 # Try to get a title
                 title = None
@@ -615,7 +745,7 @@ class StatCanMCPServer:
                     title = f"Data for Cube {product_id}, Coordinate {coordinate_str}"
                 
                 # Format observations
-                observations = data_obj.get("vectorDataPoint", [])
+                observations = series_data.get("vectorDataPoint", [])
                 
                 # Sort observations by date
                 try:
@@ -665,6 +795,32 @@ class StatCanMCPServer:
                 # Add resource link if vector ID is available
                 if series_id != "Unknown":
                     response_text += f"\nAccess full time series data at: statcan://series/{series_id}\n"
+                
+                # Add visualization suggestion if we have data points
+                if observations and len(observations) > 1:
+                    response_text += "\n### Visualization\n\n"
+                    response_text += "To visualize this data, you can use the Vega-Lite MCP server with the following command:\n\n"
+                    response_text += "```\nView result from create_chart from mcp-vegalite (isaacwasserman/mcp-vegalite-server) {\n"
+                    response_text += "  \"data\": [\n"
+                    
+                    # Generate sample data in the format expected by Vega-Lite
+                    for obs in observations:
+                        ref_period = obs.get("refPer", "")
+                        value = obs.get("value", "")
+                        response_text += f"    {{\"date\": \"{ref_period}\", \"value\": {value}}},\n"
+                    
+                    # Remove trailing comma and close array
+                    response_text = response_text[:-2] + "\n  ],\n"
+                    
+                    # Add visualization spec
+                    response_text += "  \"mark\": \"line\",\n"
+                    response_text += "  \"encoding\": {\n"
+                    response_text += "    \"x\": {\"field\": \"date\", \"type\": \"temporal\", \"title\": \"Date\"},\n"
+                    response_text += "    \"y\": {\"field\": \"value\", \"type\": \"quantitative\", \"title\": \"Value\"}\n"
+                    response_text += "  },\n"
+                    response_text += f"  \"title\": \"{title}\"\n"
+                    response_text += "}\n```\n"
+                    response_text += "\nYou can customize the chart type by changing 'mark' to 'bar', 'point', or 'area'."
                 
                 return response_text
                 
