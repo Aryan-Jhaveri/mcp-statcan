@@ -12,13 +12,16 @@ An MCP (Model Context Protocol) server that provides access to Statistics Canada
 
 ## Current Status
 
-This is a prototype implementation of an MCP server for StatCan data. We've completed:
+This is a working implementation of an MCP server for StatCan data. We've completed:
 
-- Working StatCan WDS API client with proper error handling and response normalization
-- Project structure and architecture design
-- Support for basic data retrieval and search functionality
+- Enhanced StatCan WDS API client with robust error handling and intelligent search
+- Comprehensive data retrieval with statistical analysis and trend detection
+- Rich resource formatting with markdown and improved context
+- Advanced search capabilities with tokenization and synonym handling
+- Multi-level caching system with fallbacks for restricted environments
+- Extensive testing framework for verification and validation
 
-See [CLAUDE.md](CLAUDE.md) for the full development roadmap and plans.
+See [docs/implementation_status.md](docs/implementation_status.md) for detailed development progress.
 
 ## Dependencies
 
@@ -40,12 +43,15 @@ source venv/bin/activate  # On Windows: venv\Scripts\activate
 # Install dependencies
 pip install -e .
 
-# Create logs directory
-mkdir -p logs
-
-# Start the MCP server
+# Start the MCP server (cache and logs directories are created automatically)
 python -m src
 ```
+
+The server now features:
+- Automatic creation of cache and log directories in user's home folder
+- Fallback to temporary directories if home directory is not writable
+- In-memory operation mode when file system access is restricted
+- Robust error handling for filesystem operations
 
 ## Testing the API Client
 
@@ -74,6 +80,11 @@ This will run a series of tests against the StatCan WDS API to retrieve:
 
 - "Find datasets about housing prices in Canada"
 - "Get the unemployment rate for Ontario over the last 5 years"
-- "Show me a chart of Canada's GDP growth since 2010"
-- "What's the latest population data for major Canadian cities?"
-- "Compare inflation rates across provinces for 2022"
+- "Show me Canada's GDP growth since 2010"
+- "What's the latest consumer price index data?"
+- "Find information about inflation rates in Canada"
+- "Show me data on employment statistics"
+- "What datasets are available for population estimates?"
+- "Get the most recent economic indicators for Canada"
+
+The server now handles multi-word queries more effectively and provides richer context for datasets and time series data, including trend analysis and basic statistics.
