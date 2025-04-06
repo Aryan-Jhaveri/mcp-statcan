@@ -1,0 +1,54 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "mcp-statcan"
+version = "0.1.0"
+description = "MCP server for Statistics Canada Web Data Service"
+requires-python = ">=3.9"
+license = {text = "MIT"}
+readme = "README.md"
+authors = [
+    {name = "MCP StatCan Contributors", email = "example@example.com"},
+]
+dependencies = [
+    "mcp>=1.5.0",           # MCP Python SDK
+    "fastapi>=0.104.0",     # API framework
+    "uvicorn>=0.23.2",      # ASGI server
+    "httpx>=0.24.1",        # HTTP client
+    "python-dotenv>=1.0.0", # Environment variable handling
+    "aiohttp>=3.8.5",       # Async HTTP client
+    "pydantic>=2.4.2",      # Data validation
+    "sqlitedict>=2.1.0",    # Simple SQLite-based dict storage
+]
+
+[project.optional-dependencies]
+dev = [
+    "black",            # Code formatting
+    "ruff",             # Linting
+    "pytest",           # Testing
+    "pytest-asyncio",   # Async testing
+    "anyio",            # Async compatibility
+    "pyright",          # Type checking
+    "pre-commit",       # Pre-commit hooks
+]
+
+[tool.setuptools]
+packages = ["mcp_statcan"]
+
+[tool.black]
+line-length = 88
+target-version = ["py39"]
+
+[tool.ruff]
+line-length = 88
+target-version = "py39"
+select = ["E", "F", "I"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+asyncio_mode = "auto"
+
+[tool.pyright]
+include = ["src"]
