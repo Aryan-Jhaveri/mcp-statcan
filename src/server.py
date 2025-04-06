@@ -255,7 +255,7 @@ class StatCanMCPServer:
         # Time series data retrieval tool
         @self.app.tool()
         async def get_data_series(vectors: List[str], periods: int = 10):
-            """Get time series data for specific vectors."""
+            """Get time series data for specific vectors for the most recent periods."""
             if not vectors:
                 return "No vector IDs provided. Please specify at least one vector ID."
             
@@ -384,6 +384,394 @@ class StatCanMCPServer:
             except Exception as e:
                 logger.error(f"Error in get_data_series: {e}")
                 return f"Error fetching time series data: {str(e)}"
+        
+        @self.app.tool()
+        async def get_data_series_by_range(vectors: List[str], start_date: str, end_date: str = None):
+            """Get time series data for specific vectors over a date range.
+            
+            Args:
+                vectors: List of vector IDs to retrieve data for
+                start_date: Start date in YYYY-MM-DD format
+                end_date: End date in YYYY-MM-DD format (defaults to current date if not provided)
+            """
+            if not vectors:
+                return "No vector IDs provided. Please specify at least one vector ID."
+            
+            # If end_date is not provided, use current date
+            if end_date is None:
+                from datetime import datetime
+                end_date = datetime.now().strftime("%Y-%m-%d")
+            
+            logger.info(f"Getting data for vectors: {vectors}, date range: {start_date} to {end_date}")
+            
+            try:
+                # Check cache first
+                cache_key = f"range_data_{'_'.join(vectors)}_{start_date}_{end_date}"
+                data = data_cache.get(cache_key)
+                
+                if data is None:
+                    # Not in cache, fetch from API
+                    if len(vectors) == 1:
+                        # For a single vector, use the single vector endpoint
+                        data = await self.wds_client.get_data_from_vector_by_range(vectors[0], start_date, end_date)
+                    else:
+                        # For multiple vectors, use the bulk endpoint
+                        data = await self.wds_client.get_bulk_vector_data_by_range(vectors, start_date, end_date)
+                    
+                    if data.get("status") != "SUCCESS":
+                        return f"Error fetching data: {data.get('object', 'Unknown error')}"
+                    
+                    # Cache the result
+                    data_cache.set(cache_key, data)
+                
+                # Format the data
+                vector_data = data.get("object", [])
+                
+                # Ensure vector_data is always a list
+                if not isinstance(vector_data, list):
+                    vector_data = [vector_data]
+                
+                response_text = f"Time Series Data for {len(vectors)} vector(s) from {start_date} to {end_date}:\n\n"
+                
+                for vector_item in vector_data:
+                    # Extract vector ID and format similar to get_data_series
+                    vector_id = vector_item.get("vectorId", "Unknown")
+                    if vector_id == "Unknown" and "coordinate" in vector_item:
+                        for v in vectors:
+                            v_clean = v.lower().replace('v', '')
+                            if v_clean in str(vector_item):
+                                vector_id = v
+                                break
+                    
+                    # Get title information
+                    try:
+                        # Try to get series info for a better title
+                        series_info = await self.wds_client.get_series_info_from_vector(vector_id)
+                        if series_info.get("status") == "SUCCESS":
+                            info_obj = series_info.get("object", [])
+                            if isinstance(info_obj, list) and info_obj:
+                                title = info_obj[0].get("SeriesTitleEn", f"Vector {vector_id}")
+                            else:
+                                title = f"Vector {vector_id}"
+                        else:
+                            title = f"Vector {vector_id}"
+                    except Exception:
+                        title = f"Vector {vector_id}"
+                    
+                    response_text += f"{title}\n"
+                    
+                    # Format observations
+                    observations = vector_item.get("vectorDataPoint", [])
+                    
+                    # Sort observations by date
+                    try:
+                        observations = sorted(observations, key=lambda x: x.get("refPer", ""))
+                    except Exception:
+                        # If sorting fails, use as-is
+                        pass
+                    
+                    # Calculate some basic statistics
+                    values = []
+                    for obs in observations:
+                        try:
+                            value = float(obs.get("value", "0"))
+                            values.append(value)
+                        except (ValueError, TypeError):
+                            pass
+                    
+                    # Add observations
+                    for obs in observations:
+                        ref_period = obs.get("refPer", "")
+                        value = obs.get("value", "")
+                        response_text += f"  {ref_period}: {value}\n"
+                    
+                    # Add statistics if we have numeric values
+                    if values:
+                        avg_value = sum(values) / len(values)
+                        min_value = min(values)
+                        max_value = max(values)
+                        
+                        # Calculate trend and percent change
+                        trend = "Stable"
+                        pct_change = 0
+                        if len(values) >= 2:
+                            pct_change = ((values[-1] - values[0]) / values[0]) * 100
+                            if pct_change > 1:  # 1% increase threshold
+                                trend = f"Increasing ({pct_change:.1f}%)"
+                            elif pct_change < -1:  # 1% decrease threshold
+                                trend = f"Decreasing ({-pct_change:.1f}%)"
+                        
+                        response_text += f"\n  Statistics: Average: {avg_value:.2f}, Min: {min_value:.2f}, Max: {max_value:.2f}"
+                        response_text += f"\n  Trend: {trend} over {len(observations)} periods\n"
+                    
+                    response_text += "\n"
+                
+                # Add resource links
+                response_text += "Access full time series data at:\n"
+                for vector in vectors:
+                    response_text += f"- statcan://series/{vector}\n"
+                
+                return response_text
+                
+            except Exception as e:
+                logger.error(f"Error in get_data_series_by_range: {e}")
+                return f"Error fetching time series data: {str(e)}"
+                
+        @self.app.tool()
+        async def get_series_from_cube(product_id: str, coordinate: List[str], periods: int = 10):
+            """Get time series data for a specific cube and coordinate.
+            
+            Args:
+                product_id: StatCan Product ID (PID) for the cube
+                coordinate: List of dimension member values that identify the series
+                periods: Number of latest periods to retrieve
+            """
+            logger.info(f"Getting data for cube {product_id}, coordinate {coordinate}, periods: {periods}")
+            
+            try:
+                # Validate and clean the coordinate
+                if not isinstance(coordinate, list):
+                    # If coordinate is a string, try to parse it as a list
+                    try:
+                        if isinstance(coordinate, str):
+                            if "[" in coordinate:
+                                # Looks like a JSON list
+                                import json
+                                coordinate = json.loads(coordinate)
+                            else:
+                                # Comma-separated values
+                                coordinate = coordinate.split(",")
+                    except Exception:
+                        return "Invalid coordinate format. Please provide a list of dimension member values."
+                
+                # Check cache first
+                cache_key = f"cube_data_{product_id}_{'-'.join(coordinate)}_{periods}"
+                data = data_cache.get(cache_key)
+                
+                if data is None:
+                    # Not in cache, fetch from API
+                    data = await self.wds_client.get_data_from_cube_coordinate(product_id, coordinate, periods)
+                    
+                    if data.get("status") != "SUCCESS":
+                        return f"Error fetching data: {data.get('object', 'Unknown error')}"
+                    
+                    # Cache the result
+                    data_cache.set(cache_key, data)
+                
+                # Get metadata for this cube for better context
+                metadata_key = f"metadata_{product_id}"
+                metadata = metadata_cache.get(metadata_key)
+                
+                if metadata is None:
+                    metadata = await self.wds_client.get_cube_metadata(product_id)
+                    if metadata.get("status") == "SUCCESS":
+                        metadata_cache.set(metadata_key, metadata)
+                
+                # Format the data
+                data_obj = data.get("object", {})
+                
+                # Extract series information
+                series_id = data_obj.get("vectorId", "Unknown")
+                coordinate_str = data_obj.get("coordinate", coordinate)
+                
+                # Try to get a title
+                title = None
+                if metadata and metadata.get("status") == "SUCCESS":
+                    cube_metadata = metadata.get("object", {})
+                    
+                    # Get the dataset title
+                    dataset_title = cube_metadata.get("cubeTitleEn", "")
+                    
+                    # Try to get dimension names for the coordinate
+                    dimensions = cube_metadata.get("dimension", [])
+                    dimension_names = []
+                    
+                    if dimensions and len(dimensions) == len(coordinate):
+                        for i, dim in enumerate(dimensions):
+                            # Get the dimension name
+                            dim_name = dim.get("dimensionNameEn", "")
+                            
+                            # Try to get the member name
+                            members = dim.get("member", [])
+                            member_name = None
+                            
+                            for member in members:
+                                if member.get("memberId", "") == coordinate[i]:
+                                    member_name = member.get("memberNameEn", "")
+                                    break
+                            
+                            if dim_name and member_name:
+                                dimension_names.append(f"{dim_name}: {member_name}")
+                            elif dim_name:
+                                dimension_names.append(f"{dim_name}: {coordinate[i]}")
+                    
+                    if dataset_title:
+                        if dimension_names:
+                            title = f"{dataset_title} - {', '.join(dimension_names)}"
+                        else:
+                            title = f"{dataset_title} - Coordinate {coordinate_str}"
+                
+                if not title:
+                    title = f"Data for Cube {product_id}, Coordinate {coordinate_str}"
+                
+                # Format observations
+                observations = data_obj.get("vectorDataPoint", [])
+                
+                # Sort observations by date
+                try:
+                    observations = sorted(observations, key=lambda x: x.get("refPer", ""))
+                except Exception:
+                    # If sorting fails, use as-is
+                    pass
+                
+                response_text = f"{title}\n\n"
+                
+                # Calculate some basic statistics
+                values = []
+                for obs in observations:
+                    try:
+                        value = float(obs.get("value", "0"))
+                        values.append(value)
+                    except (ValueError, TypeError):
+                        pass
+                
+                # Add observations
+                for obs in observations:
+                    ref_period = obs.get("refPer", "")
+                    value = obs.get("value", "")
+                    response_text += f"{ref_period}: {value}\n"
+                
+                # Add statistics if we have numeric values
+                if values:
+                    avg_value = sum(values) / len(values)
+                    min_value = min(values)
+                    max_value = max(values)
+                    
+                    # Calculate trend and percent change
+                    trend = "Stable"
+                    pct_change = 0
+                    if len(values) >= 2:
+                        pct_change = ((values[-1] - values[0]) / values[0]) * 100
+                        if pct_change > 1:  # 1% increase threshold
+                            trend = f"Increasing ({pct_change:.1f}%)"
+                        elif pct_change < -1:  # 1% decrease threshold
+                            trend = f"Decreasing ({-pct_change:.1f}%)"
+                    
+                    response_text += f"\nStatistics:\n"
+                    response_text += f"Average: {avg_value:.2f}\n"
+                    response_text += f"Range: {min_value:.2f} to {max_value:.2f}\n"
+                    response_text += f"Trend: {trend} over {len(observations)} periods\n"
+                
+                # Add resource link if vector ID is available
+                if series_id != "Unknown":
+                    response_text += f"\nAccess full time series data at: statcan://series/{series_id}\n"
+                
+                return response_text
+                
+            except Exception as e:
+                logger.error(f"Error in get_series_from_cube: {e}")
+                return f"Error fetching series data: {str(e)}"
+                
+        @self.app.tool()
+        async def get_download_link(product_id: str, format_type: str = "csv"):
+            """Get a download link for a complete StatCan table.
+            
+            Args:
+                product_id: StatCan Product ID (PID) for the cube
+                format_type: Format type, either "csv" (default) or "sdmx"
+            """
+            logger.info(f"Getting download link for cube {product_id} in {format_type} format")
+            
+            try:
+                # Validate format type
+                if format_type.lower() not in ["csv", "sdmx"]:
+                    return "Invalid format type. Please choose either 'csv' or 'sdmx'."
+                
+                # Get the download URL
+                url = await self.wds_client.get_full_table_download_url(product_id, format_type)
+                
+                # Get basic metadata about this dataset
+                metadata_key = f"metadata_{product_id}"
+                metadata = metadata_cache.get(metadata_key)
+                
+                if metadata is None:
+                    metadata = await self.wds_client.get_cube_metadata(product_id)
+                    if metadata.get("status") == "SUCCESS":
+                        metadata_cache.set(metadata_key, metadata)
+                
+                # Get dataset title for better context
+                title = "dataset"
+                if metadata and metadata.get("status") == "SUCCESS":
+                    cube_metadata = metadata.get("object", {})
+                    title = cube_metadata.get("cubeTitleEn", "dataset")
+                
+                response_text = f"Download link for {title}:\n\n"
+                response_text += f"{url}\n\n"
+                
+                response_text += "Note: This link provides the complete dataset in "
+                if format_type.lower() == "csv":
+                    response_text += "CSV format (comma-separated values), suitable for importing into spreadsheets or data analysis tools."
+                else:
+                    response_text += "SDMX format (Statistical Data and Metadata Exchange), an ISO standard format for statistical data exchange."
+                
+                return response_text
+                
+            except Exception as e:
+                logger.error(f"Error in get_download_link: {e}")
+                return f"Error generating download link: {str(e)}"
+                
+        @self.app.tool()
+        async def get_recently_updated_datasets(days: int = 7, max_results: int = 10):
+            """Get a list of recently updated datasets.
+            
+            Args:
+                days: Number of days to look back for updates (default: 7)
+                max_results: Maximum number of results to return (default: 10)
+            """
+            logger.info(f"Getting datasets updated in the last {days} days")
+            
+            try:
+                # Check cache first
+                cache_key = f"changed_cubes_{days}"
+                data = metadata_cache.get(cache_key)
+                
+                if data is None:
+                    # Not in cache, fetch from API
+                    data = await self.wds_client.get_changed_cube_list(days)
+                    
+                    if data.get("status") != "SUCCESS":
+                        return f"Error fetching updated datasets: {data.get('object', 'Unknown error')}"
+                    
+                    # Cache the result
+                    metadata_cache.set(cache_key, data)
+                
+                # Format the data
+                cubes = data.get("object", [])
+                
+                # Limit results
+                cubes = cubes[:max_results]
+                
+                response_text = f"Datasets updated in the last {days} days:\n\n"
+                
+                if not cubes:
+                    response_text += "No datasets were updated in this time period."
+                    return response_text
+                
+                # Format results
+                for idx, cube in enumerate(cubes, 1):
+                    title = cube.get("cubeTitleEn", cube.get("productTitle", "Unknown"))
+                    pid = cube.get("productId", "")
+                    release_time = cube.get("releaseTime", "Unknown")
+                    
+                    response_text += f"{idx}. {title} (PID: {pid})\n"
+                    response_text += f"   Updated: {release_time}\n"
+                    response_text += f"   Resource: statcan://datasets/{pid}\n\n"
+                
+                return response_text
+                
+            except Exception as e:
+                logger.error(f"Error in get_recently_updated_datasets: {e}")
+                return f"Error fetching recently updated datasets: {str(e)}"
     
     def _register_resources(self):
         """Register MCP resources."""

@@ -1,14 +1,13 @@
 #!/usr/bin/env python3
 """
-Simple script to test the StatCan WDS API connection.
+Script to test the StatCan WDS API client with the new methods.
 
 Run with: python scripts/test_api.py
 """
 
 import asyncio
 import sys
-import os
-import json
+from datetime import datetime, timedelta
 from pathlib import Path
 
 # Add the project root to the Python path
@@ -16,266 +15,295 @@ sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from src.wds_client import WDSClient
 
-
-async def test_changed_cubes():
-    """Test retrieving recently changed cubes."""
-    print("\n=== Testing get_changed_cube_list ===")
+async def test_get_changed_cube_list():
+    """Test the get_changed_cube_list method."""
     client = WDSClient()
     
     try:
-        print("Fetching cubes changed in the last 30 days...")
-        result = await client.get_changed_cube_list(30)
+        print("\n=== Testing get_changed_cube_list ===")
+        result = await client.get_changed_cube_list(last_updated_days=7)
         
-        if result["status"] == "SUCCESS":
-            cubes = result["object"]
-            print(f"Retrieved {len(cubes)} cubes.")
+        assert "status" in result
+        assert result["status"] == "SUCCESS"
+        assert "object" in result
+        
+        cubes = result["object"]
+        print(f"Found {len(cubes)} cubes updated in the last 7 days")
+        
+        # Print the first few cubes
+        for i, cube in enumerate(cubes[:3], 1):
+            print(f"{i}. {cube.get('productId', 'Unknown')} - {cube.get('cubeTitleEn', 'Unknown Title')}")
             
-            if cubes:
-                print("\nFirst 3 changed cubes:")
-                for i, cube in enumerate(cubes[:3]):
-                    print(f"{i+1}. {cube.get('productId', 'Unknown')} - {cube.get('cubeTitleEn', 'Unknown')}")
-                    print(f"   Last released: {cube.get('releaseTime', 'Unknown')}")
-            else:
-                print("No cubes found.")
+        if len(cubes) > 3:
+            print(f"... and {len(cubes) - 3} more cubes")
+    finally:
+        await client.close()
+
+async def test_get_cube_metadata():
+    """Test the get_cube_metadata method."""
+    client = WDSClient()
+    
+    try:
+        print("\n=== Testing get_cube_metadata ===")
+        # CPI Monthly (1810000401)
+        pid = "1810000401"
+        print(f"Getting metadata for cube {pid} (CPI Monthly)")
+        
+        result = await client.get_cube_metadata(pid)
+        
+        assert "status" in result
+        assert result["status"] == "SUCCESS"
+        assert "object" in result
+        
+        metadata = result["object"]
+        print(f"Title: {metadata.get('cubeTitleEn', 'Unknown')}")
+        print(f"Date Range: {metadata.get('cubeStartDate', 'Unknown')} to {metadata.get('cubeEndDate', 'Unknown')}")
+        
+        dimensions = metadata.get("dimension", [])
+        print(f"Dimensions: {len(dimensions)}")
+        
+        for i, dim in enumerate(dimensions, 1):
+            print(f"  {i}. {dim.get('dimensionNameEn', 'Unknown')} ({len(dim.get('member', []))} members)")
+    finally:
+        await client.close()
+
+async def test_get_data_from_vectors():
+    """Test the get_data_from_vectors method."""
+    client = WDSClient()
+    
+    try:
+        print("\n=== Testing get_data_from_vectors ===")
+        # CPI All-items (v41690973)
+        vectors = ["v41690973"]
+        n_periods = 5
+        print(f"Getting data for vector {vectors[0]} (CPI All-items) for {n_periods} periods")
+        
+        result = await client.get_data_from_vectors(vectors, n_periods)
+        
+        assert "status" in result
+        assert result["status"] == "SUCCESS"
+        assert "object" in result
+        
+        # Print the data
+        data = result["object"]
+        if isinstance(data, list) and data:
+            item = data[0]
+            
+            vector_id = item.get("vectorId", "Unknown")
+            observations = item.get("vectorDataPoint", [])
+            
+            print(f"Vector: {vector_id}")
+            print(f"Observations: {len(observations)}")
+            
+            for obs in observations:
+                print(f"  {obs.get('refPer', 'Unknown')}: {obs.get('value', 'N/A')}")
         else:
-            print(f"Error: {result.get('object', 'Unknown error')}")
+            print("No data returned or unexpected format")
     finally:
         await client.close()
 
-
-async def test_cube_metadata():
-    """Test retrieving metadata for specific cubes."""
-    print("\n=== Testing get_cube_metadata ===")
+async def test_get_series_info_from_vector():
+    """Test the get_series_info_from_vector method."""
     client = WDSClient()
     
-    # PIDs from our common_tables.md
-    test_pids = [
-        ("1810000401", "Consumer Price Index"),
-        ("3610043401", "GDP by industry"),
-        ("1410028701", "Labour force characteristics")
-    ]
-    
     try:
-        for pid, description in test_pids:
-            print(f"\nFetching metadata for {description} (PID: {pid})...")
-            result = await client.get_cube_metadata(pid)
+        print("\n=== Testing get_series_info_from_vector ===")
+        # CPI All-items (v41690973)
+        vector = "v41690973"
+        print(f"Getting series info for vector {vector} (CPI All-items)")
+        
+        result = await client.get_series_info_from_vector(vector)
+        
+        assert "status" in result
+        assert result["status"] == "SUCCESS"
+        assert "object" in result
+        
+        # Print the series info
+        series_info = result["object"]
+        if isinstance(series_info, list) and series_info:
+            info = series_info[0]
             
-            # Debug: Print raw API response structure
-            print("\n--- DEBUG: Raw API Response Structure ---")
-            import json
-            print(json.dumps({k: type(v).__name__ for k, v in result.items()}, indent=2))
-            
-            if result["status"] == "SUCCESS":
-                metadata = result["object"]
-                
-                # Debug: Print all metadata fields and their values
-                print("\n--- DEBUG: Metadata Fields ---")
-                for key, value in metadata.items():
-                    if isinstance(value, (str, int, float, bool)) or value is None:
-                        print(f"{key}: {value}")
-                    elif isinstance(value, list) and key != "dimension" and len(value) < 10:
-                        print(f"{key}: {value}")
-                    else:
-                        print(f"{key}: {type(value).__name__} ({len(value) if hasattr(value, '__len__') else 'N/A'})")
-                
-                print(f"\nTitle: {metadata.get('cubeTitleEn', 'Unknown')} (Field exists: {'cubeTitleEn' in metadata})")
-                print(f"Alternative Title Fields: productTitle: {metadata.get('productTitle')}, cubeTitle: {metadata.get('cubeTitle')}")
-                print(f"Date range: {metadata.get('cubeStartDate', 'Unknown')} to {metadata.get('cubeEndDate', 'Unknown')}")
-                
-                dimensions = metadata.get("dimension", [])
-                print(f"Dimensions ({len(dimensions)}):")
-                for i, dim in enumerate(dimensions[:3]):  # Show first 3 dimensions
-                    name = dim.get('dimensionNameEn', 'Unknown')
-                    members = len(dim.get('member', []))
-                    print(f"  {i+1}. {name} ({members} members)")
-                    
-                    # Debug: Print dimension fields
-                    print(f"    --- Dimension Fields ---")
-                    for key, value in dim.items():
-                        if isinstance(value, (str, int, float, bool)) or value is None:
-                            print(f"    {key}: {value}")
-                        else:
-                            print(f"    {key}: {type(value).__name__} ({len(value) if hasattr(value, '__len__') else 'N/A'})")
-                
-                if len(dimensions) > 3:
-                    print(f"  ... and {len(dimensions) - 3} more dimensions")
-            else:
-                print(f"Error: {result.get('object', 'Unknown error')}")
+            print(f"Title: {info.get('SeriesTitleEn', 'Unknown')}")
+            print(f"Frequency: {info.get('frequencyCode', 'Unknown')}")
+            print(f"Start Date: {info.get('startDate', 'Unknown')}")
+            print(f"End Date: {info.get('endDate', 'Unknown')}")
+            print(f"UOM: {info.get('UOMEn', 'Unknown')}")
+        else:
+            print("No series info returned or unexpected format")
     finally:
         await client.close()
-
-
-async def test_vector_data():
-    """Test retrieving data for specific vectors."""
-    print("\n=== Testing get_data_from_vectors ===")
-    client = WDSClient()
-    
-    # Test vectors from our common_tables.md
-    test_vectors = [
-        ("v41690973", "CPI All-items, Canada"),
-        ("v65201210", "GDP at basic prices, All industries"),
-        ("v2062810", "Unemployment rate")
-    ]
-    
-    try:
-        for vector, description in test_vectors:
-            print(f"\nFetching data for {description} (Vector: {vector})...")
-            result = await client.get_data_from_vectors([vector], 5)
-            
-            # Debug: Print raw API response structure
-            print("\n--- DEBUG: Raw API Response Structure ---")
-            import json
-            print(json.dumps({k: type(v).__name__ for k, v in result.items()}, indent=2))
-            print(f"Object type: {type(result['object']).__name__}")
-            
-            if result["status"] == "SUCCESS":
-                # The API response format varies, handle different formats
-                obj = result["object"]
-                
-                # Debug: Detailed inspection of response object structure
-                print("\n--- DEBUG: Response Object Structure ---")
-                if isinstance(obj, list):
-                    print(f"List with {len(obj)} items")
-                    if len(obj) > 0:
-                        print(f"First item keys: {list(obj[0].keys()) if isinstance(obj[0], dict) else 'Not a dict'}")
-                elif isinstance(obj, dict):
-                    print(f"Dictionary with keys: {list(obj.keys())}")
-                else:
-                    print(f"Unexpected type: {type(obj).__name__}")
-                
-                if isinstance(obj, list) and len(obj) > 0:
-                    # If it's a list, take the first element
-                    data = obj[0]
-                elif isinstance(obj, dict):
-                    # If it's a direct dictionary
-                    data = obj
-                else:
-                    data = None
-                
-                if data:
-                    # Debug: Print all fields in the data object
-                    print("\n--- DEBUG: Data Fields ---")
-                    for key, value in data.items():
-                        if isinstance(value, (str, int, float, bool)) or value is None:
-                            print(f"{key}: {value}")
-                        elif isinstance(value, list) and key != "vectorDataPoint" and len(value) < 10:
-                            print(f"{key}: {value}")
-                        else:
-                            print(f"{key}: {type(value).__name__} ({len(value) if hasattr(value, '__len__') else 'N/A'})")
-                    
-                    # Check for various possible title fields
-                    possible_title_fields = ['SeriesTitleEn', 'seriesTitleEn', 'title', 'Title', 'name', 'Name']
-                    title_values = {field: data.get(field) for field in possible_title_fields if data.get(field)}
-                    print(f"\nPossible title fields: {title_values}")
-                
-                if data and "vectorDataPoint" in data:
-                    print(f"Series: {data.get('SeriesTitleEn', 'Unknown')}")
-                    
-                    points = data.get("vectorDataPoint", [])
-                    print(f"Recent data points ({len(points)} retrieved):")
-                    
-                    # Debug: Print the first data point's structure
-                    if points:
-                        print(f"First data point fields: {list(points[0].keys()) if isinstance(points[0], dict) else 'Not a dict'}")
-                    
-                    for point in points[:5]:
-                        period = point.get("refPer", "Unknown")
-                        value = point.get("value", "N/A")
-                        print(f"  {period}: {value}")
-                else:
-                    print("No data found or unexpected data format.")
-            else:
-                print(f"Error: {result.get('object', 'Unknown error')}")
-    finally:
-        await client.close()
-
 
 async def test_search_cubes():
-    """Test searching for cubes by keyword."""
-    print("\n=== Testing search_cubes ===")
+    """Test the search_cubes method."""
     client = WDSClient()
     
-    test_searches = ["inflation", "housing", "employment"]
-    
     try:
-        for search_term in test_searches:
-            print(f"\nSearching for cubes related to '{search_term}'...")
-            result = await client.search_cubes(search_term)
+        print("\n=== Testing search_cubes ===")
+        search_terms = ["inflation", "housing prices", "gdp monthly"]
+        
+        for term in search_terms:
+            print(f"\nSearching for '{term}'...")
+            result = await client.search_cubes(term)
             
-            # Debug: Print raw API response structure
-            print("\n--- DEBUG: Raw API Response Structure ---")
-            import json
-            print(json.dumps({k: type(v).__name__ for k, v in result.items()}, indent=2))
+            assert "status" in result
+            assert result["status"] == "SUCCESS"
+            assert "object" in result
             
-            if result["status"] == "SUCCESS":
-                cubes = result["object"]
-                print(f"Found {len(cubes)} cubes matching '{search_term}'.")
-                
-                # Debug: Print the first few cubes to examine their structure
-                if cubes and len(cubes) > 0:
-                    print("\n--- DEBUG: First Cube Structure ---")
-                    cube = cubes[0]
-                    print(f"Cube keys: {list(cube.keys())}")
-                    
-                    # Examine all possible title fields
-                    title_fields = [
-                        'cubeTitleEn', 'cubeTitle', 'productTitle', 
-                        'productTitleEn', 'title', 'titleEn', 'name'
-                    ]
-                    print("\n--- DEBUG: Title Fields ---")
-                    for field in title_fields:
-                        print(f"{field}: {cube.get(field, 'Not present')}")
-                
-                if cubes:
-                    print("\nTop 3 matching cubes:")
-                    for i, cube in enumerate(cubes[:3]):
-                        # Try multiple possible title fields
-                        title = (
-                            cube.get('cubeTitleEn') or 
-                            cube.get('productTitle') or 
-                            cube.get('cubeTitle') or 
-                            'Unknown Title'
-                        )
-                        product_id = cube.get('productId', 'Unknown')
-                        print(f"{i+1}. {product_id} - {title}")
-                        
-                        # Debug: Additional details about the cube
-                        print(f"   Release Time: {cube.get('releaseTime', 'Unknown')}")
-                        print(f"   PID Format: {'Integer' if isinstance(cube.get('productId'), int) else 'String' if isinstance(cube.get('productId'), str) else 'Unknown'}")
-            else:
-                print(f"Error: {result.get('object', 'Unknown error')}")
-                
-            # Debug: For housing search, try different formats
-            if search_term == "housing":
-                print("\n--- DEBUG: Testing alternative search formats ---")
-                # Try with both theme and multi-word query
-                alt_result = await client.search_cubes("price index")
-                print(f"Search for 'price index': Found {len(alt_result.get('object', [])) if alt_result.get('status') == 'SUCCESS' else 'Error'} results")
+            cubes = result["object"]
+            print(f"Found {len(cubes)} results")
+            
+            # Print the first few results
+            for i, cube in enumerate(cubes[:3], 1):
+                title = cube.get("cubeTitleEn", cube.get("productTitle", "Unknown"))
+                pid = cube.get("productId", "Unknown")
+                print(f"{i}. {title} (PID: {pid})")
+            
+            if len(cubes) > 3:
+                print(f"... and {len(cubes) - 3} more results")
     finally:
         await client.close()
 
+async def test_new_api_methods():
+    """Test the newly added API methods."""
+    client = WDSClient()
+    
+    try:
+        print("\n=== Testing New API Methods ===")
+        
+        # 1. Test get_data_from_vector_by_range
+        print("\n--- Testing get_data_from_vector_by_range ---")
+        vector = "v41690973"  # CPI All-items
+        end_date = datetime.now().strftime("%Y-%m-%d")
+        start_date = (datetime.now() - timedelta(days=365)).strftime("%Y-%m-%d")
+        
+        print(f"Getting data for vector {vector} from {start_date} to {end_date}")
+        result = await client.get_data_from_vector_by_range(vector, start_date, end_date)
+        
+        if result.get("status") == "SUCCESS":
+            data = result.get("object", {})
+            if isinstance(data, list) and data:
+                item = data[0]
+                observations = item.get("vectorDataPoint", [])
+                print(f"Retrieved {len(observations)} observations")
+                
+                # Print first 3 observations
+                for i, obs in enumerate(observations[:3], 1):
+                    print(f"  {i}. {obs.get('refPer', 'Unknown')}: {obs.get('value', 'N/A')}")
+                
+                if len(observations) > 3:
+                    print(f"  ... and {len(observations) - 3} more observations")
+            else:
+                print("No data or unexpected format returned")
+        else:
+            print(f"Error: {result}")
+        
+        # 2. Test get_bulk_vector_data_by_range
+        print("\n--- Testing get_bulk_vector_data_by_range ---")
+        vectors = ["v41690973", "v41691048"]  # CPI All-items and Shelter
+        
+        print(f"Getting data for vectors {vectors} from {start_date} to {end_date}")
+        result = await client.get_bulk_vector_data_by_range(vectors, start_date, end_date)
+        
+        if result.get("status") == "SUCCESS":
+            data = result.get("object", [])
+            print(f"Retrieved data for {len(data)} vectors")
+            
+            # Print information for each vector
+            for i, vector_data in enumerate(data, 1):
+                vector_id = vector_data.get("vectorId", "Unknown")
+                observations = vector_data.get("vectorDataPoint", [])
+                print(f"  Vector {i}: {vector_id} - {len(observations)} observations")
+        else:
+            print(f"Error: {result}")
+        
+        # 3. Test get_data_from_cube_coordinate
+        print("\n--- Testing get_data_from_cube_coordinate ---")
+        pid = "1810000401"  # CPI Monthly
+        coordinate = ["1.1.1", "1.1"]  # Canada, All-items
+        
+        print(f"Getting data for cube {pid} with coordinate {coordinate}")
+        result = await client.get_data_from_cube_coordinate(pid, coordinate, 5)
+        
+        if result.get("status") == "SUCCESS":
+            data = result.get("object", [])
+            
+            if isinstance(data, list) and data:
+                item = data[0]
+                title = item.get("SeriesTitleEn", "Unknown Series")
+                coordinate_value = item.get("coordinate", [])
+                
+                print(f"Retrieved coordinate data for: {title}")
+                print(f"Coordinate: {coordinate_value}")
+            else:
+                print("Retrieved data but format not as expected")
+        else:
+            print(f"Error: {result}")
+        
+        # 4. Skip get_changed_series_list which doesn't seem to be working 
+        # with the public API
+        
+        print("\n--- Testing get_code_sets ---")
+        result = await client.get_code_sets()
+        
+        if result.get("status") == "SUCCESS":
+            code_sets = result.get("object", {})
+            print("Available code sets:")
+            
+            for code_set_name, codes in code_sets.items():
+                if isinstance(codes, list):
+                    print(f"  {code_set_name}: {len(codes)} codes")
+        else:
+            print(f"Error: {result}")
+        
+        # 5. Test get_full_table_download_url
+        print("\n--- Testing get_full_table_download_url ---")
+        pid = "1810000401"  # CPI Monthly
+        
+        url = await client.get_full_table_download_url(pid, "csv")
+        print(f"CSV download URL: {url}")
+        
+        url = await client.get_full_table_download_url(pid, "sdmx")
+        print(f"SDMX download URL: {url}")
+        
+        # 6. Test get_code_sets
+        print("\n--- Testing get_code_sets ---")
+        result = await client.get_code_sets()
+        
+        if result.get("status") == "SUCCESS":
+            code_sets = result.get("object", {})
+            print("Available code sets:")
+            
+            for code_set_name, codes in code_sets.items():
+                print(f"  {code_set_name}: {len(codes)} codes")
+        else:
+            print(f"Error: {result}")
+        
+    finally:
+        await client.close()
 
 async def main():
     """Run all tests."""
-    print("Starting StatCan WDS API tests...")
+    print("Starting StatCan WDS API client tests...")
     
     try:
-        await test_changed_cubes()
-        await test_cube_metadata()
-        await test_vector_data()
+        print("\n=== Testing Basic API Methods ===")
+        await test_get_changed_cube_list()
+        await test_get_cube_metadata()
+        await test_get_data_from_vectors()
+        await test_get_series_info_from_vector()
         await test_search_cubes()
         
-        print("\n✅ All tests completed!")
+        print("\n=== Testing New API Methods ===")
+        await test_new_api_methods()
+        
+        print("\n✅ All API tests completed!")
     except Exception as e:
+        import traceback
+        traceback.print_exc()
         print(f"\n❌ Error during testing: {e}")
         return 1
     
     return 0
 
-
 if __name__ == "__main__":
-    # Create the scripts directory if it doesn't exist
-    os.makedirs(Path(__file__).parent, exist_ok=True)
-    
-    # Run the tests
     sys.exit(asyncio.run(main()))
