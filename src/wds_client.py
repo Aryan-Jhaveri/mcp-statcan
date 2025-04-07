@@ -133,7 +133,10 @@ class WDSClient:
             if use_get:
                 # For GET requests, no params in body 
                 # (parameters are included in URL for some endpoints)
-                async with self.session.get(url) as response:
+                headers = {
+                    "Accept": "application/json"
+                }
+                async with self.session.get(url, headers=headers) as response:
                     if response.status != 200:
                         logger.error(f"Request failed: {response.status}, {response.reason}, url={url}")
                         return {"status": "FAILED", "object": f"HTTP error: {response.status}, {response.reason}"}
@@ -143,35 +146,88 @@ class WDSClient:
                 # For POST requests, send params directly as JSON body
                 # The StatCan API wants parameters directly in the body, not wrapped
                 
-                # According to the StatCan documentation, requests should be formatted as:
-                # { "user_id": "0", "productId": "1810000601", ... }
-                # Let's follow exactly what's in the docs
-                payload = {"user_id": "0"}
+                # StatCan API has inconsistent expectations for request formats
+                # Looking at actual examples from the documentation
+                if method == "getCubeMetadata":
+                    # For cube metadata: {"user_id": "0", "productId": "1810000601"}
+                    if isinstance(params, list) and len(params) == 1 and "productId" in params[0]:
+                        payload = {"user_id": "0", "productId": params[0]["productId"]}
+                    else:
+                        logger.warning(f"Invalid params for {method}: {params}")
+                        payload = {"user_id": "0"}
+                        if isinstance(params, list) and len(params) > 0:
+                            if "productId" in params[0]:
+                                payload["productId"] = params[0]["productId"]
                 
-                if isinstance(params, list) and len(params) == 1:
-                    # Merge the parameters from the array item
-                    payload.update(params[0])
-                else:
-                    # For bulk requests that need array format
-                    logger.info(f"Using array format for {method}: {params}")
-                    if method in ["getDataFromVectorsAndLatestNPeriods"]:
-                        # Special case for vector data - format as in the docs
-                        payload = {"user_id": "0", "vectors": [], "latestN": 10}
-                        # Extract vectorIds and use the latestN from the first param
+                elif method == "getDataFromCubePidCoord":
+                    # For coordinates: {"user_id": "0", "productId": "1810000601", "coordinate": ["1.1.1", "1.1", "1"]}
+                    if isinstance(params, list) and len(params) == 1:
+                        payload = {"user_id": "0"}
+                        if "productId" in params[0]:
+                            payload["productId"] = params[0]["productId"]
+                        if "coordinate" in params[0]:
+                            payload["coordinate"] = params[0]["coordinate"]
+                    else:
+                        logger.warning(f"Invalid params for {method}: {params}")
+                        payload = {"user_id": "0"}
+                
+                elif method == "getDataFromVectorsAndLatestNPeriods":
+                    # For vector data: {"user_id": "0", "vectors": ["v74804", "v74805"], "latestN": 10}
+                    payload = {"user_id": "0", "vectors": [], "latestN": 10}
+                    
+                    # Extract vector IDs and use latestN from first param
+                    if isinstance(params, list):
                         for p in params:
                             if "vectorId" in p:
-                                payload["vectors"].append(str(p["vectorId"]))
+                                # Make sure to add the "v" prefix if it's missing
+                                vector_id = str(p["vectorId"])
+                                if not vector_id.startswith("v"):
+                                    vector_id = f"v{vector_id}"
+                                payload["vectors"].append(vector_id)
+                        
                         if params and "latestN" in params[0]:
                             payload["latestN"] = params[0]["latestN"]
+                
+                elif method in ["getSeriesInfoFromVector", "getSeriesInfoFromCubePidCoord"]:
+                    # For vector info: {"user_id": "0", "vectorId": "v74804"}
+                    payload = {"user_id": "0"}
+                    
+                    if isinstance(params, list) and len(params) == 1:
+                        # Copy all parameters from the first item
+                        for key, value in params[0].items():
+                            # Special handling for vectorId to ensure v prefix
+                            if key == "vectorId":
+                                vector_id = str(value)
+                                if not vector_id.startswith("v"):
+                                    vector_id = f"v{vector_id}"
+                                payload["vectorId"] = vector_id
+                            else:
+                                payload[key] = value
                     else:
-                        # For other endpoints that need arrays, keep as is but add user_id
+                        logger.warning(f"Invalid params for {method}: {params}")
+                
+                else:
+                    # Default case - try to format according to API expectations
+                    logger.info(f"Using default format for {method}: {params}")
+                    payload = {"user_id": "0"}
+                    
+                    if isinstance(params, list) and len(params) == 1:
+                        # Merge parameters from array item
+                        payload.update(params[0])
+                    else:
+                        # For other array formats, just use as is
                         payload = params
                 
-                # Add debug logging for important endpoints
-                if method in ["getCubeMetadata", "getDataFromCubePidCoord"]:
-                    logger.info(f"API request to {method}: {payload}")
+                # Add debug logging for all endpoints to help diagnose issues
+                logger.info(f"API request to {method}: {payload}")
                 
-                async with self.session.post(url, json=payload) as response:
+                # Add headers required by the StatCan API
+                headers = {
+                    "Content-Type": "application/json", 
+                    "Accept": "application/json"
+                }
+                
+                async with self.session.post(url, json=payload, headers=headers) as response:
                     if response.status != 200:
                         logger.error(f"Request failed: {response.status}, {response.reason}, url={url}, params={params}")
                         return {"status": "FAILED", "object": f"HTTP error: {response.status}, {response.reason}"}
@@ -488,15 +544,14 @@ class WDSClient:
         Returns:
             Dictionary containing vector information with enhanced metadata
         """
-        # Remove 'v' prefix if present and convert to number
-        vector_id = vector.lower().replace('v', '') if isinstance(vector, str) else vector
-        try:
-            # Try to convert to a number
-            vector_id = int(vector_id)
-        except ValueError:
-            # If it's not a valid number, leave as string
-            pass
-            
+        # StatCan API requires the 'v' prefix for vector IDs
+        vector_id = str(vector)
+        if not vector_id.lower().startswith('v'):
+            vector_id = f"v{vector_id}"
+        
+        logger.info(f"Getting info for vector: {vector_id}")
+        
+        # The API expects vectorId to include the 'v' prefix
         params = [{"vectorId": vector_id}]
         response = await self._request("getSeriesInfoFromVector", params)
         
