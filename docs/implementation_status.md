@@ -143,6 +143,32 @@ Based on extensive testing, we've documented the exact format requirements for k
 
 The complete API connection guide with examples is available in the `/docs/api_connection_guide.md` file.
 
+## Current Challenges and Limitations
+
+Despite resolving the 406 errors for most endpoints, we still face some challenges with the StatCan WDS API:
+
+1. **Partial API Functionality**
+   - Some endpoints still return 406 errors despite correct formatting
+   - Coordinate-based queries are less reliable than vector-based queries
+   - Data retrieval for some vectors may occasionally fail
+
+2. **Data Availability Constraints**
+   - Cannot reliably retrieve full historical data for all vectors
+   - Some API calls may timeout for large data requests
+   - Limited ability to query by complex coordinates
+
+3. **API Rate and Access Limitations**
+   - StatCan enforces rate limits that may affect high-volume requests
+   - Some endpoints have unpredictable timeouts or connectivity issues
+   - Metadata for certain datasets may be incomplete or inconsistent
+
+To address these challenges, the StatCan MCP server implements:
+
+- **Multi-tier Caching**: Comprehensive caching at metadata, vector, and cube levels
+- **Local Fallbacks**: Pre-loaded data for common vectors and cubes
+- **Resilient Architecture**: Multiple data paths with graceful degradation
+- **Smart Retries**: Automatic format adjustment and retries with exponential backoff
+
 ## Upcoming Features
 
 1. **Advanced Analysis Tools**

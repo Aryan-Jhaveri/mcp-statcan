@@ -5,29 +5,38 @@ An MCP (Model Context Protocol) server that provides access to Statistics Canada
 ## Features
 
 - 🔍 **Dataset Discovery**: Search and browse StatCan datasets by keywords, themes, or geography
-- 📊 **Data Retrieval**: Extract time series data and specific data points
+- 📊 **Data Retrieval**: Extract time series data with proper formatting for key vectors
 - 📝 **Metadata Exploration**: Access detailed information about dataset structure and content
 - 💾 **Persistent Storage**: Store datasets for future use with SQLite backend
 - 📊 **Advanced Analysis**: Perform comprehensive statistical analysis, trend detection, seasonality analysis, and forecasting
 - 📈 **Visualizations**: Generate data visualizations with integration to Vega-Lite
-- 🔄 **Change Tracking**: Monitor updates to datasets
 - 📑 **Citations**: Generate properly formatted citations for StatCan data
 - 🖼️ **Figure References**: Track and reference figures created from StatCan data
+- 🔄 **API Resilience**: Robust error handling with fallbacks for API limitations
 
 ## Current Status
 
-This is a full-featured implementation of an MCP server for StatCan data. We've completed:
+This is a robust implementation of an MCP server for StatCan data, with specific enhancements for API reliability:
 
-- Enhanced StatCan WDS API client with robust error handling and intelligent search
-- Comprehensive data retrieval with statistical analysis and trend detection
-- Persistent data storage with SQLite for offline analysis and faster access
-- Advanced statistical capabilities including trend analysis, seasonality detection, and forecasting
-- Proper citation generation in multiple formats (APA, MLA, Chicago)
-- Figure tracking for maintaining references to generated visualizations
-- Rich resource formatting with markdown and improved context
-- Advanced search capabilities with tokenization and synonym handling
-- Multi-level caching system with fallbacks for restricted environments
-- Extensive testing framework for verification and validation
+- ✅ **API Format Requirements**: Identified correct formats for StatCan WDS API endpoints to resolve 406 errors
+- ✅ **Enhanced Error Handling**: Multi-tier fallback system when API endpoints fail or timeout
+- ✅ **Local Data Caching**: Comprehensive caching system to reduce API dependency
+- ✅ **Metadata Enhancement**: Rich context including units, scalar factors, and frequency descriptions 
+- ✅ **Advanced Analysis**: Statistical capabilities including trend analysis, seasonality detection, and forecasting
+- ✅ **Data Storage**: SQLite backend for persistent storage and offline analysis
+- ✅ **MCP Integrations**: Connections to other MCP servers for enhanced functionality
+- ✅ **Documentation**: Comprehensive guides for API connection and integration
+
+### API Limitations
+
+The StatCan WDS API has several limitations that this server addresses:
+
+- Some endpoints still return 406 errors despite correct formatting
+- Vector-based queries work better than coordinate-based queries
+- Some API calls may timeout for large requests
+- Rate limits affect high-volume requests
+
+Our implementation uses caching, local fallbacks, and alternative data paths to provide reliable service despite these limitations.
 
 See [docs/implementation_status.md](docs/implementation_status.md) for detailed development progress.
 
