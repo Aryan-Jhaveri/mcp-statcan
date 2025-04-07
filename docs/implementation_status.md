@@ -63,40 +63,47 @@ This document provides an overview of the current implementation status of the S
 
 ## Latest Enhancements
 
-### Enhanced Metadata Context for Data Ingestion
+### Enhanced Metadata Context for Data Analysis and Citation
 
-The StatCan MCP server now provides comprehensive metadata context for all data retrieved from the WDS API:
+The StatCan MCP server now provides comprehensive metadata context for all data retrieved and analyzed:
 
 #### Unit of Measurement Information
 - Integration of UOM codes with descriptive labels
 - Dynamic display of values with appropriate units
 - Support for common economic indicators like indices, currency, and volume measures
+- Automatic inclusion of unit information in analysis results and visualizations
 
 #### Data Point Context
 - Rich context for each data point including scalar factors (units, thousands, millions)
 - Status information (preliminary, revised, discontinued)
 - Symbol information (suppressed, confidential, estimated)
+- Persistent storage of metadata context in database for later analysis
 
-#### Frequency Information
-- Clear descriptions of data frequency (monthly, quarterly, annual)
-- Consistent formatting based on frequency type
+#### Precise Citations and Source References
+- Automatic inclusion of Table PID in all analysis results
+- Proper citation formatting for academic and professional use
+- Links to original StatCan data sources
+- Citation tracking for figures and visualizations derived from the data
 
-#### Visualization Support
-- Generated data includes all context needed for meaningful visualizations
-- Integration with Vega-Lite for dynamic chart generation
-- Display values formatted according to data type and scale
+#### Enhanced Analysis Output
+- Human-readable interpretations with appropriate units of measurement
+- Statistical results with complete metadata context
+- Clear trend descriptions with proper units and source citations
+- Comprehensive summary statistics with units and data source information
 
-This enhancement significantly improves the usability of StatCan data by providing AI assistants with the context they need to correctly interpret and present statistical information to users.
+This enhancement significantly improves the usability of StatCan data by providing AI assistants with the context they need to correctly interpret, cite, and present statistical information to users.
 
 ## Data Analysis Capabilities
 
 | Analysis Type | Status | Notes |
 |---------------|--------|-------|
-| Summary statistics | ✅ Complete | Mean, median, min, max, standard deviation |
-| Trend analysis | ✅ Complete | Linear regression, slope, R-squared |
-| Seasonal analysis | ✅ Complete | Monthly/quarterly patterns, seasonality index |
-| Forecasting | ✅ Complete | Exponential smoothing with error metrics |
-| Correlation | ✅ Complete | Correlation coefficients with lag analysis |
+| Summary statistics | ✅ Complete | Mean, median, min, max, standard deviation with proper units of measurement |
+| Trend analysis | ✅ Complete | Linear regression, slope, R-squared with correct citation of data source |
+| Seasonal analysis | ✅ Complete | Monthly/quarterly patterns, seasonality index with appropriate metadata |
+| Forecasting | ✅ Complete | Exponential smoothing with error metrics and units of measurement |
+| Correlation | ✅ Complete | Correlation coefficients with lag analysis and complete source information |
+| Visualization | ✅ Complete | Integration with Vega-Lite MCP server for comprehensive data visualization |
+| Storage and Retrieval | ✅ Complete | Persistent SQLite database with complete metadata preservation |
 
 ## Upcoming Features
 

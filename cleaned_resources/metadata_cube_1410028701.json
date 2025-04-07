@@ -1,0 +1,755 @@
+{
+  "responseStatusCode": 0,
+  "productId": "14100287",
+  "cansimId": "282-0087",
+  "cubeTitleEn": "Labour force characteristics, monthly, seasonally adjusted and trend-cycle",
+  "cubeTitleFr": "Caract\u00e9ristiques de la population active, donn\u00e9es mensuelles d\u00e9saisonnalis\u00e9es et la tendance-cycle",
+  "cubeStartDate": "1976-01-01",
+  "cubeEndDate": "2025-03-01",
+  "frequencyCode": 6,
+  "nbSeriesCube": 8991,
+  "nbDatapointsCube": 5313681,
+  "releaseTime": "2025-04-04T08:30",
+  "archiveStatusCode": "2",
+  "archiveStatusEn": "CURRENT - a cube available to the public and that is current",
+  "archiveStatusFr": "ACTIF - un cube qui est disponible au public et qui est toujours mise a jour",
+  "subjectCode": [
+    "140205"
+  ],
+  "surveyCode": [
+    "3701"
+  ],
+  "dimension": [
+    {
+      "dimensionPositionId": 1,
+      "dimensionNameEn": "Geography",
+      "dimensionNameFr": "G\u00e9ographie",
+      "hasUom": false,
+      "member": [
+        {
+          "memberId": 1,
+          "parentMemberId": null,
+          "memberNameEn": "Canada",
+          "memberNameFr": "Canada",
+          "classificationCode": "11124",
+          "classificationTypeCode": "1",
+          "geoLevel": 0,
+          "vintage": 2021,
+          "terminated": 0,
+          "memberUomCode": null
+        },
+        {
+          "memberId": 2,
+          "parentMemberId": 1,
+          "memberNameEn": "Newfoundland and Labrador",
+          "memberNameFr": "Terre-Neuve-et-Labrador",
+          "classificationCode": "10",
+          "classificationTypeCode": "1",
+          "geoLevel": 2,
+          "vintage": 2021,
+          "terminated": 0,
+          "memberUomCode": null
+        },
+        {
+          "memberId": 3,
+          "parentMemberId": 1,
+          "memberNameEn": "Prince Edward Island",
+          "memberNameFr": "\u00cele-du-Prince-\u00c9douard",
+          "classificationCode": "11",
+          "classificationTypeCode": "1",
+          "geoLevel": 2,
+          "vintage": 2021,
+          "terminated": 0,
+          "memberUomCode": null
+        },
+        {
+          "memberId": 4,
+          "parentMemberId": 1,
+          "memberNameEn": "Nova Scotia",
+          "memberNameFr": "Nouvelle-\u00c9cosse",
+          "classificationCode": "12",
+          "classificationTypeCode": "1",
+          "geoLevel": 2,
+          "vintage": 2021,
+          "terminated": 0,
+          "memberUomCode": null
+        },
+        {
+          "memberId": 5,
+          "parentMemberId": 1,
+          "memberNameEn": "New Brunswick",
+          "memberNameFr": "Nouveau-Brunswick",
+          "classificationCode": "13",
+          "classificationTypeCode": "1",
+          "geoLevel": 2,
+          "vintage": 2021,
+          "terminated": 0,
+          "memberUomCode": null
+        },
+        {
+          "memberId": 6,
+          "parentMemberId": 1,
+          "memberNameEn": "Quebec",
+          "memberNameFr": "Qu\u00e9bec",
+          "classificationCode": "24",
+          "classificationTypeCode": "1",
+          "geoLevel": 2,
+          "vintage": 2021,
+          "terminated": 0,
+          "memberUomCode": null
+        },
+        {
+          "memberId": 7,
+          "parentMemberId": 1,
+          "memberNameEn": "Ontario",
+          "memberNameFr": "Ontario",
+          "classificationCode": "35",
+          "classificationTypeCode": "1",
+          "geoLevel": 2,
+          "vintage": 2021,
+          "terminated": 0,
+          "memberUomCode": null
+        },
+        {
+          "memberId": 8,
+          "parentMemberId": 1,
+          "memberNameEn": "Manitoba",
+          "memberNameFr": "Manitoba",
+          "classificationCode": "46",
+          "classificationTypeCode": "1",
+          "geoLevel": 2,
+          "vintage": 2021,
+          "terminated": 0,
+          "memberUomCode": null
+        },
+        {
+          "memberId": 9,
+          "parentMemberId": 1,
+          "memberNameEn": "Saskatchewan",
+          "memberNameFr": "Saskatchewan",
+          "classificationCode": "47",
+          "classificationTypeCode": "1",
+          "geoLevel": 2,
+          "vintage": 2021,
+          "terminated": 0,
+          "memberUomCode": null
+        },
+        {
+          "memberId": 10,
+          "parentMemberId": 1,
+          "memberNameEn": "Alberta",
+          "memberNameFr": "Alberta",
+          "classificationCode": "48",
+          "classificationTypeCode": "1",
+          "geoLevel": 2,
+          "vintage": 2021,
+          "terminated": 0,
+          "memberUomCode": null
+        },
+        {
+          "memberId": 11,
+          "parentMemberId": 1,
+          "memberNameEn": "British Columbia",
+          "memberNameFr": "Colombie-Britannique",
+          "classificationCode": "59",
+          "classificationTypeCode": "1",
+          "geoLevel": 2,
+          "vintage": 2021,
+          "terminated": 0,
+          "memberUomCode": null
+        }
+      ]
+    },
+    {
+      "dimensionPositionId": 2,
+      "dimensionNameEn": "Labour force characteristics",
+      "dimensionNameFr": "Caract\u00e9ristiques de la population active",
+      "hasUom": true,
+      "member": [
+        {
+          "memberId": 1,
+          "parentMemberId": null,
+          "memberNameEn": "Population",
+          "memberNameFr": "Population",
+          "classificationCode": null,
+          "classificationTypeCode": null,
+          "geoLevel": null,
+          "vintage": null,
+          "terminated": 0,
+          "memberUomCode": 428
+        },
+        {
+          "memberId": 2,
+          "parentMemberId": 1,
+          "memberNameEn": "Labour force",
+          "memberNameFr": "Population active",
+          "classificationCode": null,
+          "classificationTypeCode": null,
+          "geoLevel": null,
+          "vintage": null,
+          "terminated": 0,
+          "memberUomCode": 428
+        },
+        {
+          "memberId": 3,
+          "parentMemberId": 2,
+          "memberNameEn": "Employment",
+          "memberNameFr": "Emploi",
+          "classificationCode": null,
+          "classificationTypeCode": null,
+          "geoLevel": null,
+          "vintage": null,
+          "terminated": 0,
+          "memberUomCode": 428
+        },
+        {
+          "memberId": 4,
+          "parentMemberId": 3,
+          "memberNameEn": "Full-time employment",
+          "memberNameFr": "Emploi \u00e0 temps plein",
+          "classificationCode": null,
+          "classificationTypeCode": null,
+          "geoLevel": null,
+          "vintage": null,
+          "terminated": 0,
+          "memberUomCode": 428
+        },
+        {
+          "memberId": 5,
+          "parentMemberId": 3,
+          "memberNameEn": "Part-time employment",
+          "memberNameFr": "Emploi \u00e0 temps partiel",
+          "classificationCode": null,
+          "classificationTypeCode": null,
+          "geoLevel": null,
+          "vintage": null,
+          "terminated": 0,
+          "memberUomCode": 428
+        },
+        {
+          "memberId": 6,
+          "parentMemberId": 2,
+          "memberNameEn": "Unemployment",
+          "memberNameFr": "Ch\u00f4mage",
+          "classificationCode": null,
+          "classificationTypeCode": null,
+          "geoLevel": null,
+          "vintage": null,
+          "terminated": 0,
+          "memberUomCode": 428
+        },
+        {
+          "memberId": 7,
+          "parentMemberId": null,
+          "memberNameEn": "Unemployment rate",
+          "memberNameFr": "Taux de ch\u00f4mage",
+          "classificationCode": null,
+          "classificationTypeCode": null,
+          "geoLevel": null,
+          "vintage": null,
+          "terminated": 0,
+          "memberUomCode": 239
+        },
+        {
+          "memberId": 8,
+          "parentMemberId": null,
+          "memberNameEn": "Participation rate",
+          "memberNameFr": "Taux d'activit\u00e9",
+          "classificationCode": null,
+          "classificationTypeCode": null,
+          "geoLevel": null,
+          "vintage": null,
+          "terminated": 0,
+          "memberUomCode": 239
+        },
+        {
+          "memberId": 9,
+          "parentMemberId": null,
+          "memberNameEn": "Employment rate",
+          "memberNameFr": "Taux d'emploi",
+          "classificationCode": null,
+          "classificationTypeCode": null,
+          "geoLevel": null,
+          "vintage": null,
+          "terminated": 0,
+          "memberUomCode": 239
+        }
+      ]
+    },
+    {
+      "dimensionPositionId": 3,
+      "dimensionNameEn": "Gender",
+      "dimensionNameFr": "Genre",
+      "hasUom": false,
+      "member": [
+        {
+          "memberId": 1,
+          "parentMemberId": null,
+          "memberNameEn": "Total - Gender",
+          "memberNameFr": "Total - Genre",
+          "classificationCode": null,
+          "classificationTypeCode": null,
+          "geoLevel": null,
+          "vintage": null,
+          "terminated": 0,
+          "memberUomCode": null
+        },
+        {
+          "memberId": 2,
+          "parentMemberId": 1,
+          "memberNameEn": "Men+",
+          "memberNameFr": "Hommes+",
+          "classificationCode": null,
+          "classificationTypeCode": null,
+          "geoLevel": null,
+          "vintage": null,
+          "terminated": 0,
+          "memberUomCode": null
+        },
+        {
+          "memberId": 3,
+          "parentMemberId": 1,
+          "memberNameEn": "Women+",
+          "memberNameFr": "Femmes+",
+          "classificationCode": null,
+          "classificationTypeCode": null,
+          "geoLevel": null,
+          "vintage": null,
+          "terminated": 0,
+          "memberUomCode": null
+        }
+      ]
+    },
+    {
+      "dimensionPositionId": 4,
+      "dimensionNameEn": "Age group",
+      "dimensionNameFr": "Groupe d'\u00e2ge",
+      "hasUom": false,
+      "member": [
+        {
+          "memberId": 1,
+          "parentMemberId": null,
+          "memberNameEn": "15 years and over",
+          "memberNameFr": "15 ans et plus",
+          "classificationCode": null,
+          "classificationTypeCode": null,
+          "geoLevel": null,
+          "vintage": null,
+          "terminated": 0,
+          "memberUomCode": null
+        },
+        {
+          "memberId": 8,
+          "parentMemberId": null,
+          "memberNameEn": "15 to 64 years",
+          "memberNameFr": "15 \u00e0 64 ans",
+          "classificationCode": null,
+          "classificationTypeCode": null,
+          "geoLevel": null,
+          "vintage": null,
+          "terminated": 0,
+          "memberUomCode": null
+        },
+        {
+          "memberId": 2,
+          "parentMemberId": null,
+          "memberNameEn": "15 to 24 years",
+          "memberNameFr": "15 \u00e0 24 ans",
+          "classificationCode": null,
+          "classificationTypeCode": null,
+          "geoLevel": null,
+          "vintage": null,
+          "terminated": 0,
+          "memberUomCode": null
+        },
+        {
+          "memberId": 3,
+          "parentMemberId": null,
+          "memberNameEn": "15 to 19 years",
+          "memberNameFr": "15 \u00e0 19 ans",
+          "classificationCode": null,
+          "classificationTypeCode": null,
+          "geoLevel": null,
+          "vintage": null,
+          "terminated": 0,
+          "memberUomCode": null
+        },
+        {
+          "memberId": 4,
+          "parentMemberId": null,
+          "memberNameEn": "20 to 24 years",
+          "memberNameFr": "20 \u00e0 24 ans",
+          "classificationCode": null,
+          "classificationTypeCode": null,
+          "geoLevel": null,
+          "vintage": null,
+          "terminated": 0,
+          "memberUomCode": null
+        },
+        {
+          "memberId": 5,
+          "parentMemberId": null,
+          "memberNameEn": "25 years and over",
+          "memberNameFr": "25 ans et plus",
+          "classificationCode": null,
+          "classificationTypeCode": null,
+          "geoLevel": null,
+          "vintage": null,
+          "terminated": 0,
+          "memberUomCode": null
+        },
+        {
+          "memberId": 6,
+          "parentMemberId": null,
+          "memberNameEn": "25 to 54 years",
+          "memberNameFr": "25 \u00e0 54 ans",
+          "classificationCode": null,
+          "classificationTypeCode": null,
+          "geoLevel": null,
+          "vintage": null,
+          "terminated": 0,
+          "memberUomCode": null
+        },
+        {
+          "memberId": 7,
+          "parentMemberId": null,
+          "memberNameEn": "55 years and over",
+          "memberNameFr": "55 ans et plus",
+          "classificationCode": null,
+          "classificationTypeCode": null,
+          "geoLevel": null,
+          "vintage": null,
+          "terminated": 0,
+          "memberUomCode": null
+        },
+        {
+          "memberId": 9,
+          "parentMemberId": null,
+          "memberNameEn": "55 to 64 years",
+          "memberNameFr": "55 \u00e0 64 ans",
+          "classificationCode": null,
+          "classificationTypeCode": null,
+          "geoLevel": null,
+          "vintage": null,
+          "terminated": 0,
+          "memberUomCode": null
+        }
+      ]
+    },
+    {
+      "dimensionPositionId": 5,
+      "dimensionNameEn": "Statistics",
+      "dimensionNameFr": "Statistiques",
+      "hasUom": false,
+      "member": [
+        {
+          "memberId": 1,
+          "parentMemberId": null,
+          "memberNameEn": "Estimate",
+          "memberNameFr": "Estimation",
+          "classificationCode": null,
+          "classificationTypeCode": null,
+          "geoLevel": null,
+          "vintage": null,
+          "terminated": 0,
+          "memberUomCode": null
+        },
+        {
+          "memberId": 2,
+          "parentMemberId": null,
+          "memberNameEn": "Standard error of estimate",
+          "memberNameFr": "Erreur-type de l'estimation",
+          "classificationCode": null,
+          "classificationTypeCode": null,
+          "geoLevel": null,
+          "vintage": null,
+          "terminated": 0,
+          "memberUomCode": null
+        },
+        {
+          "memberId": 3,
+          "parentMemberId": null,
+          "memberNameEn": "Standard error of month-to-month change",
+          "memberNameFr": "Erreur-type du changement mensuel",
+          "classificationCode": null,
+          "classificationTypeCode": null,
+          "geoLevel": null,
+          "vintage": null,
+          "terminated": 0,
+          "memberUomCode": null
+        },
+        {
+          "memberId": 4,
+          "parentMemberId": null,
+          "memberNameEn": "Standard error of year-over-year change",
+          "memberNameFr": "Erreur-type du changement annuel",
+          "classificationCode": null,
+          "classificationTypeCode": null,
+          "geoLevel": null,
+          "vintage": null,
+          "terminated": 0,
+          "memberUomCode": null
+        }
+      ]
+    },
+    {
+      "dimensionPositionId": 6,
+      "dimensionNameEn": "Data type",
+      "dimensionNameFr": "Type de donn\u00e9es",
+      "hasUom": false,
+      "member": [
+        {
+          "memberId": 1,
+          "parentMemberId": null,
+          "memberNameEn": "Seasonally adjusted",
+          "memberNameFr": "D\u00e9saisonnalis\u00e9es",
+          "classificationCode": null,
+          "classificationTypeCode": null,
+          "geoLevel": null,
+          "vintage": null,
+          "terminated": 0,
+          "memberUomCode": null
+        },
+        {
+          "memberId": 3,
+          "parentMemberId": null,
+          "memberNameEn": "Trend-cycle",
+          "memberNameFr": "Tendance-cycle",
+          "classificationCode": null,
+          "classificationTypeCode": null,
+          "geoLevel": null,
+          "vintage": null,
+          "terminated": 0,
+          "memberUomCode": null
+        },
+        {
+          "memberId": 2,
+          "parentMemberId": null,
+          "memberNameEn": "Unadjusted",
+          "memberNameFr": "Non d\u00e9saisonnalis\u00e9es",
+          "classificationCode": null,
+          "classificationTypeCode": null,
+          "geoLevel": null,
+          "vintage": null,
+          "terminated": 0,
+          "memberUomCode": null
+        }
+      ]
+    }
+  ],
+  "footnote": [
+    {
+      "footnoteId": 1,
+      "footnotesEn": "Fluctuations in economic time series are caused by seasonal, cyclical and irregular movements. A seasonally adjusted series is one from which seasonal movements have been eliminated. Seasonal movements are defined as those which are caused by regular annual events such as climate, holidays, vacation periods and cycles related to crops, production and retail sales associated with Christmas and Easter. It should be noted that the seasonally adjusted series contain irregular as well as longer-term cyclical fluctuations. The seasonal adjustment program is a complicated computer program which differentiates between these seasonal, cyclical and irregular movements in a series over a number of years and, on the basis of past movements, estimates appropriate seasonal factors for current data. On an annual basis, the historic series of seasonally adjusted data are revised in light of the most recent information on changes in seasonality.",
+      "footnotesFr": "Les fluctuations dans les s\u00e9ries chronologiques d'ordre \u00e9conomique sont caus\u00e9es par les mouvements saisonniers, cycliques et irr\u00e9guliers. Une s\u00e9rie d\u00e9saisonnalis\u00e9e est une s\u00e9rie dans laquelle on a supprim\u00e9 les mouvements saisonniers. Ces derniers sont d\u00e9finis comme \u00e9tant caus\u00e9s par des \u00e9v\u00e9nements annuels r\u00e9guliers tels que les variations des conditions climatiques, les vacances, les cycles agricoles et les cycles de production et de vente au d\u00e9tail durant la p\u00e9riode de No\u00ebl et de P\u00e2ques. Il faut souligner que les s\u00e9ries d\u00e9saisonnalis\u00e9es pr\u00e9sentent des fluctuations irr\u00e9guli\u00e8res de m\u00eame que des fluctuations cycliques \u00e0 long terme. Le programme de d\u00e9saisonnalisation est un programme informatique complexe qui d\u00e9termine les saisonniers, cycliques et irr\u00e9guliers d'une s\u00e9rie sur un certain nombre d'ann\u00e9es et qui, d'apr\u00e8s les mouvements ant\u00e9rieurs, donne des estimations de facteurs saisonniers pertinents eut \u00e9gard aux donn\u00e9es actuelles. Sur une base annuelle, les s\u00e9ries chronologiques des donn\u00e9es d\u00e9saisonnalis\u00e9es sont r\u00e9vis\u00e9es \u00e0 la lumi\u00e8re de la plus r\u00e9cente information sur les changements dans la saisonnalit\u00e9.",
+      "link": {
+        "footnoteId": 1,
+        "dimensionPositionId": 0,
+        "memberId": 0
+      }
+    },
+    {
+      "footnoteId": 11,
+      "footnotesEn": "To ensure respondent confidentiality, estimates below a certain threshold are suppressed. For Canada, Quebec, Ontario, Alberta and British Columbia suppression is applied to all data below 1,500. The threshold level for Newfoundland and Labrador, Nova Scotia, New Brunswick, Manitoba and Saskatchewan is 500, while in Prince Edward Island, estimates under 200 are suppressed. For census metropolitan areas (CMAs) and economic regions (ERs), use their respective provincial suppression levels mentioned above. Estimates are based on smaller sample sizes the more detailed the table becomes, which could result in lower data quality.",
+      "footnotesFr": "Pour assurer la confidentialit\u00e9 du r\u00e9pondant, les donn\u00e9es inf\u00e9rieures \u00e0 un certain seuil sont supprim\u00e9es. Pour le Canada, le Qu\u00e9bec, l'Ontario, l'Alberta et la Colombie-Britannique, la suppression est appliqu\u00e9e \u00e0 toutes les donn\u00e9es inf\u00e9rieures \u00e0 1 500. Le seuil de suppression pour Terre-Neuve-et-Labrador, la Nouvelle-\u00c9cosse, le Nouveau-Brunswick, le Manitoba et la Saskatchewan est de 500, alors que pour l'\u00cele-du-Prince-\u00c9douard, les estimations inf\u00e9rieures \u00e0 200 sont supprim\u00e9es. Les r\u00e9gions m\u00e9tropolitaines de recensement (RMR) et les r\u00e9gions \u00e9conomiques (RE) utilisent les seuils de suppression de leurs provinces respectives mentionn\u00e9s ci-dessus. Plus le tableau est d\u00e9taill\u00e9, plus la taille de l\u2019\u00e9chantillon sur lequel les estimations sont bas\u00e9es est petite, ce qui peut r\u00e9sulter en une plus faible qualit\u00e9 des donn\u00e9es. ",
+      "link": {
+        "footnoteId": 11,
+        "dimensionPositionId": 0,
+        "memberId": 0
+      }
+    },
+    {
+      "footnoteId": 13,
+      "footnotesEn": "For more information on seasonal adjustment see <a href=\"http://www.statcan.gc.ca/eng/dai/btd/sad-faq\">Seasonally adjusted data - Frequently asked questions</a>.",
+      "footnotesFr": "Pour plus de renseignement sur la d\u00e9saisonnalisation voir <a href=\"http://www.statcan.gc.ca/fra/quo/bdd/dd-faq\">Donn\u00e9es d\u00e9saisonnalis\u00e9es - Foire aux questions</a>.",
+      "link": {
+        "footnoteId": 13,
+        "dimensionPositionId": 0,
+        "memberId": 0
+      }
+    },
+    {
+      "footnoteId": 20,
+      "footnotesEn": "Starting in 2006, enhancements to the Labour Force Survey data processing system may have introduced a level shift in some estimates, particularly for less common labour force characteristics. Use caution when comparing estimates before and after 2006. For more information, contact statcan.labour-travail.statcan@statcan.gc.ca",
+      "footnotesFr": "\u00c0 partir de 2006, les am\u00e9liorations apport\u00e9es au syst\u00e8me de traitement des donn\u00e9es de l'Enqu\u00eate sur la population active peuvent avoir introduit un changement de niveau dans certaines estimations, en particulier pour les caract\u00e9ristiques les moins courantes de la population active. Soyez prudent lorsque vous comparez les estimations avant et apr\u00e8s 2006. Pour de plus amples renseignements, veuillez communiquer avec statcan.labour-travail.statcan@statcan.gc.ca",
+      "link": {
+        "footnoteId": 20,
+        "dimensionPositionId": 0,
+        "memberId": 0
+      }
+    },
+    {
+      "footnoteId": 19,
+      "footnotesEn": "Excluding the territories.",
+      "footnotesFr": "Excluant les territoires.",
+      "link": {
+        "footnoteId": 19,
+        "dimensionPositionId": 1,
+        "memberId": 0
+      }
+    },
+    {
+      "footnoteId": 2,
+      "footnotesEn": "Number of persons of working age, 15 years and over. Estimates in thousands, rounded to the nearest hundred.",
+      "footnotesFr": "Nombre de personnes en \u00e2ge de travailler de 15 ans et plus. Les estimations sont exprim\u00e9es en milliers et arrondies \u00e0 la centaine pr\u00e8s.",
+      "link": {
+        "footnoteId": 2,
+        "dimensionPositionId": 2,
+        "memberId": 1
+      }
+    },
+    {
+      "footnoteId": 14,
+      "footnotesEn": "From December 2000 to January 2001, there is a slight level shift in the population series. This is due to the 2015 population rebasing, which was revised back to 2001. This level shift is evident for certain age groups and in two provinces (Manitoba and Saskatchewan). These shifts are minor for labour force estimates and rates.",
+      "footnotesFr": "Le changement de base d\u00e9mographique en 2015, dont la r\u00e9vision de donn\u00e9es d\u00e9bute avec celles de 2001, a produit une l\u00e9g\u00e8re rupture dans la s\u00e9rie d'estimations d\u00e9mographiques entre d\u00e9cembre 2000 et janvier 2001. Cette rupture est observable chez certains groupes d'\u00e2ge et dans deux provinces (Manitoba et Saskatchewan). Toutefois, ces changements sont mineurs pour les estimations de la population active et les taux.",
+      "link": {
+        "footnoteId": 14,
+        "dimensionPositionId": 2,
+        "memberId": 1
+      }
+    },
+    {
+      "footnoteId": 3,
+      "footnotesEn": "Number of civilian, non-institutionalized persons 15 years of age and over who, during the reference week, were employed or unemployed. Estimates in thousands, rounded to the nearest hundred.",
+      "footnotesFr": "Nombre de personnes civiles, hors institution et \u00e2g\u00e9es de 15 ans et plus qui, au cours de la semaine de r\u00e9f\u00e9rence, \u00e9taient occup\u00e9es ou en ch\u00f4mage. Les estimations sont exprim\u00e9es en milliers et arrondies \u00e0 la centaine pr\u00e8s.",
+      "link": {
+        "footnoteId": 3,
+        "dimensionPositionId": 2,
+        "memberId": 2
+      }
+    },
+    {
+      "footnoteId": 4,
+      "footnotesEn": "Number of persons who, during the reference week, worked for pay or profit, or performed unpaid family work or had a job but were not at work due to own illness or disability, personal or family responsibilities, labour dispute, vacation, or other reason. Those persons on layoff and persons without work but who had a job to start at a definite date in the future are not considered employed. Estimates in thousands, rounded to the nearest hundred.",
+      "footnotesFr": "Nombre de personnes qui, au cours de la semaine de r\u00e9f\u00e9rence, ont fait un travail quelconque contre r\u00e9mun\u00e9ration ou en vue d'un b\u00e9n\u00e9fice (comprend \u00e9galement le travail familial non r\u00e9mun\u00e9r\u00e9), ou avaient un emploi mais n'\u00e9taient pas au travail \u00e0 cause d'une maladie ou d'une incapacit\u00e9, pour obligations personnelles ou familiales, pour des vacances, par suite d'un conflit de travail ou du fait de tout autre facteur. Les personnes mises \u00e0 pied et celles qui avaient un emploi devant commencer \u00e0 une date ult\u00e9rieure ne sont pas consid\u00e9r\u00e9es comme \u00e9tant occup\u00e9es. Les estimations sont exprim\u00e9es en milliers et arrondies \u00e0 la centaine pr\u00e8s.",
+      "link": {
+        "footnoteId": 4,
+        "dimensionPositionId": 2,
+        "memberId": 3
+      }
+    },
+    {
+      "footnoteId": 5,
+      "footnotesEn": "Full-time employment consists of persons who usually work 30 hours or more per week at their main or only job. Estimates in thousands, rounded to the nearest hundred.",
+      "footnotesFr": "L'emploi \u00e0 temps plein se compose des personnes qui travaillent habituellement 30 heures ou plus par semaine \u00e0 leur emploi principal ou seul emploi. Les estimations sont exprim\u00e9es en milliers et arrondies \u00e0 la centaine pr\u00e8s.",
+      "link": {
+        "footnoteId": 5,
+        "dimensionPositionId": 2,
+        "memberId": 4
+      }
+    },
+    {
+      "footnoteId": 6,
+      "footnotesEn": "Part-time employment consists of persons who usually work less than 30 hours per week at their main or only job. Estimates in thousands, rounded to the nearest hundred.",
+      "footnotesFr": "L'emploi \u00e0 temps partiel se compose des personnes qui travaillent habituellement moins de 30 heures par semaine \u00e0 leur emploi principal ou seul emploi. Les estimations sont exprim\u00e9es en milliers et arrondies \u00e0 la centaine pr\u00e8s.",
+      "link": {
+        "footnoteId": 6,
+        "dimensionPositionId": 2,
+        "memberId": 5
+      }
+    },
+    {
+      "footnoteId": 7,
+      "footnotesEn": "Number of persons who, during the reference week, were without work, had looked for work in the past four weeks, and were available for work. Those persons on layoff or who had a new job to start in four weeks or less are considered unemployed. Estimates in thousands, rounded to the nearest hundred.",
+      "footnotesFr": "Nombre de personnes qui, au cours de la semaine de r\u00e9f\u00e9rence, \u00e9taient sans emploi, avaient cherch\u00e9 un emploi au cours des quatre derni\u00e8res semaines et \u00e9taient disponibles pour travailler. Les personnes mises \u00e0 pied ou ayant un nouvel emploi devant commencer dans quatre semaines ou moins sont consid\u00e9r\u00e9es comme en ch\u00f4mage. Les estimations sont exprim\u00e9es en milliers et arrondies \u00e0 la centaine pr\u00e8s.",
+      "link": {
+        "footnoteId": 7,
+        "dimensionPositionId": 2,
+        "memberId": 6
+      }
+    },
+    {
+      "footnoteId": 8,
+      "footnotesEn": "The unemployment rate is the number of unemployed persons expressed as a percentage of the labour force. The unemployment rate for a particular group (age, gender, marital status, etc.) is the number unemployed in that group expressed as a percentage of the labour force for that group. Estimates are percentages, rounded to the nearest tenth.",
+      "footnotesFr": "Le taux de ch\u00f4mage est le nombre de personnes en ch\u00f4mage exprim\u00e9 en pourcentage de la population active. Le taux de ch\u00f4mage pour un groupe donn\u00e9 (\u00e2ge, genre, \u00e9tat matrimonial, etc.) correspond au nombre de ch\u00f4meurs dans ce groupe exprim\u00e9 en pourcentage de la population active de ce groupe. Les estimations sont exprim\u00e9es en pourcentage et arrondies au dixi\u00e8me pr\u00e8s.",
+      "link": {
+        "footnoteId": 8,
+        "dimensionPositionId": 2,
+        "memberId": 7
+      }
+    },
+    {
+      "footnoteId": 9,
+      "footnotesEn": "The participation rate is the number of labour force participants expressed as a percentage of the population 15 years of age and over. The participation rate for a particular group (age, gender, marital status, etc.) is the number of labour force participants in that group expressed as a percentage of the population for that group. Estimates are percentages, rounded to the nearest tenth.",
+      "footnotesFr": "Le taux d'activit\u00e9 est le nombre de personnes faisant partie de la population active exprim\u00e9 en pourcentage de la population \u00e2g\u00e9e de 15 ans et plus. Le taux d'activit\u00e9 pour un groupe donn\u00e9 (\u00e2ge, genre, \u00e9tat matrimonial, etc.) correspond \u00e0 la population active dans ce groupe exprim\u00e9e en pourcentage de la population de ce groupe. Les estimations sont exprim\u00e9es en pourcentage et arrondies au dixi\u00e8me pr\u00e8s.",
+      "link": {
+        "footnoteId": 9,
+        "dimensionPositionId": 2,
+        "memberId": 8
+      }
+    },
+    {
+      "footnoteId": 10,
+      "footnotesEn": "The employment rate is the number of persons employed expressed as a percentage of the population 15 years of age and over. The employment rate for a particular group (age, gender, marital status, etc.) is the number employed in that group expressed as a percentage of the population for that group. Estimates are percentages, rounded to the nearest tenth.",
+      "footnotesFr": "Le taux d'emploi est le nombre de personnes occup\u00e9es exprim\u00e9 en pourcentage de la population \u00e2g\u00e9e de 15 ans et plus. Le taux d'emploi pour un groupe donn\u00e9 (\u00e2ge, genre, \u00e9tat matrimonial, etc.) correspond au nombre de personnes occup\u00e9es dans ce groupe exprim\u00e9 en pourcentage de la population de ce groupe. Les estimations sont exprim\u00e9es en pourcentage et arrondies au dixi\u00e8me pr\u00e8s.",
+      "link": {
+        "footnoteId": 10,
+        "dimensionPositionId": 2,
+        "memberId": 9
+      }
+    },
+    {
+      "footnoteId": 21,
+      "footnotesEn": "Gender refers to an individual's personal and social identity as a man, woman or non-binary person (a person who is not exclusively a man or a woman). Some people may not identify with a specific gender and a person's gender may change over time. Gender includes the following concepts: gender identity, which refers to the gender that a person feels internally and individually; gender expression, which refers to the way a person presents their gender, regardless of their gender identity, through body language, aesthetic choices or accessories (e.g., clothes, hairstyle and makeup), which may have traditionally been associated with a specific gender. A person's gender may differ from their sex at birth, and from what is indicated on their current identification or legal documents such as their birth certificate, passport or driver's license. LFS started collecting gender of person in 2022. Prior to 2022, LFS only collected information on sex of person (male or female), as declared by the respondent or recorded by the interviewer. The sex variable prior to 2022 and the two-category gender variable since 2022 are combined in this table. Although sex and gender refer to two different concepts, the introduction of gender is not expected to have a significant impact on data analysis and historical comparability, given the small size of the transgender and non-binary populations.",
+      "footnotesFr": "Genre d\u00e9signe l'identit\u00e9 personnelle et sociale d'un individu en tant qu'homme, femme ou personne non binaire (une personne qui n'est pas exclusivement homme ni femme). Certaines personnes peuvent ne pas s'identifier \u00e0 un genre en particulier et leur genre peut changer au fil du temps. Le genre comprend les concepts suivants : l'identit\u00e9 de genre correspond au genre qu'une personne ressent intimement et individuellement; l'expression de genre d\u00e9signe la mani\u00e8re dont une personne pr\u00e9sente son genre \u00e0 travers son langage corporel, des choix esth\u00e9tiques ou des accessoires (p. ex. v\u00eatements, coiffure et maquillage) qui peuvent avoir \u00e9t\u00e9 traditionnellement associ\u00e9s \u00e0 un genre particulier, et ce, sans \u00e9gard \u00e0 son identit\u00e9 de genre. Le genre d'une personne peut diff\u00e9rer de son sexe \u00e0 la naissance et de la mention qui figure sur ses pi\u00e8ces d'identit\u00e9 ou documents juridiques actuels tels que son certificat de naissance, son passeport ou son permis de conduire. L\u2019EPA a commenc\u00e9 \u00e0 collecter le genre de la personne en 2022. Avant 2022, l\u2019EPA ne collectait que des renseignements sur le sexe de la personne ayant particip\u00e9 \u00e0 l\u2019enqu\u00eate (masculin ou f\u00e9minin), tels que d\u00e9clar\u00e9s par cette personne ou qu'enregistr\u00e9s par la personne ayant men\u00e9 l\u2019interview. La variable \u00ab sexe \u00bb des ann\u00e9es pr\u00e9c\u00e9dant 2022 et la variable \u00ab genre \u00bb \u00e0 deux cat\u00e9gories \u00e0 partir de 2022 sont regroup\u00e9es dans ce tableau. Bien que le sexe et le genre soient deux concepts diff\u00e9rents, l\u2019introduction du concept du genre ne devrait pas avoir d\u2019incidence importante sur l\u2019analyse de donn\u00e9es et la comparabilit\u00e9 historique, \u00e9tant donn\u00e9 la petite taille des populations transgenre et non binaire.",
+      "link": {
+        "footnoteId": 21,
+        "dimensionPositionId": 3,
+        "memberId": 0
+      }
+    },
+    {
+      "footnoteId": 22,
+      "footnotesEn": "Given that the non-binary population is small, data aggregation to a two-category gender variable is necessary to protect the confidentiality of responses provided. Individuals in the category \u201cnon-binary persons\u201d are distributed into the other two gender categories and are denoted by the \u201c+\u201d symbol. The category \u201cMen+\u201d includes men, as well as some non-binary persons, while the category \u201cWomen+\u201d includes women, as well as some non-binary persons.",
+      "footnotesFr": "\u00c9tant donn\u00e9 que la population non binaire est petite, l\u2019agr\u00e9gation des donn\u00e9es en une variable de genre \u00e0 deux cat\u00e9gories est n\u00e9cessaire pour prot\u00e9ger la confidentialit\u00e9 des r\u00e9ponses fournies. Les personnes de la cat\u00e9gorie \u00ab personnes non binaires \u00bb sont r\u00e9parties dans les deux autres cat\u00e9gories de genre et sont d\u00e9sign\u00e9es par le symbole \u00ab + \u00bb. La cat\u00e9gorie \u00ab Hommes+ \u00bb comprend les hommes de m\u00eame que certaines personnes non binaires, alors que la cat\u00e9gorie \u00ab Femmes+ \u00bb comprend les femmes de m\u00eame que certaines personnes non binaires.",
+      "link": {
+        "footnoteId": 22,
+        "dimensionPositionId": 3,
+        "memberId": 0
+      }
+    },
+    {
+      "footnoteId": 16,
+      "footnotesEn": "The standard error (SE) of an estimate is an indicator of the variability associated with this estimate, as the estimate is based on a sample rather than the entire population. The SE can be used to construct confidence intervals and calculate coefficients of variation (CVs). The confidence interval can be built by adding the SE to an estimate in order to determine the upper limit of this interval, and by subtracting the same amount from the estimate to determine the lower limit. The CV can be calculated by dividing the SE by the estimate. See Section 7 of the <a href=\"https://www150.statcan.gc.ca/n1/en/catalogue/71-543-G#wb-auto-2\" rel=\"external noopener noreferrer\" target=\"_blank\">Guide to the Labour Force Survey (opens new window)</a> for more information. The standard errors presented in this table are the average of the standard errors for 12 previous months, and are updated twice a year, in February and August.",
+      "footnotesFr": "L'erreur-type d'une estimation est un indicateur de la variabilit\u00e9 associ\u00e9e \u00e0 cette estimation, cette derni\u00e8re \u00e9tant bas\u00e9e sur un \u00e9chantillon plut\u00f4t que sur la population enti\u00e8re. L'erreur-type peut servir \u00e0 \u00e9tablir les intervalles de confiance et \u00e0 calculer les coefficients de variation (c.v.). On construit l'intervalle de confiance en additionnant l'erreur-type \u00e0 l'estimation afin d'\u00e9tablir la limite sup\u00e9rieure de l'intervalle, puis en soustrayant de l'estimation la m\u00eame erreur-type pour fixer la limite inf\u00e9rieure. Le coefficient de variation se calcule en divisant l'erreur-type par l'estimation. Voir la section 7 du <a href=\"https://www150.statcan.gc.ca/n1/fr/catalogue/71-543-G\" rel=\"external noopener noreferrer\" target=\"_blank\">Guide de l'Enqu\u00eate sur la population active (ouvre une nouvelle fen\u00eatre)</a> pour en savoir davantage. Les erreurs-types pr\u00e9sent\u00e9es dans ce tableau sont la moyenne des erreurs-types pour les 12 derniers mois et sont mises \u00e0 jour deux fois par ann\u00e9e, en f\u00e9vrier et en ao\u00fbt.",
+      "link": {
+        "footnoteId": 16,
+        "dimensionPositionId": 5,
+        "memberId": 2
+      }
+    },
+    {
+      "footnoteId": 17,
+      "footnotesEn": "The standard error (SE) for the month-to-month change is an indicator of the variability associated with the estimate of the change between two consecutive months, because each monthly estimate is based on a sample rather than the entire population. To construct confidence intervals, the SE is added to an estimate in order to determine the upper limit of this interval, and then subtracted from the estimate to determine the lower limit. Using this method, the true value will fall within one SE of the estimate approximately 68% of the time, and within two standard errors approximately 95% of the time. For example, if the estimated employment level increases by 20,000 from one month to another and the associated SE is 29,000, the true value of the employment change has a 68% chance of falling between -9,000 and +49,000. Because such a confidence interval includes zero, the 20,000 change would not be considered statistically significant. However, if the increase is 30,000, the confidence interval would be +1,000 to +59,000, and the 30,000 increase would be considered statistically significant. (Note that 30,000 is above the SE of 29,000, and that the confidence interval does not include zero.) Similarly, if the estimated employment declines by 30,000, then the true value of the decline would fall between -59,000 and -1,000. See Section 7 of the <a href=\"https://www150.statcan.gc.ca/n1/en/catalogue/71-543-G\" rel=\"external noopener noreferrer\" target=\"_blank\">Guide to the Labour Force Survey (opens new window)</a> for more information. The standard errors presented in this table are the average of standard errors for 12 previous months. They are updated twice a year, in February and August. Note that the estimate of the month-to-month change is not included in this table. It can be calculated by taking the estimate level for one month and subtracting from it the estimate level of the previous month.",
+      "footnotesFr": "L'erreur-type relative \u00e0 la variation d'un mois \u00e0 l'autre est un indicateur de la variabilit\u00e9 associ\u00e9e \u00e0 l'estimation de cette variation entre deux mois cons\u00e9cutifs, car chaque estimation mensuelle est bas\u00e9e sur un \u00e9chantillon plut\u00f4t que sur l'ensemble de la population. On construit l'intervalle de confiance en additionnant l'erreur-type \u00e0 l'estimation afin d'\u00e9tablir la limite sup\u00e9rieure de l'intervalle, puis en soustrayant de l'estimation la m\u00eame erreur-type pour fixer la limite inf\u00e9rieure. Selon cette m\u00e9thode, la valeur r\u00e9elle se trouve \u00e0 une erreur-type de l'estimation environ 68 % du temps, et \u00e0 deux erreurs-types environ 95 % du temps. Par exemple, si l'emploi estim\u00e9 a augment\u00e9 de 20 000 d'un mois \u00e0 l'autre et si l'erreur-type est de 29 000, il y a une probabilit\u00e9 de 68 % que la valeur r\u00e9elle de la variation de l'emploi se trouve entre -9 000 et +49 000. Puisque cet intervalle de confiance inclut z\u00e9ro, la variation de 20 000 ne serait pas consid\u00e9r\u00e9e statistiquement significative. Toutefois, si la hausse d'emploi est de 30 000, l'intervalle de confiance serait entre +1 000 et +59 000, et la hausse de 30 000 serait consid\u00e9r\u00e9e statistiquement significative. (\u00c0 noter que 30 000 est au-dessus de l'erreur-type de 29 000, et que l'intervalle de confiance n'inclut pas z\u00e9ro.) De m\u00eame, si l'emploi estim\u00e9 baisse de 30 000, la valeur r\u00e9elle de la baisse tomberait entre -59 000 et -1 000. Voir la section 7 du <a href=\"https://www150.statcan.gc.ca/n1/fr/catalogue/71-543-G\" rel=\"external noopener noreferrer\" target=\"_blank\">Guide de l'Enqu\u00eate sur la population active (ouvre une nouvelle fen\u00eatre)</a> pour en savoir davantage. Les erreurs-types pr\u00e9sent\u00e9es dans ce tableau sont la moyenne des erreurs-types pour les 12 derniers mois et sont mises \u00e0 jour deux fois par ann\u00e9e, en f\u00e9vrier et en ao\u00fbt. Il convient de noter que l'estimation de la variation d'un mois \u00e0 l'autre ne figure pas dans ce tableau. On peut la calculer en soustrayant la valeur de l'estimation d'un mois donn\u00e9 de la valeur de l'estimation du mois ant\u00e9rieur.",
+      "link": {
+        "footnoteId": 17,
+        "dimensionPositionId": 5,
+        "memberId": 3
+      }
+    },
+    {
+      "footnoteId": 18,
+      "footnotesEn": "The standard error (SE) for the year-over-year change is an indicator of the variability associated with the estimate of the change between a given month in a given year and the same month of the previous year, because each month's estimate is based on a sample rather than the entire population. The SE can be used to construct confidence intervals: it can be added to an estimate in order to determine the upper limit of this interval, and then subtracted from the same estimate to determine the lower limit. Using this method, the true value will fall within one SE of the estimate, approximately 68% of the time, and within two standard errors, approximately 95% of the time. For example, if the estimated employment level increases by 160,000 over 12 months and the associated SE is 55,000, the true value of the change in employment has approximately a 68% chance of falling between +105,000 and +215,000. This change would be considered statistically significant at the 68% level as the confidence interval excludes zero. However, if the increase is 40,000, the interval would be -15,000 to +95,000, and this increase would not be considered statistically significant since the interval includes zero. See Section 7 of the <a href=\"https://www150.statcan.gc.ca/n1/en/catalogue/71-543-G\" rel=\"external noopener noreferrer\" target=\"_blank\">Guide to the Labour Force Survey (opens new window)</a> for more information. The standard errors presented in this table are the average of standard errors for 12 previous months and are updated twice a year, in February and August. Note that estimates of the year-over-year change are not included in the tables. They can be calculated by taking the estimate level for a given month in a given year and subtracting from it the estimate level of the same month in the previous year.",
+      "footnotesFr": "L'erreur-type de la variation d'une ann\u00e9e \u00e0 l'autre est un indicateur de la variabilit\u00e9 associ\u00e9e \u00e0 l'estimation de la variation entre un mois donn\u00e9 d'une ann\u00e9e donn\u00e9e et le m\u00eame mois de l'ann\u00e9e suivante, car chaque estimation mensuelle est bas\u00e9e sur un \u00e9chantillon plut\u00f4t que sur la population enti\u00e8re. L'erreur-type peut servir \u00e0 \u00e9tablir les intervalles de confiance : on l'additionne \u00e0 l'estimation afin d'\u00e9tablir la limite sup\u00e9rieure de l'intervalle, et on la soustrait de cette m\u00eame estimation pour fixer la limite inf\u00e9rieure. Selon cette m\u00e9thode, la valeur r\u00e9elle se trouve \u00e0 une erreur-type de l'estimation environ 68 % du temps, et \u00e0 deux erreurs-types environ 95 % du temps. Par exemple, si le niveau de l'emploi estim\u00e9 a augment\u00e9 de 160 000 au cours de 12 mois et si l'erreur-type est de 55 000, il est probable \u00e0 68 % que la valeur r\u00e9elle de la variation de l'emploi se trouve entre +105 000 et +215 000. Cette variation serait consid\u00e9r\u00e9e statistiquement significative car l'intervalle de confiance n'inclut pas z\u00e9ro. Toutefois, si la hausse est de 40 000, l'intervalle de confiance serait de -15 000 \u00e0 +95 000 et cette hausse ne serait pas consid\u00e9r\u00e9e statistiquement significative puisque cet intervalle inclut z\u00e9ro. Voir la section 7 du <a href=\"https://www150.statcan.gc.ca/n1/fr/catalogue/71-543-G\" rel=\"external noopener noreferrer\" target=\"_blank\">Guide de l'Enqu\u00eate sur la population active (ouvre une nouvelle fen\u00eatre)</a> pour en savoir davantage. Les erreurs-types pr\u00e9sent\u00e9es dans ce tableau sont la moyenne des erreurs-types pour les 12 derniers mois et sont mises \u00e0 jour deux fois par ann\u00e9e, en f\u00e9vrier et en ao\u00fbt. Il convient de noter que l'estimation de la variation d'une ann\u00e9e \u00e0 l'autre ne figure pas dans les tableaux. On peut la calculer en soustrayant la valeur de l'estimation d'un mois donn\u00e9 de la valeur de l'estimation du m\u00eame mois de l'ann\u00e9e suivante.",
+      "link": {
+        "footnoteId": 18,
+        "dimensionPositionId": 5,
+        "memberId": 4
+      }
+    },
+    {
+      "footnoteId": 15,
+      "footnotesEn": "These data represent a smoothed version of the seasonally adjusted time series. They provide information on longer-term movements, including changes in direction underlying the series. For more information, see <a href=\"http://www.statcan.gc.ca/eng/dai/btd/tce-faq\">Trend-cycle estimates: Frequently asked questions</a>.",
+      "footnotesFr": "Les donn\u00e9es relatives \u00e0 la tendance-cycle repr\u00e9sentent une version liss\u00e9e d'une s\u00e9rie chronologique d\u00e9saisonnalis\u00e9e et visent \u00e0 fournir des renseignements sur les mouvements \u00e0 plus long terme, incluant les changements dans la direction qui sous-tend la s\u00e9rie. Pour plus de renseignement, voir <a href=\"http://www.statcan.gc.ca/fra/quo/bdd/etc-faq\">Estimations de la tendance-cycle : foire aux questions</a>.",
+      "link": {
+        "footnoteId": 15,
+        "dimensionPositionId": 6,
+        "memberId": 3
+      }
+    }
+  ],
+  "correctionFootnote": [],
+  "correction": [],
+  "issueDate": "2018-06-27"
+}

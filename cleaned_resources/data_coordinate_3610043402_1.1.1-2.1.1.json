@@ -1,0 +1,20 @@
+[
+  {
+    "vectorId": "unknown_3610043402_1.1.1-2.1.1",
+    "coordinate": [
+      "1.1.1",
+      "2.1.1"
+    ],
+    "productId": "3610043402",
+    "vectorDataPoint": [
+      {
+        "refPer": "2025-01-01",
+        "value": "121.9",
+        "decimals": 1,
+        "scalarFactorCode": 0,
+        "symbolCode": 0
+      }
+    ],
+    "SeriesTitleEn": "Gross domestic product (GDP) at basic prices, by industry, monthly"
+  }
+]

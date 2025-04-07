@@ -83,7 +83,7 @@ class DataStorageIntegration:
             conn = self.connect()
             cursor = conn.cursor()
             
-            # Create series table if it doesn't exist
+            # Create series table if it doesn't exist with enhanced metadata fields
             cursor.execute("""
             CREATE TABLE IF NOT EXISTS time_series (
                 id TEXT PRIMARY KEY,
@@ -91,7 +91,10 @@ class DataStorageIntegration:
                 description TEXT,
                 source TEXT,
                 units TEXT,
+                uom_desc TEXT,
+                scalar_factor_desc TEXT,
                 frequency TEXT,
+                product_id TEXT,
                 start_date TEXT,
                 end_date TEXT,
                 last_updated TEXT,
@@ -106,16 +109,25 @@ class DataStorageIntegration:
                 series_id TEXT,
                 date TEXT,
                 value REAL,
+                symbol_code INTEGER,
+                symbol_desc TEXT,
                 FOREIGN KEY (series_id) REFERENCES time_series (id)
             )
             """)
             
-            # Extract metadata fields
+            # Extract basic metadata fields
             title = metadata.get("title", "")
             description = metadata.get("description", "")
             source = metadata.get("source", "Statistics Canada")
+            
+            # Extract enhanced metadata fields for units of measurement
             units = metadata.get("units", "")
-            frequency = metadata.get("frequency", "")
+            uom_desc = metadata.get("uomDesc", "")
+            scalar_factor_desc = metadata.get("scalarFactorDesc", "")
+            
+            # Extract frequency and product ID (table reference)
+            frequency = metadata.get("frequency", metadata.get("frequencyDesc", ""))
+            product_id = metadata.get("productId", "")
             
             # Calculate date range
             dates = [p.get("date", p.get("refPer", "")) for p in data if p.get("value") is not None]
@@ -123,29 +135,35 @@ class DataStorageIntegration:
             end_date = max(dates) if dates else ""
             last_updated = datetime.now().isoformat()
             
-            # Store metadata as JSON
+            # Store complete metadata as JSON
             metadata_json = json.dumps(metadata)
             
-            # Insert or replace series metadata
+            # Insert or replace series metadata with enhanced fields
             cursor.execute("""
             INSERT OR REPLACE INTO time_series 
-            (id, title, description, source, units, frequency, start_date, end_date, last_updated, metadata)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-            """, (series_id, title, description, source, units, frequency, 
-                 start_date, end_date, last_updated, metadata_json))
+            (id, title, description, source, units, uom_desc, scalar_factor_desc, 
+             frequency, product_id, start_date, end_date, last_updated, metadata)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            """, (series_id, title, description, source, units, uom_desc, scalar_factor_desc,
+                 frequency, product_id, start_date, end_date, last_updated, metadata_json))
             
             # Delete existing data points for this series
             cursor.execute("DELETE FROM data_points WHERE series_id = ?", (series_id,))
             
-            # Insert data points
+            # Insert data points with enhanced metadata (symbol codes)
             for point in data:
                 date = point.get("date", point.get("refPer", ""))
                 value = point.get("value")
+                
+                # Extract symbol codes and descriptions if available
+                symbol_code = point.get("symbolCode", 0)
+                symbol_desc = point.get("symbolDesc", "")
+                
                 if date and value is not None:
                     cursor.execute("""
-                    INSERT INTO data_points (series_id, date, value)
-                    VALUES (?, ?, ?)
-                    """, (series_id, date, value))
+                    INSERT INTO data_points (series_id, date, value, symbol_code, symbol_desc)
+                    VALUES (?, ?, ?, ?, ?)
+                    """, (series_id, date, value, symbol_code, symbol_desc))
             
             conn.commit()
             logger.info(f"Successfully stored time series {series_id} with {len(data)} data points")
@@ -171,9 +189,10 @@ class DataStorageIntegration:
             conn = self.connect()
             cursor = conn.cursor()
             
-            # Get series metadata
+            # Get series metadata with enhanced fields
             cursor.execute("""
-            SELECT title, description, source, units, frequency, start_date, end_date, metadata
+            SELECT title, description, source, units, uom_desc, scalar_factor_desc, 
+                   frequency, product_id, start_date, end_date, metadata
             FROM time_series
             WHERE id = ?
             """, (series_id,))
@@ -182,28 +201,47 @@ class DataStorageIntegration:
             if not row:
                 return [], {}
                 
-            title, description, source, units, frequency, start_date, end_date, metadata_json = row
+            title, description, source, units, uom_desc, scalar_factor_desc, \
+            frequency, product_id, start_date, end_date, metadata_json = row
             
             # Parse metadata
             metadata = json.loads(metadata_json)
+            
+            # Update with structured fields from the database
             metadata.update({
                 "title": title,
                 "description": description,
                 "source": source,
                 "units": units,
+                "uomDesc": uom_desc,
+                "scalarFactorDesc": scalar_factor_desc,
                 "frequency": frequency,
+                "productId": product_id,
                 "start_date": start_date,
                 "end_date": end_date
             })
             
-            # Get data points
+            # Get data points with enhanced metadata (symbol codes)
             cursor.execute("""
-            SELECT date, value FROM data_points
+            SELECT date, value, symbol_code, symbol_desc FROM data_points
             WHERE series_id = ?
             ORDER BY date
             """, (series_id,))
             
-            data_points = [{"date": date, "value": value} for date, value in cursor.fetchall()]
+            data_points = []
+            for date, value, symbol_code, symbol_desc in cursor.fetchall():
+                point = {
+                    "date": date,
+                    "value": value
+                }
+                
+                # Add symbol information if available
+                if symbol_code:
+                    point["symbolCode"] = symbol_code
+                if symbol_desc:
+                    point["symbolDesc"] = symbol_desc
+                    
+                data_points.append(point)
             
             logger.info(f"Retrieved time series {series_id} with {len(data_points)} data points")
             return data_points, metadata
@@ -230,7 +268,38 @@ class DataStorageIntegration:
             df = pd.DataFrame(data)
             df['date'] = pd.to_datetime(df['date'])
             df = df.set_index('date')
-            df.name = metadata.get('title', series_id)
+            
+            # Create a proper title with units of measurement
+            title = metadata.get('title', series_id)
+            
+            # Add units of measurement to title if available
+            uom_desc = metadata.get('uomDesc', '')
+            scalar_factor_desc = metadata.get('scalarFactorDesc', '')
+            
+            # Construct a unit description
+            unit_description = ""
+            if uom_desc:
+                unit_description = uom_desc
+            if scalar_factor_desc and scalar_factor_desc != "Units":
+                if unit_description:
+                    unit_description = f"{scalar_factor_desc} of {unit_description}"
+                else:
+                    unit_description = scalar_factor_desc
+                    
+            # Add units to title if available
+            if unit_description:
+                title = f"{title} ({unit_description})"
+            
+            # Add source information if available
+            product_id = metadata.get('productId', '')
+            if product_id:
+                title = f"{title} - Table {product_id}"
+                
+            df.name = title
+            
+            # Add metadata as attributes
+            df.metadata = metadata
+            
             return df
         except Exception as e:
             logger.error(f"Error converting series {series_id} to DataFrame: {e}")
@@ -297,6 +366,36 @@ class DataStorageIntegration:
             result["percent_change"] = float(pct_change)
             result["trend_direction"] = "increasing" if change > 0 else "decreasing" if change < 0 else "stable"
             
+            # Add formatted insights with unit information
+            if hasattr(df, 'name') and df.name:
+                result["title"] = df.name
+                
+            # Create human-readable summary
+            summary = []
+            
+            if "title" in result:
+                summary.append(f"Summary statistics for {result['title']}:")
+            else:
+                summary.append("Summary statistics:")
+                
+            summary.append(f"- Time period: {result['first_date']} to {result['last_date']} ({result['duration_days']} days)")
+            summary.append(f"- Data points: {result['count']}")
+            
+            # Add trend information
+            if result["trend_direction"] == "increasing":
+                trend_text = f"increasing by {abs(result['percent_change']):.1f}%"
+            elif result["trend_direction"] == "decreasing":
+                trend_text = f"decreasing by {abs(result['percent_change']):.1f}%"
+            else:
+                trend_text = "stable"
+                
+            summary.append(f"- Overall trend: {trend_text}")
+            summary.append(f"- Range: {result['min']:.2f} to {result['max']:.2f}")
+            summary.append(f"- Average (mean): {result['mean']:.2f}")
+            
+            # Add the human-readable summary to the result
+            result["summary"] = "\n".join(summary)
+            
             return result
         except Exception as e:
             logger.error(f"Error in summary analysis: {e}")
@@ -359,6 +458,66 @@ class DataStorageIntegration:
                     df['rolling_avg'][-min(12, len(df)):]
                 )
             ]
+            
+            # Extract metadata from DataFrame if available
+            if hasattr(df, 'name'):
+                result['title'] = df.name
+                
+            if hasattr(df, 'metadata'):
+                # Get units of measurement
+                uom_desc = df.metadata.get('uomDesc', '')
+                scalar_factor_desc = df.metadata.get('scalarFactorDesc', '')
+                
+                # Construct a complete unit description
+                unit_description = ""
+                if uom_desc:
+                    unit_description = uom_desc
+                if scalar_factor_desc and scalar_factor_desc != "Units":
+                    if unit_description:
+                        unit_description = f"{scalar_factor_desc} of {unit_description}"
+                    else:
+                        unit_description = scalar_factor_desc
+                        
+                if unit_description:
+                    result['units_of_measurement'] = unit_description
+                    
+                # Add citation information
+                product_id = df.metadata.get('productId', '')
+                if product_id:
+                    result['citation'] = {
+                        'product_id': product_id,
+                        'source': 'Statistics Canada',
+                        'url': f"https://www150.statcan.gc.ca/t1/tbl1/en/tv.action?pid={product_id}"
+                    }
+            
+            # Generate a human-readable interpretation of the trend analysis
+            trend_text = []
+            
+            if "title" in result:
+                trend_text.append(f"Trend analysis for {result['title']}:")
+            else:
+                trend_text.append("Trend analysis:")
+                
+            # Add trend direction and strength
+            if "trend_direction" in result and "trend_strength" in result:
+                direction = result["trend_direction"]
+                strength = result["trend_strength"]
+                
+                trend_text.append(f"- The data shows a {strength} {direction} trend.")
+                
+                if "annual_change_rate" in result:
+                    unit_str = f" {result.get('units_of_measurement', 'units')}" if "units_of_measurement" in result else ""
+                    trend_text.append(f"- Annual change rate: {result['annual_change_rate']:.2f}{unit_str} per year.")
+                    
+            # Add R-squared information
+            if "r_squared" in result:
+                trend_text.append(f"- Model fit (R-squared): {result['r_squared']:.3f}")
+                
+            # Add citation if available
+            if "citation" in result:
+                trend_text.append(f"\nSource: Statistics Canada, Table {result['citation']['product_id']}")
+                
+            result["interpretation"] = "\n".join(trend_text)
             
             return result
         except Exception as e:

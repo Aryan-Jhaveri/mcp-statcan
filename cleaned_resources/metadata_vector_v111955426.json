@@ -1,0 +1,13 @@
+{
+  "responseStatusCode": 0,
+  "productId": 32100427,
+  "coordinate": "2568.1.1.0.0.0.0.0.0.0",
+  "vectorId": 111955426,
+  "frequencyCode": 16,
+  "scalarFactorCode": 0,
+  "decimals": 0,
+  "terminated": 0,
+  "SeriesTitleEn": "Stikine Region, British Columbia [CCS590757022];Horses and ponies;Number of farms reporting",
+  "SeriesTitleFr": "Stikine Region, Colombie-Britannique [SRU590757022];Chevaux et poneys;Nombre de fermes d\u00e9clarantes",
+  "memberUomCode": 223
+}
