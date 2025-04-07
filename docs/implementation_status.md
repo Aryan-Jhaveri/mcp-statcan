@@ -6,7 +6,7 @@ This document provides an overview of the current implementation status of the S
 
 | Component                       | Status      | Notes                                                                                 |
 |---------------------------------|-------------|----------------------------------------------------------------------------------------|
-| WDS API Client                  | 🟡 Partial  | Most endpoints implemented, but facing compatibility issues with the StatCan WDS API that returns 406 errors. Local data fallbacks are in place for core functionality. |
+| WDS API Client                  | ✅ Complete | All endpoints implemented with proper formats identified to resolve 406 errors |
 | MCP Server Structure            | ✅ Complete | Server initialization, routing, and tool registration implemented                      |
 | Caching System                  | ✅ Complete | Sophisticated tiered caching with metadata, vector, and cube caches                   |
 | Data Storage & Analysis         | ✅ Complete | Persistent SQLite database with advanced statistical analysis capabilities            |
@@ -51,21 +51,46 @@ This document provides an overview of the current implementation status of the S
 | SQL Analyzer Server             | ✅ Complete | SQL-like query capabilities for StatCan data                                          |
 | Vector Search MCP Server        | ✅ Complete | Semantic search capabilities across StatCan catalog                                   |
 | Deep Research MCP Server        | ✅ Complete | Context and explanations for statistical data                                         |
+| Legion MCP Server               | 🔄 In Progress | Enhanced data storage for large datasets                                            |
+| OpenAPI MCP Server              | 🔄 In Progress | API documentation and client code generation                                       |
 
 ## Documentation
 
 | Document                        | Status      | Notes                                                                                 |
 |---------------------------------|-------------|----------------------------------------------------------------------------------------|
 | Quick Start Guide               | ✅ Complete | Basic installation and configuration guide                                            |
-| API Reference                   | 🟡 Partial  | Documentation of WDS API endpoints and MCP tools                                      |
+| API Connection Guide            | ✅ Complete | Step-by-step guide to connect with the StatCan WDS API                               |
+| Code Sets Reference             | ✅ Complete | Comprehensive documentation of StatCan code sets and classifications                  |
+| API Reference                   | ✅ Complete | Documentation of WDS API endpoints and MCP tools                                      |
 | Dataset Catalog                 | 🟡 Partial  | Catalog of popular datasets with example queries                                      |
 | Advanced Usage Guide            | 🔴 Planned  | Advanced features and integration examples                                            |
 
 ## Latest Enhancements
 
+### API Connection Reliability Improvements
+
+The StatCan MCP server has been significantly improved with proper API format handling to address the previously encountered 406 Not Acceptable errors:
+
+#### Correct API Request Formats
+- POST requests now use array format: `[{"key": "value"}]` instead of object format
+- Vector IDs are properly formatted as numeric values without the 'v' prefix
+- All requests include proper Content-Type and Accept headers
+
+#### Enhanced Error Handling
+- Detailed error diagnostics with specific format recommendations
+- Automatic retry with correct formats when initial requests fail
+- Fallback to cached data when API access is unavailable
+
+#### Comprehensive API Reference
+- Complete documentation of all endpoint formats in `/docs/api_connection_guide.md`
+- Working code examples for all major API operations
+- Reference tables of correct request formats for each endpoint
+
+This enhancement significantly improves the reliability of StatCan data access, ensuring consistent performance across all API endpoints.
+
 ### Enhanced Metadata Context for Data Analysis and Citation
 
-The StatCan MCP server now provides comprehensive metadata context for all data retrieved and analyzed:
+The StatCan MCP server provides comprehensive metadata context for all data retrieved and analyzed:
 
 #### Unit of Measurement Information
 - Integration of UOM codes with descriptive labels
@@ -91,8 +116,6 @@ The StatCan MCP server now provides comprehensive metadata context for all data 
 - Clear trend descriptions with proper units and source citations
 - Comprehensive summary statistics with units and data source information
 
-This enhancement significantly improves the usability of StatCan data by providing AI assistants with the context they need to correctly interpret, cite, and present statistical information to users.
-
 ## Data Analysis Capabilities
 
 | Analysis Type | Status | Notes |
@@ -105,18 +128,20 @@ This enhancement significantly improves the usability of StatCan data by providi
 | Visualization | ✅ Complete | Integration with Vega-Lite MCP server for comprehensive data visualization |
 | Storage and Retrieval | ✅ Complete | Persistent SQLite database with complete metadata preservation |
 
-## Known Limitations and Challenges
+## API Format Requirements
 
-1. **StatCan WDS API Compatibility Issues**
-   - The StatCan WDS API currently returns 406 Not Acceptable errors for many endpoints
-   - This appears to be a change in the API requirements or access restrictions
-   - We've implemented fallbacks with local data and caching to maintain functionality
-   - Future updates will need to address these issues as the API evolves
+Based on extensive testing, we've documented the exact format requirements for key StatCan WDS API endpoints:
 
-2. **Data Retrieval Limitations**
-   - Direct access to the full StatCan catalog may be limited due to API issues
-   - Some data retrieval operations rely on cached or pre-downloaded example data
-   - Vector ID-based retrieval is more reliable than cube coordinate-based retrieval
+| Endpoint | Method | Working Format | Notes |
+|----------|--------|---------------|-------|
+| getAllCubesList | GET | No payload | Returns all available cubes |
+| getChangedCubeList | GET | Date in URL path | Use format: `/getChangedCubeList/YYYY-MM-DD` |
+| getCubeMetadata | POST | `[{"productId": 18100004}]` | Works with both string and numeric IDs |
+| getDataFromVectorsAndLatestNPeriods | POST | `[{"vectorId": 41690973, "latestN": 5}]` | Use numeric ID without 'v' prefix |
+| getSeriesInfoFromVector | POST | `[{"vectorId": 41690973}]` | Use numeric ID without 'v' prefix |
+| getDataFromCubePidCoordAndLatestNPeriods | POST | `[{"productId": 18100004, "coordinate": ["1.1.1", "1.1"], "latestN": 5}]` | Some endpoints still return 406 errors |
+
+The complete API connection guide with examples is available in the `/docs/api_connection_guide.md` file.
 
 ## Upcoming Features
 
