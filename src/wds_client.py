@@ -134,13 +134,48 @@ class WDSClient:
                 # For GET requests, no params in body 
                 # (parameters are included in URL for some endpoints)
                 async with self.session.get(url) as response:
-                    response.raise_for_status()
+                    if response.status != 200:
+                        logger.error(f"Request failed: {response.status}, {response.reason}, url={url}")
+                        return {"status": "FAILED", "object": f"HTTP error: {response.status}, {response.reason}"}
+                    
                     data = await response.json()
             else:
                 # For POST requests, send params directly as JSON body
                 # The StatCan API wants parameters directly in the body, not wrapped
-                async with self.session.post(url, json=params) as response:
-                    response.raise_for_status()
+                
+                # According to the StatCan documentation, requests should be formatted as:
+                # { "user_id": "0", "productId": "1810000601", ... }
+                # Let's follow exactly what's in the docs
+                payload = {"user_id": "0"}
+                
+                if isinstance(params, list) and len(params) == 1:
+                    # Merge the parameters from the array item
+                    payload.update(params[0])
+                else:
+                    # For bulk requests that need array format
+                    logger.info(f"Using array format for {method}: {params}")
+                    if method in ["getDataFromVectorsAndLatestNPeriods"]:
+                        # Special case for vector data - format as in the docs
+                        payload = {"user_id": "0", "vectors": [], "latestN": 10}
+                        # Extract vectorIds and use the latestN from the first param
+                        for p in params:
+                            if "vectorId" in p:
+                                payload["vectors"].append(str(p["vectorId"]))
+                        if params and "latestN" in params[0]:
+                            payload["latestN"] = params[0]["latestN"]
+                    else:
+                        # For other endpoints that need arrays, keep as is but add user_id
+                        payload = params
+                
+                # Add debug logging for important endpoints
+                if method in ["getCubeMetadata", "getDataFromCubePidCoord"]:
+                    logger.info(f"API request to {method}: {payload}")
+                
+                async with self.session.post(url, json=payload) as response:
+                    if response.status != 200:
+                        logger.error(f"Request failed: {response.status}, {response.reason}, url={url}, params={params}")
+                        return {"status": "FAILED", "object": f"HTTP error: {response.status}, {response.reason}"}
+                    
                     data = await response.json()
                 
             # Handle different response formats
@@ -221,17 +256,20 @@ class WDSClient:
         # 2. ProductId as a number, not string
         # 3. Exactly 8 digits for the product ID
         
-        # Convert the PID to a number
+        # Format product ID as a string, ensuring it's 10 digits
         try:
-            # If the PID is 10 digits (newer format), remove the last two digits
-            if len(str(product_id)) == 10:
-                pid_number = int(str(product_id)[:8])
-            else:
-                pid_number = int(product_id)
+            # Ensure we use the full 10-digit product ID as required by the API
+            pid_str = str(product_id)
+            if len(pid_str) < 10:
+                # If we have an 8-digit PID, convert to 10-digit by adding "01" suffix
+                pid_str = f"{pid_str}01"
+            
+            # According to the docs, product ID should be a string
+            logger.info(f"Using product ID: {pid_str}")
         except ValueError:
             raise ValueError(f"Invalid product ID: {product_id}. Must be a number.")
         
-        params = [{"productId": pid_number}]
+        params = [{"productId": pid_str}]
         return await self._request("getCubeMetadata", params)
     
     async def get_data_from_vectors(
@@ -561,17 +599,20 @@ class WDSClient:
         Returns:
             Dictionary containing series information
         """
-        # Convert the PID to a number
+        # Format product ID as a string, ensuring it's 10 digits
         try:
-            # If the PID is 10 digits (newer format), remove the last two digits
-            if len(str(product_id)) == 10:
-                pid_number = int(str(product_id)[:8])
-            else:
-                pid_number = int(product_id)
+            # Ensure we use the full 10-digit product ID as required by the API
+            pid_str = str(product_id)
+            if len(pid_str) < 10:
+                # If we have an 8-digit PID, convert to 10-digit by adding "01" suffix
+                pid_str = f"{pid_str}01"
+            
+            # According to the docs, product ID should be a string
+            logger.info(f"Using product ID: {pid_str}")
         except ValueError:
             raise ValueError(f"Invalid product ID: {product_id}. Must be a number.")
         
-        params = [{"productId": pid_number, "coordinate": coordinate}]
+        params = [{"productId": pid_str, "coordinate": coordinate}]
         return await self._request("getSeriesInfoFromCubePidCoord", params)
     
     async def get_data_from_vector_by_range(
@@ -747,8 +788,16 @@ class WDSClient:
             
             # Try direct API call with product ID and coordinates
             try:
+                # Format product ID as a string, ensuring it's 10 digits
+                pid_str = str(product_id)
+                if len(pid_str) < 10:
+                    # If we have an 8-digit PID, convert to 10-digit by adding "01" suffix
+                    pid_str = f"{pid_str}01"
+                
+                logger.info(f"Using product ID: {pid_str} with coordinate: {coordinate}")
+                
                 params = [{
-                    "productId": int(str(product_id)[:8]),
+                    "productId": pid_str,
                     "coordinate": coordinate
                 }]
                 vector_data = await self._request("getDataFromCubePidCoord", params)
@@ -763,128 +812,11 @@ class WDSClient:
             except Exception as e:
                 logger.warning(f"Direct coordinate API failed: {e}, trying alternative approaches")
             
-            # Step 3: Try to create a more realistic response with sample data points
-            # Even though we can't get the exact data, we can provide a better simulation
-            
-            # Build a response structure similar to what the API would return
-            response = {
-                "status": "SUCCESS",
-                "object": [{
-                    "vectorId": f"unknown_{product_id}_{'-'.join(coordinate)}",
-                    "coordinate": coordinate,
-                    "productId": product_id,
-                    "vectorDataPoint": []
-                }]
+            # Step 3: If the direct API request failed, return a meaningful error
+            return {
+                "status": "FAILED",
+                "object": f"Unable to retrieve data for cube {product_id} with coordinate {coordinate}. The StatCan WDS API might be unavailable or the coordinate specification might be incorrect."
             }
-            
-            # Get a meaningful title for this coordinate
-            title = ""
-            dimensions = cube_metadata.get("dimension", [])
-            dimension_names = []
-            
-            if dimensions and len(dimensions) == len(coordinate):
-                for i, dim in enumerate(dimensions):
-                    # Get the dimension name
-                    dim_name = dim.get("dimensionNameEn", "")
-                    
-                    # Try to get the member name
-                    members = dim.get("member", [])
-                    member_name = None
-                    
-                    for member in members:
-                        if member.get("memberId", "") == coordinate[i]:
-                            member_name = member.get("memberNameEn", "")
-                            break
-                    
-                    if dim_name and member_name:
-                        dimension_names.append(f"{dim_name}: {member_name}")
-                    elif dim_name:
-                        dimension_names.append(f"{dim_name}: {coordinate[i]}")
-            
-            dataset_title = cube_metadata.get("cubeTitleEn", "")
-            if dimension_names:
-                title = f"{dataset_title} - {', '.join(dimension_names)}"
-            else:
-                title = dataset_title
-            
-            if title:
-                response["object"][0]["SeriesTitleEn"] = title
-            
-            # Add some simulated data points based on the cube date range
-            try:
-                # Get the time range from the metadata
-                start_date = cube_metadata.get("cubeStartDate", "")
-                end_date = cube_metadata.get("cubeEndDate", "")
-                frequency = cube_metadata.get("frequencyCode", 0)
-                
-                if start_date and end_date:
-                    # Create a series of dates based on the frequency
-                    from datetime import datetime, timedelta
-                    
-                    # Parse start and end dates
-                    start_dt = datetime.strptime(start_date, "%Y-%m-%d")
-                    end_dt = datetime.strptime(end_date, "%Y-%m-%d")
-                    
-                    # Determine date interval based on frequency code
-                    interval_days = 365  # Default to annual
-                    if frequency == 2:  # Semi-annual
-                        interval_days = 182
-                    elif frequency == 4:  # Quarterly
-                        interval_days = 91
-                    elif frequency == 6:  # Monthly
-                        interval_days = 30
-                    elif frequency == 8:  # Weekly
-                        interval_days = 7
-                    elif frequency == 9:  # Daily
-                        interval_days = 1
-                    
-                    # Generate dates for the last n_periods
-                    # Start from the most recent and work backwards
-                    current_dt = end_dt
-                    dates = []
-                    
-                    for _ in range(min(n_periods, 20)):  # Limit to 20 periods max
-                        if current_dt >= start_dt:
-                            dates.append(current_dt.strftime("%Y-%m-%d"))
-                            current_dt -= timedelta(days=interval_days)
-                        else:
-                            break
-                    
-                    # Generate some sample data points
-                    import random
-                    seed_value = sum(ord(c) for c in f"{product_id}_{'-'.join(coordinate)}")
-                    random.seed(seed_value)  # Use a consistent seed for reproducibility
-                    
-                    base_value = random.uniform(50, 200)
-                    trend = random.uniform(-0.05, 0.05)  # Random trend between -5% and +5%
-                    
-                    data_points = []
-                    for i, date in enumerate(dates):
-                        # Create a data point with a slight trend and some noise
-                        value = base_value * (1 + trend * i) * (1 + random.uniform(-0.02, 0.02))
-                        data_points.append({
-                            "refPer": date,
-                            "value": round(value, 1),
-                            "decimals": 1,
-                            "scalarFactorCode": 0,
-                            "symbolCode": 0
-                        })
-                    
-                    # Add the data points to the response
-                    response["object"][0]["vectorDataPoint"] = data_points
-                    
-                    # Add frequency description
-                    response["object"][0]["frequencyCode"] = frequency
-                    response["object"][0]["frequencyDesc"] = FREQUENCY_CODES.get(frequency, "Unknown")
-                    
-                    # Enhance with metadata
-                    response = self._enhance_coordinate_metadata(response, cube_metadata)
-                    
-                    logger.info(f"Created simulated data for cube {product_id}, coordinate {coordinate}")
-            except Exception as e:
-                logger.warning(f"Error creating simulated data: {e}")
-            
-            return response
             
         except Exception as e:
             logger.error(f"Error in get_data_from_cube_coordinate: {e}")
@@ -1036,17 +968,20 @@ class WDSClient:
             Dictionary containing code sets
         """
         if product_id:
-            # Convert the PID to a number
+            # Format product ID as a string, ensuring it's 10 digits
             try:
-                # If the PID is 10 digits (newer format), remove the last two digits
-                if len(str(product_id)) == 10:
-                    pid_number = int(str(product_id)[:8])
-                else:
-                    pid_number = int(product_id)
+                # Ensure we use the full 10-digit product ID as required by the API
+                pid_str = str(product_id)
+                if len(pid_str) < 10:
+                    # If we have an 8-digit PID, convert to 10-digit by adding "01" suffix
+                    pid_str = f"{pid_str}01"
+                
+                # According to the docs, product ID should be a string
+                logger.info(f"Using product ID: {pid_str}")
             except ValueError:
                 raise ValueError(f"Invalid product ID: {product_id}. Must be a number.")
             
-            params = [{"productId": pid_number}]
+            params = [{"productId": pid_str}]
             return await self._request("getCodeSetsByCube", params)
         else:
             return await self._request("getCodeSets", use_get=True)
