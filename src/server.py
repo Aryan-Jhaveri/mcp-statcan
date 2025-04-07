@@ -13,6 +13,8 @@ from src.config import SERVER_NAME, SERVER_VERSION
 from src.wds_client import WDSClient
 from src.cache import metadata_cache, data_cache, cube_cache, vector_cache, search_cache, preload_hot_cache
 from src.integrations.integrations import MCPIntegrations
+# We're now using function-based tools directly in the server class
+# instead of importing class-based tools
 
 logger = logging.getLogger(__name__)
 
@@ -47,6 +49,278 @@ class StatCanMCPServer:
     
     def _register_tools(self):
         """Register MCP tools."""
+        
+        # Storage and analysis tools
+        @self.app.tool()
+        async def store_dataset(series_id: str, data: List[Dict[str, Any]], metadata: Dict[str, Any]) -> str:
+            """Store a dataset in the persistent database for future use."""
+            from src.integrations.data_storage import DataStorageIntegration
+            storage = DataStorageIntegration()
+            
+            try:
+                result = storage.store_time_series(
+                    series_id=series_id,
+                    data=data,
+                    metadata=metadata
+                )
+                
+                if result:
+                    return f"Successfully stored dataset '{series_id}' with {len(data)} data points."
+                else:
+                    return f"Failed to store dataset '{series_id}'."
+            except Exception as e:
+                logger.error(f"Error in store_dataset tool: {e}")
+                return f"Error storing dataset: {str(e)}"
+            finally:
+                storage.close()
+                
+        @self.app.tool()
+        async def retrieve_dataset(series_id: str) -> Dict[str, Any]:
+            """Retrieve a dataset from the persistent database."""
+            from src.integrations.data_storage import DataStorageIntegration
+            storage = DataStorageIntegration()
+            
+            try:
+                data, metadata = storage.retrieve_time_series(series_id)
+                
+                if not data:
+                    return {"error": f"Dataset '{series_id}' not found in the database."}
+                
+                return {
+                    "metadata": metadata,
+                    "data": data[:10],  # Only return the first 10 data points 
+                    "total_points": len(data)
+                }
+            except Exception as e:
+                logger.error(f"Error in retrieve_dataset tool: {e}")
+                return {"error": f"Error retrieving dataset: {str(e)}"}
+            finally:
+                storage.close()
+                
+        @self.app.tool()
+        async def analyze_dataset(series_id: str, analysis_type: str = "summary", params: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
+            """Analyze a dataset from the persistent database."""
+            from src.integrations.data_storage import DataStorageIntegration
+            storage = DataStorageIntegration()
+            
+            try:
+                params = params or {}
+                result = storage.run_analysis(
+                    series_id=series_id,
+                    analysis_type=analysis_type,
+                    params=params
+                )
+                
+                return result
+            except Exception as e:
+                logger.error(f"Error in analyze_dataset tool: {e}")
+                return {"error": f"Error analyzing dataset: {str(e)}"}
+            finally:
+                storage.close()
+                
+        @self.app.tool()
+        async def get_citation(pid: str, format: str = "apa") -> Dict[str, Any]:
+            """Get a properly formatted citation for a Statistics Canada dataset."""
+            try:
+                # Get the metadata for this product ID
+                metadata = await self.wds_client.get_cube_metadata(pid)
+                
+                if metadata.get("status") != "SUCCESS":
+                    return {"error": f"Error retrieving metadata for PID {pid}"}
+                
+                cube_metadata = metadata.get("object", {})
+                
+                # Extract citation information
+                title = cube_metadata.get("cubeTitleEn", "Unknown")
+                release_time = cube_metadata.get("releaseTime", "Unknown")
+                
+                # Format release time for citation
+                release_date = "Unknown date"
+                if release_time:
+                    try:
+                        # If release_time is in ISO format, convert to a readable date
+                        from datetime import datetime
+                        release_date = datetime.fromisoformat(release_time.replace('Z', '+00:00')).strftime("%B %d, %Y")
+                    except:
+                        release_date = release_time
+                
+                # Format the citation based on the requested format
+                format_lower = format.lower()
+                
+                if format_lower == "apa":
+                    citation = f"Statistics Canada. ({release_date}). {title} (Table {pid}). Retrieved from https://www150.statcan.gc.ca/t1/tbl1/en/tv.action?pid={pid}"
+                elif format_lower == "mla":
+                    citation = f"Statistics Canada. \"{title}.\" Table {pid}. Statistics Canada. {release_date}. Web."
+                elif format_lower == "chicago":
+                    citation = f"Statistics Canada. {release_date}. \"{title}.\" Table {pid}."
+                else:
+                    citation = f"Statistics Canada. ({release_date}). {title} (Table {pid}). Retrieved from https://www150.statcan.gc.ca/t1/tbl1/en/tv.action?pid={pid}"
+                
+                # Include URL for any format
+                url = f"https://www150.statcan.gc.ca/t1/tbl1/en/tv.action?pid={pid}"
+                
+                # Build the response
+                return {
+                    "citation": citation,
+                    "url": url,
+                    "format": format,
+                    "details": {
+                        "title": title,
+                        "release_date": release_date,
+                        "product_id": pid
+                    }
+                }
+            except Exception as e:
+                logger.error(f"Error in get_citation tool: {e}")
+                return {"error": f"Error generating citation: {str(e)}"}
+                
+        @self.app.tool()
+        async def compare_datasets(primary_series_id: str, secondary_series_id: str, comparison_type: str = "correlation") -> Dict[str, Any]:
+            """Compare two datasets from the persistent database."""
+            from src.integrations.data_storage import DataStorageIntegration
+            storage = DataStorageIntegration()
+            
+            try:
+                # For correlation analysis
+                if comparison_type == "correlation":
+                    result = storage.run_analysis(
+                        series_id=primary_series_id,
+                        analysis_type="correlation",
+                        params={"compare_with": secondary_series_id}
+                    )
+                    return result
+                else:
+                    return {"error": f"Comparison type '{comparison_type}' not yet implemented."}
+            except Exception as e:
+                logger.error(f"Error in compare_datasets tool: {e}")
+                return {"error": f"Error comparing datasets: {str(e)}"}
+            finally:
+                storage.close()
+                
+        @self.app.tool()
+        async def forecast_dataset(series_id: str, periods: int = 6, method: str = "exponential_smoothing", params: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
+            """Generate a forecast for a dataset from the persistent database."""
+            from src.integrations.data_storage import DataStorageIntegration
+            storage = DataStorageIntegration()
+            
+            try:
+                params = params or {}
+                params["periods"] = periods
+                
+                # Run the forecast analysis
+                result = storage.run_analysis(
+                    series_id=series_id,
+                    analysis_type="forecast",
+                    params=params
+                )
+                
+                return result
+            except Exception as e:
+                logger.error(f"Error in forecast_dataset tool: {e}")
+                return {"error": f"Error forecasting dataset: {str(e)}"}
+            finally:
+                storage.close()
+                
+        @self.app.tool()
+        async def list_stored_datasets() -> Dict[str, Any]:
+            """List all datasets stored in the persistent database."""
+            from src.integrations.data_storage import DataStorageIntegration
+            storage = DataStorageIntegration()
+            
+            try:
+                conn = storage.connect()
+                cursor = conn.cursor()
+                
+                cursor.execute("""
+                SELECT id, title, start_date, end_date, last_updated 
+                FROM time_series
+                ORDER BY last_updated DESC
+                """)
+                
+                datasets = []
+                for row in cursor.fetchall():
+                    series_id, title, start_date, end_date, last_updated = row
+                    
+                    # Get count of data points
+                    cursor.execute("SELECT COUNT(*) FROM data_points WHERE series_id = ?", (series_id,))
+                    count = cursor.fetchone()[0]
+                    
+                    datasets.append({
+                        "id": series_id,
+                        "title": title,
+                        "start_date": start_date,
+                        "end_date": end_date,
+                        "last_updated": last_updated,
+                        "data_points": count
+                    })
+                
+                if not datasets:
+                    return {"message": "No datasets found in the database."}
+                
+                return {"datasets": datasets}
+            except Exception as e:
+                logger.error(f"Error in list_stored_datasets tool: {e}")
+                return {"error": f"Error listing datasets: {str(e)}"}
+            finally:
+                storage.close()
+                
+        @self.app.tool()
+        async def track_figure(pid: str, figure_name: str, figure_description: str = "", vector_ids: List[str] = None) -> Dict[str, Any]:
+            """Track and reference a figure created from Statistics Canada data."""
+            vector_ids = vector_ids or []
+            
+            try:
+                # Get the metadata for this product ID
+                metadata = await self.wds_client.get_cube_metadata(pid)
+                
+                if metadata.get("status") != "SUCCESS":
+                    return {"error": f"Error retrieving metadata for PID {pid}"}
+                
+                cube_metadata = metadata.get("object", {})
+                
+                # Extract information
+                title = cube_metadata.get("cubeTitleEn", "Unknown")
+                release_time = cube_metadata.get("releaseTime", "Unknown")
+                
+                # Format release time for citation
+                release_date = "Unknown date"
+                if release_time:
+                    try:
+                        # If release_time is in ISO format, convert to a readable date
+                        from datetime import datetime
+                        release_date = datetime.fromisoformat(release_time.replace('Z', '+00:00')).strftime("%B %d, %Y")
+                    except:
+                        release_date = release_time
+                
+                # Create figure reference
+                figure_reference = {
+                    "figure_name": figure_name,
+                    "description": figure_description or f"Figure based on {title}",
+                    "source_dataset": {
+                        "title": title,
+                        "pid": pid,
+                        "release_date": release_date,
+                        "url": f"https://www150.statcan.gc.ca/t1/tbl1/en/tv.action?pid={pid}"
+                    },
+                    "vectors": vector_ids,
+                    "citation": f"Source: Statistics Canada, {title} (Table {pid}), {release_date}."
+                }
+                
+                # Create a user-friendly note about the figure
+                note = f"""
+Figure {figure_name} is based on Statistics Canada data from "{title}" (Table {pid}).
+Source: Statistics Canada, Table {pid}, {release_date}.
+URL: https://www150.statcan.gc.ca/t1/tbl1/en/tv.action?pid={pid}
+                """.strip()
+                
+                # Combine into final response
+                return {
+                    "figure_reference": figure_reference,
+                    "note": note
+                }
+            except Exception as e:
+                logger.error(f"Error in track_figure tool: {e}")
+                return {"error": f"Error tracking figure: {str(e)}"}
         # Dataset search tool
         @self.app.tool()
         async def search_datasets(query: str, theme: str = "", max_results: int = 10):
