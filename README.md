@@ -1,7 +1,7 @@
 # StatCan Web Data Service MCP Server
 
 <div align="center">
-  <img src="/Users/aryanjhaveri/Desktop/Projects/mcp-statcan/assets/StatCan-Header.png" alt="Statistics Canada Logo" width="600"/>
+  <img src="./assets/StatCan-Header.png" alt="Statistics Canada Logo" width="600"/>
 </div>
 
 An MCP (Model Context Protocol) server that provides access to Statistics Canada's Web Data Service, enabling AI assistants to discover, explore, analyze, and cite Canadian statistical data through natural language.
