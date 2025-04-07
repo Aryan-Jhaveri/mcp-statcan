@@ -100,21 +100,54 @@ FREQUENCY_CODES = {
     50: "Variable"
 }
 
-# Units of measurement codes - this is a partial mapping of known codes
+# Units of measurement codes with standardized labels
 UOM_CODES = {
     # Common economic indicators
     17: "Index (2002=100)",  # CPI
+    21: "Index (2018=100)",  # Updated CPI base year
     223: "Persons",  # Employment
+    304: "Jobs",      # Employment (alternate measure)
     428: "Thousands of persons",  # Labour force
+    429: "Millions of persons",   # Population measures
     
-    # Add more mappings as they are discovered through API responses
+    # Financial and economic indicators
     0: "Units",
     205: "Dollars",
+    206: "Thousands of dollars",
+    207: "Millions of dollars",
+    208: "Billions of dollars",
+    209: "Dollars per capita",
     237: "Percent",
+    238: "Percentage points",
     280: "Ratio",
+    
+    # Trade and production
+    272: "Dollars (USD)",
     289: "Cubic metres",
     290: "Square metres",
     288: "Tonnes",
+    291: "Kilograms", 
+    295: "Hectares",
+    296: "Square kilometers",
+    
+    # Time-based measures
+    301: "Hours",
+    302: "Hours per week",
+    
+    # Other common units
+    320: "Petajoules",
+    321: "Gigajoules",
+    334: "Megawatts",
+    350: "Degrees Celsius",
+    
+    # Housing and construction
+    370: "Housing units",
+    371: "Housing starts",
+    
+    # Special units for specific datasets
+    400: "Current dollars",
+    401: "Constant dollars",
+    402: "Chained (2017) dollars",
 }
 
 # Symbol codes for data point interpretation

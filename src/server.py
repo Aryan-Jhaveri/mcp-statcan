@@ -58,14 +58,40 @@ class StatCanMCPServer:
             storage = DataStorageIntegration()
             
             try:
+                # Ensure metadata includes units of measurement and citation info
+                if 'productId' not in metadata and 'pid' in metadata:
+                    metadata['productId'] = metadata['pid']
+                    
+                # Add source information if not present
+                if 'source' not in metadata:
+                    metadata['source'] = "Statistics Canada"
+                    
+                # Ensure proper unit of measurement is included
+                if 'uomDesc' not in metadata and 'units' in metadata:
+                    # Use units field as fallback
+                    metadata['uomDesc'] = metadata['units']
+                    
                 result = storage.store_time_series(
                     series_id=series_id,
                     data=data,
                     metadata=metadata
                 )
                 
+                # Create a more detailed success message with units and source
                 if result:
-                    return f"Successfully stored dataset '{series_id}' with {len(data)} data points."
+                    # Add unit information to the confirmation message
+                    unit_info = ""
+                    if 'uomDesc' in metadata:
+                        unit_info = f" ({metadata['uomDesc']})"
+                    elif 'units' in metadata:
+                        unit_info = f" ({metadata['units']})"
+                        
+                    # Add source citation
+                    citation = ""
+                    if 'productId' in metadata:
+                        citation = f" from Statistics Canada Table {metadata['productId']}"
+                        
+                    return f"Successfully stored dataset '{series_id}'{unit_info}{citation} with {len(data)} data points in the database."
                 else:
                     return f"Failed to store dataset '{series_id}'."
             except Exception as e:
@@ -111,6 +137,51 @@ class StatCanMCPServer:
                     params=params
                 )
                 
+                # Retrieve the complete metadata to enhance the result
+                data_points, metadata = storage.retrieve_time_series(series_id)
+                
+                # Extract product ID if it exists in metadata
+                product_id = metadata.get("productId")
+                
+                # Enhance result with detailed metadata
+                if not "error" in result:
+                    # Add exact unit of measurement
+                    units = metadata.get("units", "")
+                    uom_desc = metadata.get("uomDesc", "")
+                    scalar_factor_desc = metadata.get("scalarFactorDesc", "")
+                    
+                    # Create a complete unit description
+                    unit_description = ""
+                    if uom_desc:
+                        unit_description = uom_desc
+                    if scalar_factor_desc and scalar_factor_desc != "Units":
+                        if unit_description:
+                            unit_description = f"{scalar_factor_desc} of {unit_description}"
+                        else:
+                            unit_description = scalar_factor_desc
+                    
+                    # If we still don't have a unit description, use generic units
+                    if not unit_description and units:
+                        unit_description = units
+                    
+                    # Add enhanced metadata to result
+                    result["metadata"] = {
+                        "series_id": series_id,
+                        "title": metadata.get("title", ""),
+                        "description": metadata.get("description", ""),
+                        "source": metadata.get("source", "Statistics Canada"),
+                        "units_of_measurement": unit_description or "Units",
+                        "frequency": metadata.get("frequency", ""),
+                        "start_date": metadata.get("start_date", ""),
+                        "end_date": metadata.get("end_date", "")
+                    }
+                    
+                    # Add citation information if product ID is available
+                    if product_id:
+                        result["metadata"]["product_id"] = product_id
+                        result["metadata"]["citation"] = f"Source: Statistics Canada, Table {product_id}"
+                        result["metadata"]["url"] = f"https://www150.statcan.gc.ca/t1/tbl1/en/tv.action?pid={product_id}"
+                
                 return result
             except Exception as e:
                 logger.error(f"Error in analyze_dataset tool: {e}")
@@ -144,22 +215,38 @@ class StatCanMCPServer:
                     except:
                         release_date = release_time
                 
+                # Determine frequency (if available)
+                frequency = ""
+                freq_code = cube_metadata.get("frequencyCode")
+                if freq_code is not None:
+                    from src.config import FREQUENCY_CODES
+                    frequency = FREQUENCY_CODES.get(freq_code, "")
+                
+                # Add frequency to title if available
+                if frequency:
+                    title_with_frequency = f"{title} ({frequency})"
+                else:
+                    title_with_frequency = title
+                
                 # Format the citation based on the requested format
                 format_lower = format.lower()
                 
                 if format_lower == "apa":
-                    citation = f"Statistics Canada. ({release_date}). {title} (Table {pid}). Retrieved from https://www150.statcan.gc.ca/t1/tbl1/en/tv.action?pid={pid}"
+                    citation = f"Statistics Canada. ({release_date}). {title_with_frequency} (Table {pid}). Retrieved from https://www150.statcan.gc.ca/t1/tbl1/en/tv.action?pid={pid}"
                 elif format_lower == "mla":
-                    citation = f"Statistics Canada. \"{title}.\" Table {pid}. Statistics Canada. {release_date}. Web."
+                    citation = f"Statistics Canada. \"{title_with_frequency}.\" Table {pid}. Statistics Canada. {release_date}. Web."
                 elif format_lower == "chicago":
-                    citation = f"Statistics Canada. {release_date}. \"{title}.\" Table {pid}."
+                    citation = f"Statistics Canada. {release_date}. \"{title_with_frequency}.\" Table {pid}."
+                elif format_lower == "short":
+                    # Short format for quick reference
+                    citation = f"Statistics Canada Table {pid}: {title}"
                 else:
-                    citation = f"Statistics Canada. ({release_date}). {title} (Table {pid}). Retrieved from https://www150.statcan.gc.ca/t1/tbl1/en/tv.action?pid={pid}"
+                    citation = f"Statistics Canada. ({release_date}). {title_with_frequency} (Table {pid}). Retrieved from https://www150.statcan.gc.ca/t1/tbl1/en/tv.action?pid={pid}"
                 
                 # Include URL for any format
                 url = f"https://www150.statcan.gc.ca/t1/tbl1/en/tv.action?pid={pid}"
                 
-                # Build the response
+                # Build the response with enhanced metadata
                 return {
                     "citation": citation,
                     "url": url,
@@ -167,7 +254,10 @@ class StatCanMCPServer:
                     "details": {
                         "title": title,
                         "release_date": release_date,
-                        "product_id": pid
+                        "product_id": pid,
+                        "frequency": frequency,
+                        "start_date": cube_metadata.get("cubeStartDate", ""),
+                        "end_date": cube_metadata.get("cubeEndDate", "")
                     }
                 }
             except Exception as e:
@@ -611,7 +701,22 @@ URL: https://www150.statcan.gc.ca/t1/tbl1/en/tv.action?pid={pid}
                     elif not title:
                         title = f"Vector {vector_id} (Coordinate: {vector_item.get('coordinate', 'Unknown')})"
                     
-                    response_text += f"{title}\n"
+                    # Get enhanced metadata for better display
+                    unit_desc = vector_item.get("formattedUnit", vector_item.get("uomDesc", ""))
+                    product_id = vector_item.get("productId", "")
+                    frequency_desc = vector_item.get("frequencyDesc", "")
+                    
+                    # Add header with enhanced title and metadata
+                    header = f"{title}"
+                    if unit_desc:
+                        header += f" ({unit_desc})"
+                    if product_id:
+                        header += f" from Table {product_id}"
+                    response_text += f"{header}\n"
+                    
+                    # Add frequency if available
+                    if frequency_desc:
+                        response_text += f"Frequency: {frequency_desc}\n"
                     
                     # Format observations
                     observations = vector_item.get("vectorDataPoint", [])
@@ -632,11 +737,24 @@ URL: https://www150.statcan.gc.ca/t1/tbl1/en/tv.action?pid={pid}
                         except (ValueError, TypeError):
                             pass
                     
-                    # Add observations
+                    # Add observations with enhanced display values
                     for obs in observations:
                         ref_period = obs.get("refPer", "")
-                        value = obs.get("value", "")
-                        response_text += f"  {ref_period}: {value}\n"
+                        
+                        # Use displayValue if available, otherwise fallback to raw value
+                        if "displayValue" in obs:
+                            value_display = obs.get("displayValue")
+                            response_text += f"  {ref_period}: {value_display}"
+                        else:
+                            value = obs.get("value", "")
+                            response_text += f"  {ref_period}: {value}"
+                        
+                        # Add status information if not normal
+                        status = obs.get("statusDesc")
+                        if status and status != "Normal":
+                            response_text += f" ({status})"
+                            
+                        response_text += "\n"
                     
                     # Add statistics if we have numeric values
                     if values:
@@ -646,14 +764,22 @@ URL: https://www150.statcan.gc.ca/t1/tbl1/en/tv.action?pid={pid}
                         
                         # Calculate trend (positive, negative, or stable)
                         trend = "Stable"
+                        pct_change = 0
                         if len(values) >= 2:
-                            if values[-1] > values[0] * 1.01:  # 1% increase threshold
-                                trend = "Increasing"
-                            elif values[-1] < values[0] * 0.99:  # 1% decrease threshold
-                                trend = "Decreasing"
+                            pct_change = ((values[-1] - values[0]) / values[0]) * 100 if values[0] != 0 else 0
+                            if pct_change > 1:  # 1% increase threshold
+                                trend = f"Increasing ({pct_change:.1f}%)"
+                            elif pct_change < -1:  # 1% decrease threshold
+                                trend = f"Decreasing ({-pct_change:.1f}%)"
                         
-                        response_text += f"\n  Statistics: Average: {avg_value:.2f}, Min: {min_value:.2f}, Max: {max_value:.2f}"
-                        response_text += f"\n  Trend: {trend}\n"
+                        # Include units in the statistics
+                        unit_suffix = f" {unit_desc}" if unit_desc else ""
+                        response_text += f"\n  Statistics: Average: {avg_value:.2f}{unit_suffix}, Min: {min_value:.2f}{unit_suffix}, Max: {max_value:.2f}{unit_suffix}"
+                        response_text += f"\n  Trend: {trend} over {len(observations)} periods"
+                        
+                    # Add source citation
+                    if product_id:
+                        response_text += f"\n  Source: Statistics Canada, Table {product_id}"
                     
                     response_text += "\n"
                 
@@ -675,29 +801,65 @@ URL: https://www150.statcan.gc.ca/t1/tbl1/en/tv.action?pid={pid}
                             pid_str = str(pid)
                         response_text += f"  View online at: https://www150.statcan.gc.ca/t1/tbl1/en/cv.action?pid={pid_str}\n"
                 
-                # If we have a single vector with observations, add visualization suggestion
+                # If we have a single vector with observations, add visualization suggestion with enhanced metadata
                 if len(vector_data) == 1 and len(observations) > 1:
+                    # Get enhanced metadata for better visualization
+                    unit_desc = vector_item.get("formattedUnit", vector_item.get("uomDesc", ""))
+                    product_id = vector_item.get("productId", "")
+                    
                     response_text += "\n### Visualization\n\n"
                     response_text += "To visualize this data, you can use the Vega-Lite MCP server with the following command:\n\n"
                     response_text += "```\nView result from create_chart from mcp-vegalite (isaacwasserman/mcp-vegalite-server) {\n"
                     response_text += "  \"data\": [\n"
                     
-                    # Generate sample data in the format expected by Vega-Lite
+                    # Generate sample data in the format expected by Vega-Lite with enhanced properties
                     for obs in observations:
                         ref_period = obs.get("refPer", "")
                         value = obs.get("value", "")
-                        response_text += f"    {{\"date\": \"{ref_period}\", \"value\": {value}}},\n"
+                        
+                        # Add status if non-normal to be used in visualization
+                        status_prop = ""
+                        status = obs.get("statusDesc")
+                        if status and status != "Normal":
+                            status_prop = f", \"status\": \"{status}\""
+                            
+                        response_text += f"    {{\"date\": \"{ref_period}\", \"value\": {value}{status_prop}}},\n"
                     
                     # Remove trailing comma and close array
                     response_text = response_text[:-2] + "\n  ],\n"
                     
-                    # Add visualization spec
+                    # Add enhanced metadata to the visualization spec
                     response_text += "  \"mark\": \"line\",\n"
                     response_text += "  \"encoding\": {\n"
                     response_text += "    \"x\": {\"field\": \"date\", \"type\": \"temporal\", \"title\": \"Date\"},\n"
-                    response_text += "    \"y\": {\"field\": \"value\", \"type\": \"quantitative\", \"title\": \"Value\"}\n"
-                    response_text += "  },\n"
-                    response_text += f"  \"title\": \"{title}\"\n"
+                    
+                    # Enhanced y-axis title with units if available
+                    y_axis_title = "Value"
+                    if unit_desc:
+                        y_axis_title = unit_desc
+                    response_text += f"    \"y\": {{\"field\": \"value\", \"type\": \"quantitative\", \"title\": \"{y_axis_title}\"}}"
+                    
+                    # Add status encoding if there are non-normal status values
+                    status_values = {obs.get("statusDesc") for obs in observations if obs.get("statusDesc") and obs.get("statusDesc") != "Normal"}
+                    if status_values:
+                        response_text += ",\n    \"color\": {\"field\": \"status\", \"type\": \"nominal\", \"scale\": {\"domain\": [\"Normal\", \"Preliminary\", \"Revised\"], \"range\": [\"blue\", \"orange\", \"green\"]}}"
+                    
+                    response_text += "\n  },\n"
+                    
+                    # Enhanced title with source information
+                    chart_title = title
+                    if unit_desc:
+                        chart_title += f" ({unit_desc})"
+                    if product_id:
+                        chart_title += f" - Table {product_id}"
+                    response_text += f"  \"title\": \"{chart_title}\",\n"
+                    
+                    # Add citation and source information to the caption
+                    response_text += "  \"caption\": \"Source: Statistics Canada"
+                    if product_id:
+                        response_text += f", Table {product_id}"
+                    response_text += "\"\n"
+                    
                     response_text += "}\n```\n"
                     response_text += "\nYou can customize the chart type by changing 'mark' to 'bar', 'point', or 'area'."
                 
@@ -708,32 +870,83 @@ URL: https://www150.statcan.gc.ca/t1/tbl1/en/tv.action?pid={pid}
                     response_text += "```\nView result from create_chart from mcp-vegalite (isaacwasserman/mcp-vegalite-server) {\n"
                     response_text += "  \"data\": [\n"
                     
-                    # Generate sample data for each vector
+                    # Extract common unit information to determine if all vectors share same unit
+                    all_units = []
+                    all_product_ids = set()
+                    
+                    # Generate sample data for each vector with enhanced metadata
                     for i, item in enumerate(vector_data):
                         vector_id = item.get("vectorId", f"vector_{i}")
                         v_obs = item.get("vectorDataPoint", [])
                         
-                        # Try to get a short title
+                        # Get unit and product information for this vector
+                        unit_desc = item.get("formattedUnit", item.get("uomDesc", ""))
+                        if unit_desc:
+                            all_units.append(unit_desc)
+                            
+                        product_id = item.get("productId", "")
+                        if product_id:
+                            all_product_ids.add(product_id)
+                        
+                        # Try to get a short title with unit info
                         v_title = title if i == 0 else f"Vector {vector_id}"
-                        if len(v_title) > 30:
-                            v_title = v_title[:27] + "..."
+                        if len(v_title) > 25:
+                            v_title = v_title[:22] + "..."
+                            
+                        # Add unit to series name if multiple units exist
+                        if len(set(all_units)) > 1 and unit_desc:
+                            v_title += f" ({unit_desc})"
                         
                         for obs in v_obs:
                             ref_period = obs.get("refPer", "")
                             value = obs.get("value", "")
-                            response_text += f"    {{\"date\": \"{ref_period}\", \"value\": {value}, \"series\": \"{v_title}\"}},\n"
+                            status = obs.get("statusDesc")
+                            status_prop = f", \"status\": \"{status}\"" if status and status != "Normal" else ""
+                            response_text += f"    {{\"date\": \"{ref_period}\", \"value\": {value}, \"series\": \"{v_title}\"{status_prop}}},\n"
                     
                     # Remove trailing comma and close array
                     response_text = response_text[:-2] + "\n  ],\n"
                     
-                    # Add visualization spec for multi-series
+                    # Add visualization spec for multi-series with enhanced metadata
                     response_text += "  \"mark\": \"line\",\n"
                     response_text += "  \"encoding\": {\n"
                     response_text += "    \"x\": {\"field\": \"date\", \"type\": \"temporal\", \"title\": \"Date\"},\n"
-                    response_text += "    \"y\": {\"field\": \"value\", \"type\": \"quantitative\", \"title\": \"Value\"},\n"
-                    response_text += "    \"color\": {\"field\": \"series\", \"type\": \"nominal\"}\n"
-                    response_text += "  },\n"
-                    response_text += f"  \"title\": \"Time Series Data from {start_date} to {end_date}\"\n"
+                    
+                    # Use common unit for y-axis if all series have same unit
+                    y_axis_title = "Value"
+                    if len(set(all_units)) == 1 and all_units:
+                        y_axis_title = all_units[0]
+                    response_text += f"    \"y\": {{\"field\": \"value\", \"type\": \"quantitative\", \"title\": \"{y_axis_title}\"}},\n"
+                    response_text += "    \"color\": {\"field\": \"series\", \"type\": \"nominal\"}"
+                    
+                    # Add status encoding if needed for any of the series
+                    has_status = any(obs.get("statusDesc") and obs.get("statusDesc") != "Normal" 
+                                    for item in vector_data 
+                                    for obs in item.get("vectorDataPoint", []))
+                    if has_status:
+                        response_text += ",\n    \"strokeDash\": {\"field\": \"status\", \"type\": \"nominal\", \"scale\": {\"domain\": [\"Normal\", \"Preliminary\", \"Revised\"], \"range\": [[0], [5, 5], [2, 2]]}}"
+                    
+                    response_text += "\n  },\n"
+                    
+                    # Enhanced title with date range and source information
+                    chart_title = f"Time Series Data from {start_date} to {end_date}"
+                    
+                    # Add product IDs if available
+                    if all_product_ids:
+                        product_str = ", ".join([f"Table {pid}" for pid in all_product_ids])
+                        if len(product_str) < 40:  # Keep title reasonable length
+                            chart_title += f" - {product_str}"
+                            
+                    response_text += f"  \"title\": \"{chart_title}\",\n"
+                    
+                    # Add citation and source information
+                    response_text += "  \"caption\": \"Source: Statistics Canada"
+                    if len(all_product_ids) == 1:
+                        response_text += f", Table {next(iter(all_product_ids))}"
+                    elif len(all_product_ids) > 1:
+                        response_text += f", Tables {', '.join(all_product_ids)}"
+                    response_text += "\"\n"
+                    
                     response_text += "}\n```\n"
                     response_text += "\nYou can customize the chart type by changing 'mark' to 'bar', 'point', or 'area'."
                 
@@ -882,29 +1095,65 @@ URL: https://www150.statcan.gc.ca/t1/tbl1/en/tv.action?pid={pid}
                             pid_str = str(pid)
                         response_text += f"  View online at: https://www150.statcan.gc.ca/t1/tbl1/en/cv.action?pid={pid_str}\n"
                 
-                # If we have a single vector with observations, add visualization suggestion
+                # If we have a single vector with observations, add visualization suggestion with enhanced metadata
                 if len(vector_data) == 1 and len(observations) > 1:
+                    # Get enhanced metadata for better visualization
+                    unit_desc = vector_item.get("formattedUnit", vector_item.get("uomDesc", ""))
+                    product_id = vector_item.get("productId", "")
+                    
                     response_text += "\n### Visualization\n\n"
                     response_text += "To visualize this data, you can use the Vega-Lite MCP server with the following command:\n\n"
                     response_text += "```\nView result from create_chart from mcp-vegalite (isaacwasserman/mcp-vegalite-server) {\n"
                     response_text += "  \"data\": [\n"
                     
-                    # Generate sample data in the format expected by Vega-Lite
+                    # Generate sample data in the format expected by Vega-Lite with enhanced properties
                     for obs in observations:
                         ref_period = obs.get("refPer", "")
                         value = obs.get("value", "")
-                        response_text += f"    {{\"date\": \"{ref_period}\", \"value\": {value}}},\n"
+                        
+                        # Add status if non-normal to be used in visualization
+                        status_prop = ""
+                        status = obs.get("statusDesc")
+                        if status and status != "Normal":
+                            status_prop = f", \"status\": \"{status}\""
+                            
+                        response_text += f"    {{\"date\": \"{ref_period}\", \"value\": {value}{status_prop}}},\n"
                     
                     # Remove trailing comma and close array
                     response_text = response_text[:-2] + "\n  ],\n"
                     
-                    # Add visualization spec
+                    # Add enhanced metadata to the visualization spec
                     response_text += "  \"mark\": \"line\",\n"
                     response_text += "  \"encoding\": {\n"
                     response_text += "    \"x\": {\"field\": \"date\", \"type\": \"temporal\", \"title\": \"Date\"},\n"
-                    response_text += "    \"y\": {\"field\": \"value\", \"type\": \"quantitative\", \"title\": \"Value\"}\n"
-                    response_text += "  },\n"
-                    response_text += f"  \"title\": \"{title}\"\n"
+                    
+                    # Enhanced y-axis title with units if available
+                    y_axis_title = "Value"
+                    if unit_desc:
+                        y_axis_title = unit_desc
+                    response_text += f"    \"y\": {{\"field\": \"value\", \"type\": \"quantitative\", \"title\": \"{y_axis_title}\"}}"
+                    
+                    # Add status encoding if there are non-normal status values
+                    status_values = {obs.get("statusDesc") for obs in observations if obs.get("statusDesc") and obs.get("statusDesc") != "Normal"}
+                    if status_values:
+                        response_text += ",\n    \"color\": {\"field\": \"status\", \"type\": \"nominal\", \"scale\": {\"domain\": [\"Normal\", \"Preliminary\", \"Revised\"], \"range\": [\"blue\", \"orange\", \"green\"]}}"
+                    
+                    response_text += "\n  },\n"
+                    
+                    # Enhanced title with source information
+                    chart_title = title
+                    if unit_desc:
+                        chart_title += f" ({unit_desc})"
+                    if product_id:
+                        chart_title += f" - Table {product_id}"
+                    response_text += f"  \"title\": \"{chart_title}\",\n"
+                    
+                    # Add citation and source information to the caption
+                    response_text += "  \"caption\": \"Source: Statistics Canada"
+                    if product_id:
+                        response_text += f", Table {product_id}"
+                    response_text += "\"\n"
+                    
                     response_text += "}\n```\n"
                     response_text += "\nYou can customize the chart type by changing 'mark' to 'bar', 'point', or 'area'."
                 
@@ -915,32 +1164,83 @@ URL: https://www150.statcan.gc.ca/t1/tbl1/en/tv.action?pid={pid}
                     response_text += "```\nView result from create_chart from mcp-vegalite (isaacwasserman/mcp-vegalite-server) {\n"
                     response_text += "  \"data\": [\n"
                     
-                    # Generate sample data for each vector
+                    # Extract common unit information to determine if all vectors share same unit
+                    all_units = []
+                    all_product_ids = set()
+                    
+                    # Generate sample data for each vector with enhanced metadata
                     for i, item in enumerate(vector_data):
                         vector_id = item.get("vectorId", f"vector_{i}")
                         v_obs = item.get("vectorDataPoint", [])
                         
-                        # Try to get a short title
+                        # Get unit and product information for this vector
+                        unit_desc = item.get("formattedUnit", item.get("uomDesc", ""))
+                        if unit_desc:
+                            all_units.append(unit_desc)
+                            
+                        product_id = item.get("productId", "")
+                        if product_id:
+                            all_product_ids.add(product_id)
+                        
+                        # Try to get a short title with unit info
                         v_title = title if i == 0 else f"Vector {vector_id}"
-                        if len(v_title) > 30:
-                            v_title = v_title[:27] + "..."
+                        if len(v_title) > 25:
+                            v_title = v_title[:22] + "..."
+                            
+                        # Add unit to series name if multiple units exist
+                        if len(set(all_units)) > 1 and unit_desc:
+                            v_title += f" ({unit_desc})"
                         
                         for obs in v_obs:
                             ref_period = obs.get("refPer", "")
                             value = obs.get("value", "")
-                            response_text += f"    {{\"date\": \"{ref_period}\", \"value\": {value}, \"series\": \"{v_title}\"}},\n"
+                            status = obs.get("statusDesc")
+                            status_prop = f", \"status\": \"{status}\"" if status and status != "Normal" else ""
+                            response_text += f"    {{\"date\": \"{ref_period}\", \"value\": {value}, \"series\": \"{v_title}\"{status_prop}}},\n"
                     
                     # Remove trailing comma and close array
                     response_text = response_text[:-2] + "\n  ],\n"
                     
-                    # Add visualization spec for multi-series
+                    # Add visualization spec for multi-series with enhanced metadata
                     response_text += "  \"mark\": \"line\",\n"
                     response_text += "  \"encoding\": {\n"
                     response_text += "    \"x\": {\"field\": \"date\", \"type\": \"temporal\", \"title\": \"Date\"},\n"
-                    response_text += "    \"y\": {\"field\": \"value\", \"type\": \"quantitative\", \"title\": \"Value\"},\n"
-                    response_text += "    \"color\": {\"field\": \"series\", \"type\": \"nominal\"}\n"
-                    response_text += "  },\n"
-                    response_text += f"  \"title\": \"Time Series Data from {start_date} to {end_date}\"\n"
+                    
+                    # Use common unit for y-axis if all series have same unit
+                    y_axis_title = "Value"
+                    if len(set(all_units)) == 1 and all_units:
+                        y_axis_title = all_units[0]
+                    response_text += f"    \"y\": {{\"field\": \"value\", \"type\": \"quantitative\", \"title\": \"{y_axis_title}\"}},\n"
+                    response_text += "    \"color\": {\"field\": \"series\", \"type\": \"nominal\"}"
+                    
+                    # Add status encoding if needed for any of the series
+                    has_status = any(obs.get("statusDesc") and obs.get("statusDesc") != "Normal" 
+                                    for item in vector_data 
+                                    for obs in item.get("vectorDataPoint", []))
+                    if has_status:
+                        response_text += ",\n    \"strokeDash\": {\"field\": \"status\", \"type\": \"nominal\", \"scale\": {\"domain\": [\"Normal\", \"Preliminary\", \"Revised\"], \"range\": [[0], [5, 5], [2, 2]]}}"
+                    
+                    response_text += "\n  },\n"
+                    
+                    # Enhanced title with date range and source information
+                    chart_title = f"Time Series Data from {start_date} to {end_date}"
+                    
+                    # Add product IDs if available
+                    if all_product_ids:
+                        product_str = ", ".join([f"Table {pid}" for pid in all_product_ids])
+                        if len(product_str) < 40:  # Keep title reasonable length
+                            chart_title += f" - {product_str}"
+                            
+                    response_text += f"  \"title\": \"{chart_title}\",\n"
+                    
+                    # Add citation and source information
+                    response_text += "  \"caption\": \"Source: Statistics Canada"
+                    if len(all_product_ids) == 1:
+                        response_text += f", Table {next(iter(all_product_ids))}"
+                    elif len(all_product_ids) > 1:
+                        response_text += f", Tables {', '.join(all_product_ids)}"
+                    response_text += "\"\n"
+                    
                     response_text += "}\n```\n"
                     response_text += "\nYou can customize the chart type by changing 'mark' to 'bar', 'point', or 'area'."
                 

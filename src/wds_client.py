@@ -314,14 +314,46 @@ class WDSClient:
                 except (ValueError, TypeError):
                     pass
             
-            # Add UOM description if available
+            # Add UOM description if available with enhanced formatting
             uom_code = obj.get("memberUomCode")
             if uom_code is not None:
                 try:
                     uom = int(uom_code)
-                    enhanced_obj["uomDesc"] = UOM_CODES.get(uom, f"UOM code {uom}")
+                    uom_desc = UOM_CODES.get(uom, f"UOM code {uom}")
+                    enhanced_obj["uomDesc"] = uom_desc
+                    
+                    # Add a formatted description that combines unit and scalar factor
+                    scalar_factor_code = obj.get("scalarFactorCode")
+                    if scalar_factor_code is not None:
+                        scalar_factor = int(scalar_factor_code)
+                        scalar_desc = SCALAR_FACTOR_CODES.get(scalar_factor, "Unknown")
+                        
+                        if scalar_factor == 0:
+                            # No scalar factor
+                            enhanced_obj["formattedUnit"] = uom_desc
+                        else:
+                            # Combine scalar factor with unit
+                            enhanced_obj["formattedUnit"] = f"{scalar_desc} of {uom_desc}"
+                    else:
+                        enhanced_obj["formattedUnit"] = uom_desc
                 except (ValueError, TypeError):
                     pass
+            
+            # Add source metadata for citation
+            product_id = obj.get("productId")
+            if product_id is not None:
+                # Format the source URL
+                pid_str = str(product_id)
+                if len(pid_str) <= 8:
+                    formatted_pid = pid_str.zfill(8) + "01"
+                else:
+                    formatted_pid = pid_str
+                
+                enhanced_obj["source"] = {
+                    "productId": product_id,
+                    "url": f"https://www150.statcan.gc.ca/t1/tbl1/en/tv.action?pid={formatted_pid}",
+                    "citation": f"Statistics Canada, Table {product_id}"
+                }
             
             # Enhance each data point with interpretable values
             data_points = obj.get("vectorDataPoint", [])
@@ -337,20 +369,48 @@ class WDSClient:
                         scalar_code = int(dp.get("scalarFactorCode", 0))
                         scalar_desc = SCALAR_FACTOR_CODES.get(scalar_code, "Unknown")
                         
-                        # Add a display value with units
-                        if scalar_code == 0:
-                            enhanced_dp["displayValue"] = f"{value}"
-                        else:
-                            enhanced_dp["displayValue"] = f"{value} {scalar_desc}"
-                        
-                        # Add a description for unit of measure if available
+                        # Add comprehensive display value with units and scalar factors
+                        uom_desc = ""
                         if uom_code is not None:
                             try:
                                 uom = int(uom_code)
                                 uom_desc = UOM_CODES.get(uom, f"UOM code {uom}")
+                                # Store unit of measure separately
                                 enhanced_dp["unitOfMeasure"] = uom_desc
                             except (ValueError, TypeError):
                                 pass
+                        
+                        # Format the display value with units in a consistent way
+                        if scalar_code == 0:
+                            # No scalar factor
+                            if uom_desc:
+                                # Include the units if available
+                                enhanced_dp["displayValue"] = f"{value} {uom_desc}"
+                            else:
+                                # No units available
+                                enhanced_dp["displayValue"] = f"{value}"
+                        else:
+                            # Has scalar factor (e.g., thousands, millions)
+                            if uom_desc:
+                                # Include both scalar factor and units
+                                enhanced_dp["displayValue"] = f"{value} {scalar_desc} of {uom_desc}"
+                            else:
+                                # Only scalar factor available
+                                enhanced_dp["displayValue"] = f"{value} {scalar_desc}"
+                        
+                        # Store comprehensive metadata for use in analysis and citation
+                        enhanced_dp["metadata"] = {
+                            "value": value,
+                            "scalar_factor": {
+                                "code": scalar_code,
+                                "description": scalar_desc
+                            },
+                            "unit_of_measure": {
+                                "code": uom_code if uom_code is not None else None,
+                                "description": uom_desc
+                            },
+                            "combined_unit": enhanced_dp["displayValue"]
+                        }
                     except (ValueError, TypeError):
                         pass
                 
