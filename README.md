@@ -1,4 +1,4 @@
-# StatCan Web Data Service MCP Server
+ # StatCan Web Data Service MCP Server
 
 <div align="center">
   <img src="./assets/StatCan-Header.png" alt="Statistics Canada Logo" width="600"/>
@@ -38,7 +38,7 @@ The StatCan WDS API has several limitations that this server addresses:
 - **Performance Issues**: Some API calls may timeout for large requests or during peak times
 - **Rate Limiting**: High-volume queries may be throttled by the StatCan WDS API
 
-Our implementation uses these strategies to work around these limitations:
+The current implementation uses these strategies to work around these limitations:
 - Multi-tier caching system at metadata, vector, and cube levels
 - Local fallbacks for common statistical indicators
 - Automatic format adjustment and retries with exponential backoff
@@ -81,7 +81,7 @@ pip install sqlitedict aiohttp mcp pydantic python-dotenv pandas numpy
 
 ## Working Example Queries
 
-Here are queries that work reliably with our current implementation:
+Here are queries that work reliably with the current implementation:
 
 ### Basic Data Discovery
 - "Find datasets about consumer prices in Canada"
