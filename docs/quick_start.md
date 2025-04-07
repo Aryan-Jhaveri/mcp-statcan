@@ -95,9 +95,30 @@ Now you can chat with Claude and access StatCan data. Try these example queries:
 
 The StatCan MCP server provides the following tools:
 
-- **search_datasets**: Search for datasets by keywords
+### Data Discovery and Metadata
+- **search_datasets**: Search for datasets by keywords or themes
 - **get_dataset_metadata**: Retrieve detailed metadata for a dataset
-- **get_data_series**: Extract time series data
+- **get_recently_updated_datasets**: Find recently updated datasets
+
+### Data Retrieval
+- **get_data_series**: Extract time series data for specific vectors
+- **get_data_series_by_range**: Get data for a specific date range
+- **get_series_from_cube**: Get data from a cube using coordinates
+- **get_download_link**: Generate a download link for full datasets
+
+### Data Storage and Analysis
+- **store_dataset**: Store a dataset in the persistent database
+- **retrieve_dataset**: Retrieve a dataset from storage
+- **analyze_dataset**: Run analysis on stored data
+- **compare_datasets**: Compare two datasets
+- **forecast_dataset**: Generate forecasts
+- **list_stored_datasets**: List all stored datasets
+
+### Integration Tools
+- **get_dataset_visualization**: Generate visualizations
+- **analyze_dataset**: Perform advanced analysis
+- **deep_research_dataset**: Get contextual research
+- **explore_dataset**: Get data exploration options
 
 ## Troubleshooting
 

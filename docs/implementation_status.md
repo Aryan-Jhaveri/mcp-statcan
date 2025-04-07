@@ -9,6 +9,7 @@ This document provides an overview of the current implementation status of the S
 | WDS API Client                  | ✅ Complete | Basic and specialized endpoints implemented with error handling and rate limiting      |
 | MCP Server Structure            | ✅ Complete | Server initialization, routing, and tool registration implemented                      |
 | Caching System                  | ✅ Complete | Sophisticated tiered caching with metadata, vector, and cube caches                   |
+| Data Storage & Analysis         | ✅ Complete | Persistent SQLite database with advanced statistical analysis capabilities            |
 | Metadata Enhancement            | ✅ Complete | Rich context including units of measurement, scalar factors, and frequency descriptions |
 | Data Visualization Integration  | ✅ Complete | Integration with Vega-Lite MCP server for data visualization                          |
 | Error Handling                  | ✅ Complete | Comprehensive error handling with informative messages                                |
@@ -23,8 +24,15 @@ This document provides an overview of the current implementation status of the S
 | get_data_series (by vector)     | ✅ Complete | Enhanced with unit information, scalar factors, and display formats                   |
 | get_data_series (by coordinate) | ✅ Complete | Cube coordinate-based retrieval with data simulation for missing series               |
 | get_dataset_visualization       | ✅ Complete | Integration with Vega-Lite for dynamic chart generation                               |
-| analyze_data                    | 🟡 Partial  | Basic statistical analysis implemented, advanced features in progress                 |
+| analyze_data                    | ✅ Complete | Comprehensive statistical analysis with database storage                              |
+| store_dataset                   | ✅ Complete | Persistent storage of datasets in SQLite database                                     |
+| retrieve_dataset                | ✅ Complete | Data retrieval from persistent storage                                                |
+| analyze_dataset                 | ✅ Complete | Statistical analysis of stored data (summary, trends, seasonal)                       |
+| compare_datasets                | ✅ Complete | Dataset comparison with correlation analysis and lag detection                        |
+| forecast_dataset                | ✅ Complete | Time series forecasting with confidence intervals                                     |
 | track_changes                   | ✅ Complete | Implementation complete with APIs for tracking updates to datasets                    |
+| get_citation                    | ✅ Complete | Generate proper citations for StatCan datasets in various formats                       |
+| track_figure                    | ✅ Complete | Track and reference figures created from StatCan data                                   |
 
 ## MCP Resources
 
@@ -80,12 +88,22 @@ The StatCan MCP server now provides comprehensive metadata context for all data 
 
 This enhancement significantly improves the usability of StatCan data by providing AI assistants with the context they need to correctly interpret and present statistical information to users.
 
+## Data Analysis Capabilities
+
+| Analysis Type | Status | Notes |
+|---------------|--------|-------|
+| Summary statistics | ✅ Complete | Mean, median, min, max, standard deviation |
+| Trend analysis | ✅ Complete | Linear regression, slope, R-squared |
+| Seasonal analysis | ✅ Complete | Monthly/quarterly patterns, seasonality index |
+| Forecasting | ✅ Complete | Exponential smoothing with error metrics |
+| Correlation | ✅ Complete | Correlation coefficients with lag analysis |
+
 ## Upcoming Features
 
 1. **Advanced Analysis Tools**
-   - Trend detection and seasonal adjustment
-   - Comparative analysis across datasets
-   - Automated insight generation
+   - More sophisticated forecasting models (ARIMA, Prophet)
+   - Anomaly detection with explanations
+   - Multi-dimensional analysis and aggregation
 
 2. **Performance Optimizations**
    - Enhanced hot cache preloading for popular datasets
@@ -96,3 +114,8 @@ This enhancement significantly improves the usability of StatCan data by providi
    - Provincial statistical agencies
    - Specialized economics datasets
    - International comparative data
+
+4. **Advanced Visualization**
+   - Interactive dashboards
+   - Customizable visualizations
+   - Comparative multi-series charts
