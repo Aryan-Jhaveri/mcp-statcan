@@ -6,7 +6,7 @@ This document provides an overview of the current implementation status of the S
 
 | Component                       | Status      | Notes                                                                                 |
 |---------------------------------|-------------|----------------------------------------------------------------------------------------|
-| WDS API Client                  | ✅ Complete | Basic and specialized endpoints implemented with error handling and rate limiting      |
+| WDS API Client                  | 🟡 Partial  | Most endpoints implemented, but facing compatibility issues with the StatCan WDS API that returns 406 errors. Local data fallbacks are in place for core functionality. |
 | MCP Server Structure            | ✅ Complete | Server initialization, routing, and tool registration implemented                      |
 | Caching System                  | ✅ Complete | Sophisticated tiered caching with metadata, vector, and cube caches                   |
 | Data Storage & Analysis         | ✅ Complete | Persistent SQLite database with advanced statistical analysis capabilities            |
@@ -105,6 +105,19 @@ This enhancement significantly improves the usability of StatCan data by providi
 | Visualization | ✅ Complete | Integration with Vega-Lite MCP server for comprehensive data visualization |
 | Storage and Retrieval | ✅ Complete | Persistent SQLite database with complete metadata preservation |
 
+## Known Limitations and Challenges
+
+1. **StatCan WDS API Compatibility Issues**
+   - The StatCan WDS API currently returns 406 Not Acceptable errors for many endpoints
+   - This appears to be a change in the API requirements or access restrictions
+   - We've implemented fallbacks with local data and caching to maintain functionality
+   - Future updates will need to address these issues as the API evolves
+
+2. **Data Retrieval Limitations**
+   - Direct access to the full StatCan catalog may be limited due to API issues
+   - Some data retrieval operations rely on cached or pre-downloaded example data
+   - Vector ID-based retrieval is more reliable than cube coordinate-based retrieval
+
 ## Upcoming Features
 
 1. **Advanced Analysis Tools**
@@ -115,7 +128,7 @@ This enhancement significantly improves the usability of StatCan data by providi
 2. **Performance Optimizations**
    - Enhanced hot cache preloading for popular datasets
    - Parallel data fetching for complex queries
-   - Improvements to simulated data generation
+   - Improved local data storage for API fallback
 
 3. **Additional Data Sources**
    - Provincial statistical agencies
