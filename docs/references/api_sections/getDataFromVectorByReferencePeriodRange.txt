@@ -1,0 +1,77 @@
+getDataFromVectorByReferencePeriodRange
+For users that require accessing data according to a certain reference period range, this method allows access by reference period range and vector.
+GET URL:
+https://www150.statcan.gc.ca/t1/wds/rest/getDataFromVectorByReferencePeriodRange 
+GET PARAMETERS examples:
+https://www150.statcan.gc.ca/t1/wds/rest/getDataFromVectorByReferencePeriodRange?vectorIds="1","2"&startRefPeriod=2016-01-01&endReferencePeriod=2017-01-01 
+	
+vectorIds="1","2"&
+startRefPeriod=2016-01-01&
+endDataPointReleaseDate=2017-01-01
+RESULT: 
+{
+    "status": "SUCCESS",
+    "object": {
+      "responseStatusCode": 0,
+      "productId": 17100009,
+      "coordinate": "1.0.0.0.0.0.0.0.0.0",
+      "vectorId": 1,
+      "vectorDataPoint": [
+        {
+          "refPer": "2016-01-01",
+          "refPer2": "",
+          "refPerRaw": "2016-01-01",
+          "refPerRaw2": "",
+          "value": 35871136,
+          "decimals": 0,
+          "scalarFactorCode": 0,
+          "symbolCode": 0,
+          "statusCode": 0,
+          "securityLevelCode": 0,
+          "releaseTime": "2020-09-29T08:30",
+          "frequencyCode": 9
+        },
+        {
+          "refPer": "2016-04-01",
+          "refPer2": "",
+          "refPerRaw": "2016-04-01",
+          "refPerRaw2": "",
+          "value": 35970303,
+          "decimals": 0,
+          "scalarFactorCode": 0,
+          "symbolCode": 0,
+          "statusCode": 0,
+          "securityLevelCode": 0,
+          "releaseTime": "2020-09-29T08:30",
+          "frequencyCode": 9
+        },        … repeating for every datapoint
+      ]
+    }
+  },
+  {
+    "status": "SUCCESS",
+    "object": {
+      "responseStatusCode": 0,
+      "productId": 17100009,
+      "coordinate": "2.0.0.0.0.0.0.0.0.0",
+      "vectorId": 2,
+      "vectorDataPoint": [
+        {
+          "refPer": "2016-01-01",
+          "refPer2": "",
+          "refPerRaw": "2016-01-01",
+          "refPerRaw2": "",
+          "value": 528800.0,
+          "decimals": 0,
+          "scalarFactorCode": 0,
+          "symbolCode": 0,
+          "statusCode": 0,
+          "securityLevelCode": 0,
+          "releaseTime": "2020-09-29T08:30",
+          "frequencyCode": 9
+        },        … repeating for every datapoint
+      ]
+    }
+  },
+  … repeating for every vector requested
+]

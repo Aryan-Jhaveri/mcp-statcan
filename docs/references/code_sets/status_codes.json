@@ -1,0 +1,79 @@
+[
+  {
+    "statusCode": "0",
+    "statusRepresentationEn": null,
+    "statusRepresentationFr": null,
+    "statusDescEn": "normal",
+    "statusDescFr": "normal"
+  },
+  {
+    "statusCode": "1",
+    "statusRepresentationEn": "..",
+    "statusRepresentationFr": "..",
+    "statusDescEn": "not available for a specific reference period",
+    "statusDescFr": "indisponible pour une p\u00e9riode de r\u00e9f\u00e9rence pr\u00e9cise"
+  },
+  {
+    "statusCode": "10",
+    "statusRepresentationEn": "<LOD",
+    "statusRepresentationFr": "<LDD",
+    "statusDescEn": "less than the limit of detection",
+    "statusDescFr": "inf\u00e9rieur \u00e0 la limite de d\u00e9tection"
+  },
+  {
+    "statusCode": "2",
+    "statusRepresentationEn": "0s",
+    "statusRepresentationFr": "0s",
+    "statusDescEn": "value rounded to 0 (zero) where there is a meaningful distinction between true zero and the value that was rounded",
+    "statusDescFr": "valeur arrondie \u00e0 0 (z\u00e9ro) l\u00e0 o\u00f9 il y a une distinction importante entre le z\u00e9ro absolu et la valeur arrondie"
+  },
+  {
+    "statusCode": "3",
+    "statusRepresentationEn": "A",
+    "statusRepresentationFr": "A",
+    "statusDescEn": "data quality: excellent",
+    "statusDescFr": "qualit\u00e9 des donn\u00e9es : excellente"
+  },
+  {
+    "statusCode": "4",
+    "statusRepresentationEn": "B",
+    "statusRepresentationFr": "B",
+    "statusDescEn": "data quality: very good",
+    "statusDescFr": "qualit\u00e9 des donn\u00e9es : tr\u00e8s bonne"
+  },
+  {
+    "statusCode": "5",
+    "statusRepresentationEn": "C",
+    "statusRepresentationFr": "C",
+    "statusDescEn": "data quality: good",
+    "statusDescFr": "qualit\u00e9 des donn\u00e9es : bonne"
+  },
+  {
+    "statusCode": "6",
+    "statusRepresentationEn": "D",
+    "statusRepresentationFr": "D",
+    "statusDescEn": "data quality: acceptable",
+    "statusDescFr": "qualit\u00e9 des donn\u00e9es : acceptable"
+  },
+  {
+    "statusCode": "7",
+    "statusRepresentationEn": "E",
+    "statusRepresentationFr": "E",
+    "statusDescEn": "use with caution",
+    "statusDescFr": "\u00e0 utiliser avec prudence"
+  },
+  {
+    "statusCode": "8",
+    "statusRepresentationEn": "F",
+    "statusRepresentationFr": "F",
+    "statusDescEn": "too unreliable to be published",
+    "statusDescFr": "trop peu fiable pour \u00eatre publi\u00e9"
+  },
+  {
+    "statusCode": "9",
+    "statusRepresentationEn": "...",
+    "statusRepresentationFr": "...",
+    "statusDescEn": "not applicable",
+    "statusDescFr": "n'ayant pas lieu de figurer"
+  }
+]

@@ -1,0 +1,53 @@
+getAllCubesList
+Users can query the output database to provide a complete inventory of data tables available through this Statistics Canada API. This command accesses a comprehensive list of details about each table including information at the dimension level.
+GET URL:
+https://www150.statcan.gc.ca/t1/wds/rest/getAllCubesList 
+RESULT: 
+[ 
+   { 
+      "productId":10100004,
+      "cansimId":"176-0013",
+      "cubeTitleEn":"Chartered banks, total claims and liabilities booked worldwide vis-à-vis non-residents, Bank of Canada",
+      "cubeTitleFr":"Banques à charte, ensembles des créances et engagements comptabilisés dans le monde au nom de non-résidents, Banque du Canada",
+      "cubeStartDate":"1978-04-01",
+      "cubeEndDate":"2018-01-01",
+ "releaseTime": "2012-08-01T12:30:00Z",
+      "archived":"2",
+      "subjectCode":[ 
+         "10"
+      ],
+      "surveyCode":[ 
+         "7502"
+      ],
+      "frequencyCode":9,
+ "corrections": [],
+ "issueDate": "2018-06-27T04:00:00Z",
+      "dimensions":[ 
+         { 
+            "dimensionNameEn":"Geography",
+            "dimensionNameFr":"Géographie",
+            "dimensionPositionId":1,
+            "hasUOM":false
+         },
+         { 
+            "dimensionNameEn":"Claims and deposits",
+            "dimensionNameFr":"Créances et dépôts",
+            "dimensionPositionId":2,
+            "hasUOM":false
+         },
+         { 
+            "dimensionNameEn":"Type of non-resident",
+            "dimensionNameFr":"Genre du non-résident",
+            "dimensionPositionId":3,
+            "hasUOM":false
+         },
+         { 
+            "dimensionNameEn":"Country of non-resident",
+            "dimensionNameFr":"Pays du non-résident",
+            "dimensionPositionId":4,
+            "hasUOM":true
+         }
+      ]
+   },
+   { 
+… repeating objects

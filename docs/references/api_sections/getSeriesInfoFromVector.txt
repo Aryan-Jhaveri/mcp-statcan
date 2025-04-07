@@ -1,0 +1,21 @@
+getSeriesInfoFromVector
+POST URL:
+https://www150.statcan.gc.ca/t1/wds/rest/getSeriesInfoFromVector 
+POST BODY:
+[{"vectorId":32164132}] 
+RESULT: 
+[{
+    "status": "SUCCESS",
+    "object": {
+      "responseStatusCode": 0,
+      "productId": 35100003,
+      "coordinate": "1.12.0.0.0.0.0.0.0.0",
+      "vectorId": 32164132,
+      "frequencyCode": 12,
+      "scalarFactorCode": 0,
+      "decimals": 2,
+      "terminated": 0,
+      "SeriesTitleEn": "Newfoundland and Labrador;Probation rate per 10,000 young persons",
+      "SeriesTitleFr": "Terre-Neuve-et-Labrador;Taux de probation pour 10 000 jeunes",
+      "memberUomCode": 257
+   }}]

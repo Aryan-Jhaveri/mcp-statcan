@@ -1,0 +1,16 @@
+[
+  {
+    "codeId": 0,
+    "codeTextEn": "active",
+    "codeTextFr": "actif",
+    "displayCodeEn": null,
+    "displayCodeFr": null
+  },
+  {
+    "codeId": 1,
+    "codeTextEn": "terminated",
+    "codeTextFr": "termin\u00e9",
+    "displayCodeEn": "t",
+    "displayCodeFr": "t"
+  }
+]

@@ -1,0 +1,14 @@
+getChangedCubeList
+Users can also query what has changed at the table/cube level on a specific day by adding an ISO date to the end of the URL. This date can be any date from today into the past.
+GET URL:
+https://www150.statcan.gc.ca/t1/wds/rest/getChangedCubeList/2017-12-07 
+{
+  "status": "SUCCESS",
+  "object": [
+    [
+      {
+        "responseStatusCode": 0,
+        "productId": 34100009,
+        "releaseTime": "2017-12-07T08:30"
+      },
+… repeating objects

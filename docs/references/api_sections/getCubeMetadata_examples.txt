@@ -1,0 +1,73 @@
+	getFullTableDownloadSDMX
+Supplemental Information
+getCodeSets
+Product Change Listings
+getChangedSeriesList
+Users can choose to ask for what series have changed today. This can be invoked at any time of day and will reflect the list of series that have been updated at 8:30am EST on a given release up until midnight that same day.
+GET URL:
+https://www150.statcan.gc.ca/t1/wds/rest/getChangedSeriesList 
+"status": "SUCCESS",
+"object": {
+  "status": "SUCCESS",
+  "object": [
+    {
+      "responseStatusCode": 0,
+      "vectorId": 107028707,
+      "productId": 25100059,
+      "coordinate": "5.2.1.0.0.0.0.0.0.0",
+      "releaseTime": "2018-01-23T08:30"
+    },
+… repeating objects
+getChangedCubeList
+Users can also query what has changed at the table/cube level on a specific day by adding an ISO date to the end of the URL. This date can be any date from today into the past.
+GET URL:
+https://www150.statcan.gc.ca/t1/wds/rest/getChangedCubeList/2017-12-07 
+{
+  "status": "SUCCESS",
+--
+getCubeMetadata
+POST URL:
+https://www150.statcan.gc.ca/t1/wds/rest/getCubeMetadata 
+POST BODY:
+[{"productId":35100003}] 
+[
+  {
+    "status": "SUCCESS",
+    "object": {
+      "responseStatusCode": 0,
+      "productId": "35100003",
+      "cansimId": "251-0008",
+      "cubeTitleEn": "Average counts of young persons in provincial and territorial correctional services",
+      "cubeTitleFr": "Comptes moyens des adolescents dans les services correctionnels provinciaux et territoriaux",
+      "cubeStartDate": "1997-01-01",
+      "cubeEndDate": "2015-01-01",
+	"frequencyCode": 12,
+      "nbSeriesCube": 171,
+      "nbDatapointsCube": 3129,
+      "releaseTime": "2015-05-09T08:30",
+	"archiveStatusCode": "2",
+      "archiveStatusEn": "CURRENT - a cube available to the public and that is current",
+      "archiveStatusFr": "ACTIF - un cube qui est disponible au public et qui est toujours mise a jour",
+	"subjectCode": [
+        "350102",
+        "4211"
+      ],
+      "surveyCode": [
+        "3313"
+      ],
+      "dimension": [
+        {
+          "dimensionPositionId": 1,
+          "dimensionNameEn": "Geography",
+          "dimensionNameFr": "Géographie",
+          "hasUom": false,
+          "member": [
+            {
+              "memberId": 1,
+              "parentMemberId": 15,
+              "memberNameEn": "Newfoundland and Labrador",
+              "memberNameFr": "Terre-Neuve-et-Labrador",
+              "classificationCode": "10",
+              "classificationTypeCode": "1",
+              "geoLevel": 2,
+              "vintage": 2011,

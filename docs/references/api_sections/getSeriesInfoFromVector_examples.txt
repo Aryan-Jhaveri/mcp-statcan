@@ -1,0 +1,75 @@
+	getFullTableDownloadSDMX
+Supplemental Information
+getCodeSets
+Product Change Listings
+getChangedSeriesList
+Users can choose to ask for what series have changed today. This can be invoked at any time of day and will reflect the list of series that have been updated at 8:30am EST on a given release up until midnight that same day.
+GET URL:
+https://www150.statcan.gc.ca/t1/wds/rest/getChangedSeriesList 
+"status": "SUCCESS",
+"object": {
+  "status": "SUCCESS",
+  "object": [
+    {
+      "responseStatusCode": 0,
+      "vectorId": 107028707,
+      "productId": 25100059,
+      "coordinate": "5.2.1.0.0.0.0.0.0.0",
+      "releaseTime": "2018-01-23T08:30"
+    },
+… repeating objects
+getChangedCubeList
+Users can also query what has changed at the table/cube level on a specific day by adding an ISO date to the end of the URL. This date can be any date from today into the past.
+GET URL:
+https://www150.statcan.gc.ca/t1/wds/rest/getChangedCubeList/2017-12-07 
+{
+  "status": "SUCCESS",
+  "object": [
+    [
+--
+Users can also request series metadata either by CubePidCoord or Vector as seen earlier using getSeriesInfoFromVector
+POST URL:
+https://www150.statcan.gc.ca/t1/wds/rest/getSeriesInfoFromCubePidCoord 
+POST BODY:
+[{"productId": 35100003, "coordinate": "1.12.0.0.0.0.0.0.0.0"}] 
+getSeriesInfoFromVector
+POST URL:
+https://www150.statcan.gc.ca/t1/wds/rest/getSeriesInfoFromVector 
+POST BODY:
+[{"vectorId":32164132}] 
+RESULT: 
+[{
+    "status": "SUCCESS",
+    "object": {
+      "responseStatusCode": 0,
+      "productId": 35100003,
+      "coordinate": "1.12.0.0.0.0.0.0.0.0",
+      "vectorId": 32164132,
+      "frequencyCode": 12,
+      "scalarFactorCode": 0,
+      "decimals": 2,
+      "terminated": 0,
+      "SeriesTitleEn": "Newfoundland and Labrador;Probation rate per 10,000 young persons",
+      "SeriesTitleFr": "Terre-Neuve-et-Labrador;Taux de probation pour 10 000 jeunes",
+      "memberUomCode": 257
+   }}]
+getAllCubesList
+Users can query the output database to provide a complete inventory of data tables available through this Statistics Canada API. This command accesses a comprehensive list of details about each table including information at the dimension level.
+GET URL:
+https://www150.statcan.gc.ca/t1/wds/rest/getAllCubesList 
+RESULT: 
+[ 
+   { 
+      "productId":10100004,
+      "cansimId":"176-0013",
+      "cubeTitleEn":"Chartered banks, total claims and liabilities booked worldwide vis-à-vis non-residents, Bank of Canada",
+      "cubeTitleFr":"Banques à charte, ensembles des créances et engagements comptabilisés dans le monde au nom de non-résidents, Banque du Canada",
+      "cubeStartDate":"1978-04-01",
+      "cubeEndDate":"2018-01-01",
+ "releaseTime": "2012-08-01T12:30:00Z",
+      "archived":"2",
+      "subjectCode":[ 
+         "10"
+      ],
+      "surveyCode":[ 
+         "7502"

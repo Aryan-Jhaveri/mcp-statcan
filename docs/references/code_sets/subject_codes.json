@@ -1,0 +1,3102 @@
+[
+  {
+    "subjectCode": "10",
+    "subjectEn": "Government",
+    "subjectFr": "Gouvernement"
+  },
+  {
+    "subjectCode": "11",
+    "subjectEn": "Income, pensions, spending and wealth",
+    "subjectFr": "Revenu, pensions, d\u00e9penses et richesse"
+  },
+  {
+    "subjectCode": "12",
+    "subjectEn": "International trade",
+    "subjectFr": "Commerce international"
+  },
+  {
+    "subjectCode": "13",
+    "subjectEn": "Health",
+    "subjectFr": "Sant\u00e9"
+  },
+  {
+    "subjectCode": "14",
+    "subjectEn": "Labour",
+    "subjectFr": "Travail"
+  },
+  {
+    "subjectCode": "15",
+    "subjectEn": "Languages",
+    "subjectFr": "Langues"
+  },
+  {
+    "subjectCode": "16",
+    "subjectEn": "Manufacturing",
+    "subjectFr": "Fabrication"
+  },
+  {
+    "subjectCode": "17",
+    "subjectEn": "Population and demography",
+    "subjectFr": "Population et d\u00e9mographie"
+  },
+  {
+    "subjectCode": "18",
+    "subjectEn": "Prices and price indexes",
+    "subjectFr": "Prix et indices des prix"
+  },
+  {
+    "subjectCode": "19",
+    "subjectEn": "Statistical methods",
+    "subjectFr": "M\u00e9thodes statistiques"
+  },
+  {
+    "subjectCode": "20",
+    "subjectEn": "Retail and wholesale",
+    "subjectFr": "Commerce de d\u00e9tail et de gros"
+  },
+  {
+    "subjectCode": "21",
+    "subjectEn": "Business and consumer services and culture",
+    "subjectFr": "Services aux entreprises et aux consommateurs et culture"
+  },
+  {
+    "subjectCode": "22",
+    "subjectEn": "Digital economy and society",
+    "subjectFr": "\u00c9conomie et soci\u00e9t\u00e9 num\u00e9riques"
+  },
+  {
+    "subjectCode": "23",
+    "subjectEn": "Transportation",
+    "subjectFr": "Transport"
+  },
+  {
+    "subjectCode": "24",
+    "subjectEn": "Travel and tourism",
+    "subjectFr": "Voyages et tourisme"
+  },
+  {
+    "subjectCode": "25",
+    "subjectEn": "Energy",
+    "subjectFr": "\u00c9nergie"
+  },
+  {
+    "subjectCode": "27",
+    "subjectEn": "Science and technology",
+    "subjectFr": "Sciences et technologie"
+  },
+  {
+    "subjectCode": "32",
+    "subjectEn": "Agriculture and food",
+    "subjectFr": "Agriculture et alimentation"
+  },
+  {
+    "subjectCode": "33",
+    "subjectEn": "Business performance and ownership",
+    "subjectFr": "Rendement des entreprises et propri\u00e9t\u00e9"
+  },
+  {
+    "subjectCode": "34",
+    "subjectEn": "Construction",
+    "subjectFr": "Construction"
+  },
+  {
+    "subjectCode": "35",
+    "subjectEn": "Crime and justice",
+    "subjectFr": "Crime et justice"
+  },
+  {
+    "subjectCode": "36",
+    "subjectEn": "Economic accounts",
+    "subjectFr": "Comptes \u00e9conomiques"
+  },
+  {
+    "subjectCode": "37",
+    "subjectEn": "Education, training and learning",
+    "subjectFr": "\u00c9ducation, formation et apprentissage"
+  },
+  {
+    "subjectCode": "38",
+    "subjectEn": "Environment",
+    "subjectFr": "Environnement"
+  },
+  {
+    "subjectCode": "39",
+    "subjectEn": "Families, households and marital status",
+    "subjectFr": "Familles, m\u00e9nages et \u00e9tat matrimonial"
+  },
+  {
+    "subjectCode": "41",
+    "subjectEn": "Indigenous peoples",
+    "subjectFr": "Peuples autochtones"
+  },
+  {
+    "subjectCode": "42",
+    "subjectEn": "Children and youth",
+    "subjectFr": "Enfants et jeunes"
+  },
+  {
+    "subjectCode": "43",
+    "subjectEn": "Immigration and ethnocultural diversity",
+    "subjectFr": "Immigration et diversit\u00e9 ethnoculturelle"
+  },
+  {
+    "subjectCode": "44",
+    "subjectEn": "Older adults and population aging",
+    "subjectFr": "Adultes \u00e2g\u00e9s et vieillissement d\u00e9mographique"
+  },
+  {
+    "subjectCode": "45",
+    "subjectEn": "Society and community",
+    "subjectFr": "Soci\u00e9t\u00e9 et communaut\u00e9"
+  },
+  {
+    "subjectCode": "46",
+    "subjectEn": "Housing",
+    "subjectFr": "Logement"
+  },
+  {
+    "subjectCode": "1001",
+    "subjectEn": "Government/Balance sheets",
+    "subjectFr": "Gouvernement/Bilans"
+  },
+  {
+    "subjectCode": "1002",
+    "subjectEn": "Government/Employment and remuneration",
+    "subjectFr": "Gouvernement/Emploi et r\u00e9mun\u00e9ration"
+  },
+  {
+    "subjectCode": "1003",
+    "subjectEn": "Government/Government business enterprises",
+    "subjectFr": "Gouvernement/Entreprises publiques"
+  },
+  {
+    "subjectCode": "1004",
+    "subjectEn": "Government/Monetary authorities",
+    "subjectFr": "Gouvernement/Autorit\u00e9s mon\u00e9taires"
+  },
+  {
+    "subjectCode": "1005",
+    "subjectEn": "Government/Revenue and expenditures",
+    "subjectFr": "Gouvernement/Recettes et d\u00e9penses"
+  },
+  {
+    "subjectCode": "1099",
+    "subjectEn": "Government/Other content related to Government",
+    "subjectFr": "Gouvernement/Autre contenu li\u00e9 au Gouvernement"
+  },
+  {
+    "subjectCode": "1101",
+    "subjectEn": "Income, pensions, spending and wealth/Household and family assets, debts and wealth",
+    "subjectFr": "Revenu, pensions, d\u00e9penses et richesse/Actif, endettement et richesse des m\u00e9nages et des familles"
+  },
+  {
+    "subjectCode": "1102",
+    "subjectEn": "Income, pensions, spending and wealth/Household spending and savings",
+    "subjectFr": "Revenu, pensions, d\u00e9penses et richesse/D\u00e9penses et \u00e9pargne des m\u00e9nages"
+  },
+  {
+    "subjectCode": "1103",
+    "subjectEn": "Income, pensions, spending and wealth/Household, family and personal income",
+    "subjectFr": "Revenu, pensions, d\u00e9penses et richesse/Revenu des m\u00e9nages, des familles et des particuliers"
+  },
+  {
+    "subjectCode": "1104",
+    "subjectEn": "Income, pensions, spending and wealth/Low income and inequality",
+    "subjectFr": "Revenu, pensions, d\u00e9penses et richesse/Faible revenu et in\u00e9galit\u00e9"
+  },
+  {
+    "subjectCode": "1105",
+    "subjectEn": "Income, pensions, spending and wealth/Pensions and retirement income programs",
+    "subjectFr": "Revenu, pensions, d\u00e9penses et richesse/Pensions et programmes de revenu de retraite"
+  },
+  {
+    "subjectCode": "1106",
+    "subjectEn": "Income, pensions, spending and wealth/Personal and household taxation",
+    "subjectFr": "Revenu, pensions, d\u00e9penses et richesse/Imposition des particuliers et des m\u00e9nages"
+  },
+  {
+    "subjectCode": "1107",
+    "subjectEn": "Income, pensions, spending and wealth/Charitable donations",
+    "subjectFr": "Revenu, pensions, d\u00e9penses et richesse/Dons de charit\u00e9"
+  },
+  {
+    "subjectCode": "1108",
+    "subjectEn": "Income, pensions, spending and wealth/High income",
+    "subjectFr": "Revenu, pensions, d\u00e9penses et richesse/Revenu \u00e9l\u00e9v\u00e9"
+  },
+  {
+    "subjectCode": "1109",
+    "subjectEn": "Income, pensions, spending and wealth/Income and financial characteristics of persons with disabilities",
+    "subjectFr": "Revenu, pensions, d\u00e9penses et richesse/Caract\u00e9ristiques du revenu et financi\u00e8res des personnes ayant une incapacit\u00e9"
+  },
+  {
+    "subjectCode": "1199",
+    "subjectEn": "Income, pensions, spending and wealth/Other content related to Income, pensions, spending and wealth",
+    "subjectFr": "Revenu, pensions, d\u00e9penses et richesse/Autre contenu li\u00e9 au Revenu, les pensions, les d\u00e9penses et la richesse"
+  },
+  {
+    "subjectCode": "1201",
+    "subjectEn": "International trade/Merchandise imports and exports",
+    "subjectFr": "Commerce international/Importations et exportations de marchandises"
+  },
+  {
+    "subjectCode": "1202",
+    "subjectEn": "International trade/Service imports and exports",
+    "subjectFr": "Commerce international/Importations et exportations de services"
+  },
+  {
+    "subjectCode": "1203",
+    "subjectEn": "International trade/Trade patterns",
+    "subjectFr": "Commerce international/Structure des \u00e9changes"
+  },
+  {
+    "subjectCode": "1204",
+    "subjectEn": "International trade/Trade by multinational enterprises",
+    "subjectFr": "Commerce international/Commerce par les entreprises multinationales"
+  },
+  {
+    "subjectCode": "1205",
+    "subjectEn": "International trade/Trade by exporter and importer characteristics",
+    "subjectFr": "Commerce international/Commerce selon les caract\u00e9ristiques des exportateurs et des importateurs"
+  },
+  {
+    "subjectCode": "1299",
+    "subjectEn": "International trade/Other content related to International trade",
+    "subjectFr": "Commerce international/Autre contenu li\u00e9 au Commerce international"
+  },
+  {
+    "subjectCode": "1301",
+    "subjectEn": "Health/Disability",
+    "subjectFr": "Sant\u00e9/Incapacit\u00e9"
+  },
+  {
+    "subjectCode": "1302",
+    "subjectEn": "Health/Diseases and physical health conditions",
+    "subjectFr": "Sant\u00e9/Maladies et \u00e9tat de sant\u00e9 physique"
+  },
+  {
+    "subjectCode": "1303",
+    "subjectEn": "Health/Environmental factors",
+    "subjectFr": "Sant\u00e9/Facteurs environnementaux"
+  },
+  {
+    "subjectCode": "1304",
+    "subjectEn": "Health/Health care services",
+    "subjectFr": "Sant\u00e9/Services de soins de sant\u00e9"
+  },
+  {
+    "subjectCode": "1305",
+    "subjectEn": "Health/Life expectancy and deaths",
+    "subjectFr": "Sant\u00e9/Esp\u00e9rance de vie et d\u00e9c\u00e8s"
+  },
+  {
+    "subjectCode": "1306",
+    "subjectEn": "Health/Lifestyle and social conditions",
+    "subjectFr": "Sant\u00e9/Mode de vie et conditions sociales"
+  },
+  {
+    "subjectCode": "1307",
+    "subjectEn": "Health/Mental health and well-being",
+    "subjectFr": "Sant\u00e9/Sant\u00e9 mentale et bien-\u00eatre"
+  },
+  {
+    "subjectCode": "1308",
+    "subjectEn": "Health/Pregnancy and births",
+    "subjectFr": "Sant\u00e9/Grossesses et naissances"
+  },
+  {
+    "subjectCode": "1309",
+    "subjectEn": "Health/Prevention and detection of disease",
+    "subjectFr": "Sant\u00e9/Pr\u00e9vention et d\u00e9tection de la maladie"
+  },
+  {
+    "subjectCode": "1310",
+    "subjectEn": "Health/Health measures",
+    "subjectFr": "Sant\u00e9/Mesures de la sant\u00e9"
+  },
+  {
+    "subjectCode": "1311",
+    "subjectEn": "Health/Oral health",
+    "subjectFr": "Sant\u00e9/Sant\u00e9 buccodentaire"
+  },
+  {
+    "subjectCode": "1399",
+    "subjectEn": "Health/Other content related to Health",
+    "subjectFr": "Sant\u00e9/Autre contenu li\u00e9 \u00e0 la Sant\u00e9"
+  },
+  {
+    "subjectCode": "1401",
+    "subjectEn": "Labour/Earnings, wages and non-wage benefits",
+    "subjectFr": "Travail/Gains, salaires et avantages sociaux"
+  },
+  {
+    "subjectCode": "1402",
+    "subjectEn": "Labour/Employment and unemployment",
+    "subjectFr": "Travail/Emploi et ch\u00f4mage"
+  },
+  {
+    "subjectCode": "1403",
+    "subjectEn": "Labour/Employment insurance, social assistance and other transfers",
+    "subjectFr": "Travail/Assurance-emploi, aide sociale et autres transferts"
+  },
+  {
+    "subjectCode": "1404",
+    "subjectEn": "Labour/Hours of work and work arrangements",
+    "subjectFr": "Travail/Heures de travail et conditions de travail"
+  },
+  {
+    "subjectCode": "1405",
+    "subjectEn": "Labour/Job training and apprenticeship programs",
+    "subjectFr": "Travail/Formation professionnelle et programmes pour apprentis"
+  },
+  {
+    "subjectCode": "1406",
+    "subjectEn": "Labour/Job vacancies, labour mobility and layoffs",
+    "subjectFr": "Travail/Postes vacants, mobilit\u00e9 de la main-d'oeuvre et mises \u00e0 pied"
+  },
+  {
+    "subjectCode": "1407",
+    "subjectEn": "Labour/Commuting to work",
+    "subjectFr": "Travail/Navettage"
+  },
+  {
+    "subjectCode": "1408",
+    "subjectEn": "Labour/Globalization and the labour market",
+    "subjectFr": "Travail/Mondialisation et march\u00e9 du travail"
+  },
+  {
+    "subjectCode": "1409",
+    "subjectEn": "Labour/Unionization and industrial relations",
+    "subjectFr": "Travail/Syndicalisation et relations industrielles"
+  },
+  {
+    "subjectCode": "1410",
+    "subjectEn": "Labour/Unpaid work",
+    "subjectFr": "Travail/Travail non r\u00e9mun\u00e9r\u00e9"
+  },
+  {
+    "subjectCode": "1411",
+    "subjectEn": "Labour/Work transitions and life stages",
+    "subjectFr": "Travail/Transitions professionnelles et stades de la vie"
+  },
+  {
+    "subjectCode": "1412",
+    "subjectEn": "Labour/Workplace organization, innovation and performance",
+    "subjectFr": "Travail/Organisation du milieu de travail, innovation et rendement"
+  },
+  {
+    "subjectCode": "1413",
+    "subjectEn": "Labour/Workplace health and work absences",
+    "subjectFr": "Travail/Sant\u00e9 du milieu de travail et absences du travail"
+  },
+  {
+    "subjectCode": "1499",
+    "subjectEn": "Labour/Other content related to Labour",
+    "subjectFr": "Travail/Autre contenu li\u00e9 au Travail"
+  },
+  {
+    "subjectCode": "1504",
+    "subjectEn": "Languages/Knowledge of languages",
+    "subjectFr": "Langues/Connaissances des langues"
+  },
+  {
+    "subjectCode": "1507",
+    "subjectEn": "Languages/Language groups",
+    "subjectFr": "Langues/Groupes linguistiques"
+  },
+  {
+    "subjectCode": "1508",
+    "subjectEn": "Languages/Use of languages",
+    "subjectFr": "Langues/Utilisation des langues"
+  },
+  {
+    "subjectCode": "1599",
+    "subjectEn": "Languages/Other content related to Languages",
+    "subjectFr": "Langues/Autre contenu li\u00e9 aux Langues"
+  },
+  {
+    "subjectCode": "1601",
+    "subjectEn": "Manufacturing/Chemicals, plastics and rubber",
+    "subjectFr": "Fabrication/Produits chimiques, plastique et en caoutchouc"
+  },
+  {
+    "subjectCode": "1602",
+    "subjectEn": "Manufacturing/Food, beverage and tobacco",
+    "subjectFr": "Fabrication/Aliments, boissons et tabac"
+  },
+  {
+    "subjectCode": "1603",
+    "subjectEn": "Manufacturing/Machinery, computers and electronics",
+    "subjectFr": "Fabrication/Machines, produits informatiques et \u00e9lectroniques"
+  },
+  {
+    "subjectCode": "1604",
+    "subjectEn": "Manufacturing/Non-metallic mineral and metal",
+    "subjectFr": "Fabrication/Min\u00e9raux non m\u00e9talliques et m\u00e9taux"
+  },
+  {
+    "subjectCode": "1605",
+    "subjectEn": "Manufacturing/Petroleum and coal",
+    "subjectFr": "Fabrication/P\u00e9trole et charbon"
+  },
+  {
+    "subjectCode": "1606",
+    "subjectEn": "Manufacturing/Textiles, clothing and leather",
+    "subjectFr": "Fabrication/Textiles, v\u00eatements et cuir"
+  },
+  {
+    "subjectCode": "1607",
+    "subjectEn": "Manufacturing/Transportation equipment",
+    "subjectFr": "Fabrication/Mat\u00e9riel de transport"
+  },
+  {
+    "subjectCode": "1608",
+    "subjectEn": "Manufacturing/Wood, paper and printing",
+    "subjectFr": "Fabrication/Bois, papier et impression"
+  },
+  {
+    "subjectCode": "1609",
+    "subjectEn": "Manufacturing/Other manufactured products",
+    "subjectFr": "Fabrication/Autres produits manufactur\u00e9s"
+  },
+  {
+    "subjectCode": "1610",
+    "subjectEn": "Manufacturing/Technology use",
+    "subjectFr": "Fabrication/Utilisation de la technologie"
+  },
+  {
+    "subjectCode": "1611",
+    "subjectEn": "Manufacturing/Innovative manufacturing plants",
+    "subjectFr": "Fabrication/Usines innovateurs"
+  },
+  {
+    "subjectCode": "1612",
+    "subjectEn": "Manufacturing/Fertilizer production, inventories and shipments",
+    "subjectFr": "Fabrication/Production, stocks et livraisons d'engrais"
+  },
+  {
+    "subjectCode": "1699",
+    "subjectEn": "Manufacturing/Other content related to Manufacturing",
+    "subjectFr": "Fabrication/Autre contenu li\u00e9 \u00e0 la Fabrication"
+  },
+  {
+    "subjectCode": "1702",
+    "subjectEn": "Population and demography/Fertility (births)",
+    "subjectFr": "Population et d\u00e9mographie/F\u00e9condit\u00e9 (naissances)"
+  },
+  {
+    "subjectCode": "1704",
+    "subjectEn": "Population and demography/Mortality (deaths)",
+    "subjectFr": "Population et d\u00e9mographie/Mortalit\u00e9 (d\u00e9c\u00e8s)"
+  },
+  {
+    "subjectCode": "1707",
+    "subjectEn": "Population and demography/Migration",
+    "subjectFr": "Population et d\u00e9mographie/Migration"
+  },
+  {
+    "subjectCode": "1710",
+    "subjectEn": "Population and demography/Population estimates",
+    "subjectFr": "Population et d\u00e9mographie/Estimations d\u00e9mographiques"
+  },
+  {
+    "subjectCode": "1711",
+    "subjectEn": "Population and demography/Population projections",
+    "subjectFr": "Population et d\u00e9mographie/Projections d\u00e9mographiques"
+  },
+  {
+    "subjectCode": "1712",
+    "subjectEn": "Population and demography/Census counts",
+    "subjectFr": "Population et d\u00e9mographie/Chiffres du recensement"
+  },
+  {
+    "subjectCode": "1799",
+    "subjectEn": "Population and demography/Other content related to Population and demography",
+    "subjectFr": "Population et d\u00e9mographie/Autre contenu li\u00e9 \u00e0 la Population et la d\u00e9mographie"
+  },
+  {
+    "subjectCode": "1801",
+    "subjectEn": "Prices and price indexes/Agriculture price indexes",
+    "subjectFr": "Prix et indices des prix/Indices des prix de l'agriculture"
+  },
+  {
+    "subjectCode": "1802",
+    "subjectEn": "Prices and price indexes/Consumer price indexes",
+    "subjectFr": "Prix et indices des prix/Indices des prix \u00e0 la consommation"
+  },
+  {
+    "subjectCode": "1803",
+    "subjectEn": "Prices and price indexes/Intercity and international price comparisons",
+    "subjectFr": "Prix et indices des prix/Comparaisons des prix intervilles et internationaux"
+  },
+  {
+    "subjectCode": "1804",
+    "subjectEn": "Prices and price indexes/International merchandise trade price indexes",
+    "subjectFr": "Prix et indices des prix/Indices des prix du commerce international de marchandises"
+  },
+  {
+    "subjectCode": "1805",
+    "subjectEn": "Prices and price indexes/Producer price indexes",
+    "subjectFr": "Prix et indices des prix/Indices des prix \u00e0 la production"
+  },
+  {
+    "subjectCode": "1806",
+    "subjectEn": "Prices and price indexes/Economic accounts price indexes",
+    "subjectFr": "Prix et indices des prix/Indices des prix des comptes \u00e9conomiques"
+  },
+  {
+    "subjectCode": "1899",
+    "subjectEn": "Prices and price indexes/Other content related to Prices and price indexes",
+    "subjectFr": "Prix et indices des prix/Autre contenu li\u00e9 aux Prix et les indices des prix"
+  },
+  {
+    "subjectCode": "1901",
+    "subjectEn": "Statistical methods/Administrative data",
+    "subjectFr": "M\u00e9thodes statistiques/Donn\u00e9es administratives"
+  },
+  {
+    "subjectCode": "1902",
+    "subjectEn": "Statistical methods/Collection and questionnaires",
+    "subjectFr": "M\u00e9thodes statistiques/Collecte et questionnaires"
+  },
+  {
+    "subjectCode": "1903",
+    "subjectEn": "Statistical methods/Data analysis",
+    "subjectFr": "M\u00e9thodes statistiques/Analyse des donn\u00e9es"
+  },
+  {
+    "subjectCode": "1904",
+    "subjectEn": "Statistical methods/Disclosure control and data dissemination",
+    "subjectFr": "M\u00e9thodes statistiques/Contr\u00f4le de la divulgation et diffusion de donn\u00e9es"
+  },
+  {
+    "subjectCode": "1905",
+    "subjectEn": "Statistical methods/Editing and imputation",
+    "subjectFr": "M\u00e9thodes statistiques/V\u00e9rification et imputation"
+  },
+  {
+    "subjectCode": "1906",
+    "subjectEn": "Statistical methods/Frames and coverage",
+    "subjectFr": "M\u00e9thodes statistiques/Bases de sondage et couverture"
+  },
+  {
+    "subjectCode": "1907",
+    "subjectEn": "Statistical methods/History and context",
+    "subjectFr": "M\u00e9thodes statistiques/Histoire et contexte"
+  },
+  {
+    "subjectCode": "1908",
+    "subjectEn": "Statistical methods/Inference and foundations",
+    "subjectFr": "M\u00e9thodes statistiques/Inf\u00e9rence et fondements"
+  },
+  {
+    "subjectCode": "1909",
+    "subjectEn": "Statistical methods/Quality assurance",
+    "subjectFr": "M\u00e9thodes statistiques/Assurance de la qualit\u00e9"
+  },
+  {
+    "subjectCode": "1910",
+    "subjectEn": "Statistical methods/Response and nonresponse",
+    "subjectFr": "M\u00e9thodes statistiques/R\u00e9ponse et non-r\u00e9ponse"
+  },
+  {
+    "subjectCode": "1911",
+    "subjectEn": "Statistical methods/Simulations",
+    "subjectFr": "M\u00e9thodes statistiques/Simulations"
+  },
+  {
+    "subjectCode": "1912",
+    "subjectEn": "Statistical methods/Statistical techniques",
+    "subjectFr": "M\u00e9thodes statistiques/Techniques statistiques"
+  },
+  {
+    "subjectCode": "1913",
+    "subjectEn": "Statistical methods/Survey design",
+    "subjectFr": "M\u00e9thodes statistiques/Plan de sondage"
+  },
+  {
+    "subjectCode": "1914",
+    "subjectEn": "Statistical methods/Time series",
+    "subjectFr": "M\u00e9thodes statistiques/S\u00e9ries chronologiques"
+  },
+  {
+    "subjectCode": "1915",
+    "subjectEn": "Statistical methods/Weighting and estimation",
+    "subjectFr": "M\u00e9thodes statistiques/Pond\u00e9ration et estimation"
+  },
+  {
+    "subjectCode": "1999",
+    "subjectEn": "Statistical methods/Other content related to  Statistical methods",
+    "subjectFr": "M\u00e9thodes statistiques/Autre contenu li\u00e9 aux M\u00e9thodes statistiques"
+  },
+  {
+    "subjectCode": "2001",
+    "subjectEn": "Retail and wholesale/Retail sales by type of product",
+    "subjectFr": "Commerce de d\u00e9tail et de gros/Ventes au d\u00e9tail selon le type de produit"
+  },
+  {
+    "subjectCode": "2002",
+    "subjectEn": "Retail and wholesale/Retail sales by type of store",
+    "subjectFr": "Commerce de d\u00e9tail et de gros/Ventes au d\u00e9tail selon le type de magasin"
+  },
+  {
+    "subjectCode": "2003",
+    "subjectEn": "Retail and wholesale/Wholesale sales and inventories",
+    "subjectFr": "Commerce de d\u00e9tail et de gros/Ventes et stocks des grossistes"
+  },
+  {
+    "subjectCode": "2099",
+    "subjectEn": "Retail and wholesale/Other content related to Retail and wholesale",
+    "subjectFr": "Commerce de d\u00e9tail et de gros/Autre contenu li\u00e9 au Commerce de d\u00e9tail et de gros"
+  },
+  {
+    "subjectCode": "2102",
+    "subjectEn": "Business and consumer services and culture/Culture",
+    "subjectFr": "Services aux entreprises et aux consommateurs et culture/Culture"
+  },
+  {
+    "subjectCode": "2104",
+    "subjectEn": "Business and consumer services and culture/Business and consumer services",
+    "subjectFr": "Services aux entreprises et aux consommateurs et culture/Services aux entreprises et aux consommateurs"
+  },
+  {
+    "subjectCode": "2199",
+    "subjectEn": "Business and consumer services and culture/Other content related to Business and consumer services and culture",
+    "subjectFr": "Services aux entreprises et aux consommateurs et culture/Autre contenu li\u00e9 aux Services aux entreprises et aux consommateurs et culture"
+  },
+  {
+    "subjectCode": "2203",
+    "subjectEn": "Digital economy and society/Information and communications technology sector",
+    "subjectFr": "\u00c9conomie et soci\u00e9t\u00e9 num\u00e9riques/Secteur des technologies de l'information et des communications"
+  },
+  {
+    "subjectCode": "2204",
+    "subjectEn": "Digital economy and society/Digital technology and Internet use",
+    "subjectFr": "\u00c9conomie et soci\u00e9t\u00e9 num\u00e9riques/Utilisation d'Internet et de la technologie num\u00e9rique"
+  },
+  {
+    "subjectCode": "2206",
+    "subjectEn": "Digital economy and society/Telecommunications",
+    "subjectFr": "\u00c9conomie et soci\u00e9t\u00e9 num\u00e9riques/T\u00e9l\u00e9communications"
+  },
+  {
+    "subjectCode": "2207",
+    "subjectEn": "Digital economy and society/Television and radio industries",
+    "subjectFr": "\u00c9conomie et soci\u00e9t\u00e9 num\u00e9riques/Industries de la radiodiffusion et de la t\u00e9l\u00e9diffusion"
+  },
+  {
+    "subjectCode": "2208",
+    "subjectEn": "Digital economy and society/Cyber security and cybercrime",
+    "subjectFr": "\u00c9conomie et soci\u00e9t\u00e9 num\u00e9riques/Cybers\u00e9curit\u00e9 et cybercrime"
+  },
+  {
+    "subjectCode": "2209",
+    "subjectEn": "Digital economy and society/E-commerce",
+    "subjectFr": "\u00c9conomie et soci\u00e9t\u00e9 num\u00e9riques/Commerce \u00e9lectronique"
+  },
+  {
+    "subjectCode": "2210",
+    "subjectEn": "Digital economy and society/Price indexes for digital economy goods and services",
+    "subjectFr": "\u00c9conomie et soci\u00e9t\u00e9 num\u00e9riques/Indices des prix des biens et services li\u00e9s \u00e0 l'\u00e9conomie num\u00e9rique"
+  },
+  {
+    "subjectCode": "2299",
+    "subjectEn": "Digital economy and society/Other content related to Digital economy and society",
+    "subjectFr": "\u00c9conomie et soci\u00e9t\u00e9 num\u00e9riques/Autre contenu li\u00e9 \u00e0 l'\u00c9conomie et soci\u00e9t\u00e9 num\u00e9riques"
+  },
+  {
+    "subjectCode": "2301",
+    "subjectEn": "Transportation/Air transportation",
+    "subjectFr": "Transport/Transport a\u00e9rien"
+  },
+  {
+    "subjectCode": "2302",
+    "subjectEn": "Transportation/Couriers and messengers",
+    "subjectFr": "Transport/Messageries et services de messagers"
+  },
+  {
+    "subjectCode": "2303",
+    "subjectEn": "Transportation/Rail transportation",
+    "subjectFr": "Transport/Transport ferroviaire"
+  },
+  {
+    "subjectCode": "2304",
+    "subjectEn": "Transportation/Road transportation",
+    "subjectFr": "Transport/Transport routier"
+  },
+  {
+    "subjectCode": "2306",
+    "subjectEn": "Transportation/Water transportation",
+    "subjectFr": "Transport/Transport maritime"
+  },
+  {
+    "subjectCode": "2399",
+    "subjectEn": "Transportation/Other content related to Transportation",
+    "subjectFr": "Transport/Autre contenu li\u00e9 au Transport"
+  },
+  {
+    "subjectCode": "2401",
+    "subjectEn": "Travel and tourism/Domestic travel",
+    "subjectFr": "Voyages et tourisme/Voyages int\u00e9rieurs"
+  },
+  {
+    "subjectCode": "2402",
+    "subjectEn": "Travel and tourism/International travel",
+    "subjectFr": "Voyages et tourisme/Voyages internationaux"
+  },
+  {
+    "subjectCode": "2403",
+    "subjectEn": "Travel and tourism/Tourism employment",
+    "subjectFr": "Voyages et tourisme/Emploi g\u00e9n\u00e9r\u00e9 par le tourisme"
+  },
+  {
+    "subjectCode": "2404",
+    "subjectEn": "Travel and tourism/Tourism indicators",
+    "subjectFr": "Voyages et tourisme/Indicateurs du tourisme"
+  },
+  {
+    "subjectCode": "2405",
+    "subjectEn": "Travel and tourism/Travel and traveller characteristics",
+    "subjectFr": "Voyages et tourisme/Caract\u00e9ristiques des voyages et des voyageurs"
+  },
+  {
+    "subjectCode": "2499",
+    "subjectEn": "Travel and tourism/Other content related to Travel and tourism",
+    "subjectFr": "Voyages et tourisme/Autre contenu li\u00e9 aux Voyages et le tourisme"
+  },
+  {
+    "subjectCode": "2502",
+    "subjectEn": "Energy/Energy supply and use",
+    "subjectFr": "\u00c9nergie/Disponibilit\u00e9 et utilisation d'\u00e9nergie"
+  },
+  {
+    "subjectCode": "2504",
+    "subjectEn": "Energy/Electricity and renewable energy",
+    "subjectFr": "\u00c9nergie/\u00c9lectricit\u00e9 et \u00e9nergie renouvelable"
+  },
+  {
+    "subjectCode": "2506",
+    "subjectEn": "Energy/Pipelines",
+    "subjectFr": "\u00c9nergie/Ol\u00e9oducs"
+  },
+  {
+    "subjectCode": "2507",
+    "subjectEn": "Energy/Fossil fuels",
+    "subjectFr": "\u00c9nergie/\u00c9nergies fossiles"
+  },
+  {
+    "subjectCode": "2599",
+    "subjectEn": "Energy/Other content related to Energy",
+    "subjectFr": "\u00c9nergie/Autre contenu li\u00e9 \u00e0 l'\u00c9nergie"
+  },
+  {
+    "subjectCode": "2701",
+    "subjectEn": "Science and technology/Biotechnology and nanotechnology",
+    "subjectFr": "Sciences et technologie/Biotechnologie et nanotechnologie"
+  },
+  {
+    "subjectCode": "2702",
+    "subjectEn": "Science and technology/Human resources in science and technology",
+    "subjectFr": "Sciences et technologie/Ressources humaines en sciences et technologie"
+  },
+  {
+    "subjectCode": "2703",
+    "subjectEn": "Science and technology/Innovation and business strategy",
+    "subjectFr": "Sciences et technologie/Innovation et strat\u00e9gies d'entreprise"
+  },
+  {
+    "subjectCode": "2704",
+    "subjectEn": "Science and technology/Geomatics and geospatial technologies",
+    "subjectFr": "Sciences et technologie/Technologies g\u00e9omatiques et g\u00e9ospatiales"
+  },
+  {
+    "subjectCode": "2705",
+    "subjectEn": "Science and technology/Research and development",
+    "subjectFr": "Sciences et technologie/Recherche et d\u00e9veloppement"
+  },
+  {
+    "subjectCode": "2799",
+    "subjectEn": "Science and technology/Other content related to Science and technology",
+    "subjectFr": "Sciences et technologie/Autre contenu li\u00e9 aux Sciences et la technologie"
+  },
+  {
+    "subjectCode": "3201",
+    "subjectEn": "Agriculture and food/Crop production",
+    "subjectFr": "Agriculture et alimentation/Production v\u00e9g\u00e9tale"
+  },
+  {
+    "subjectCode": "3202",
+    "subjectEn": "Agriculture and food/Farm business",
+    "subjectFr": "Agriculture et alimentation/Entreprise agricole"
+  },
+  {
+    "subjectCode": "3203",
+    "subjectEn": "Agriculture and food/Farm characteristics",
+    "subjectFr": "Agriculture et alimentation/Caract\u00e9ristiques de la ferme"
+  },
+  {
+    "subjectCode": "3204",
+    "subjectEn": "Agriculture and food/Animal production",
+    "subjectFr": "Agriculture et alimentation/Production animale"
+  },
+  {
+    "subjectCode": "3205",
+    "subjectEn": "Agriculture and food/Food",
+    "subjectFr": "Agriculture et alimentation/Alimentation"
+  },
+  {
+    "subjectCode": "3206",
+    "subjectEn": "Agriculture and food/Land use",
+    "subjectFr": "Agriculture et alimentation/Utilisation des terres"
+  },
+  {
+    "subjectCode": "3207",
+    "subjectEn": "Agriculture and food/Agricultural geography",
+    "subjectFr": "Agriculture et alimentation/G\u00e9ographie agricole"
+  },
+  {
+    "subjectCode": "3208",
+    "subjectEn": "Agriculture and food/Farm population",
+    "subjectFr": "Agriculture et alimentation/Population agricole"
+  },
+  {
+    "subjectCode": "3299",
+    "subjectEn": "Agriculture and food/Other content related to Agriculture and food",
+    "subjectFr": "Agriculture et alimentation/Autre contenu li\u00e9 \u00e0 l'Agriculture et l'alimentation"
+  },
+  {
+    "subjectCode": "3301",
+    "subjectEn": "Business performance and ownership/Business dynamics",
+    "subjectFr": "Rendement des entreprises et propri\u00e9t\u00e9/Dynamique des entreprises"
+  },
+  {
+    "subjectCode": "3302",
+    "subjectEn": "Business performance and ownership/Business ownership",
+    "subjectFr": "Rendement des entreprises et propri\u00e9t\u00e9/Propri\u00e9t\u00e9 des entreprises"
+  },
+  {
+    "subjectCode": "3303",
+    "subjectEn": "Business performance and ownership/Financial statements and performance",
+    "subjectFr": "Rendement des entreprises et propri\u00e9t\u00e9/\u00c9tats financiers et rendement"
+  },
+  {
+    "subjectCode": "3304",
+    "subjectEn": "Business performance and ownership/Governance and sustainability",
+    "subjectFr": "Rendement des entreprises et propri\u00e9t\u00e9/Gouvernance et durabilit\u00e9"
+  },
+  {
+    "subjectCode": "3399",
+    "subjectEn": "Business performance and ownership/Other content related to Business performance and ownership",
+    "subjectFr": "Rendement des entreprises et propri\u00e9t\u00e9/Autre contenu li\u00e9 au Rendement des entreprises et la propri\u00e9t\u00e9"
+  },
+  {
+    "subjectCode": "3401",
+    "subjectEn": "Construction/Construction materials",
+    "subjectFr": "Construction/Mat\u00e9riaux de construction"
+  },
+  {
+    "subjectCode": "3402",
+    "subjectEn": "Construction/Machinery and equipment",
+    "subjectFr": "Construction/Machines et mat\u00e9riel"
+  },
+  {
+    "subjectCode": "3403",
+    "subjectEn": "Construction/Non-residential construction",
+    "subjectFr": "Construction/Construction non r\u00e9sidentielle"
+  },
+  {
+    "subjectCode": "3405",
+    "subjectEn": "Construction/Investment in construction",
+    "subjectFr": "Construction/Investissements en construction"
+  },
+  {
+    "subjectCode": "3406",
+    "subjectEn": "Construction/Property values",
+    "subjectFr": "Construction/Valeurs des propri\u00e9t\u00e9s"
+  },
+  {
+    "subjectCode": "3407",
+    "subjectEn": "Construction/Capital and repair expenditures",
+    "subjectFr": "Construction/D\u00e9penses en immobilisations et r\u00e9parations"
+  },
+  {
+    "subjectCode": "3408",
+    "subjectEn": "Construction/Housing starts",
+    "subjectFr": "Construction/Mises en chantier"
+  },
+  {
+    "subjectCode": "3409",
+    "subjectEn": "Construction/Building permits",
+    "subjectFr": "Construction/Permis de b\u00e2tir"
+  },
+  {
+    "subjectCode": "3410",
+    "subjectEn": "Construction/Infrastructure",
+    "subjectFr": "Construction/Infrastructure"
+  },
+  {
+    "subjectCode": "3499",
+    "subjectEn": "Construction/Other content related to Construction",
+    "subjectFr": "Construction/Autre contenu li\u00e9 \u00e0 la Construction"
+  },
+  {
+    "subjectCode": "3501",
+    "subjectEn": "Crime and justice/Correctional services",
+    "subjectFr": "Crime et justice/Services correctionnels"
+  },
+  {
+    "subjectCode": "3502",
+    "subjectEn": "Crime and justice/Courts",
+    "subjectFr": "Crime et justice/Tribunaux"
+  },
+  {
+    "subjectCode": "3503",
+    "subjectEn": "Crime and justice/Crimes and offences",
+    "subjectFr": "Crime et justice/Crimes et infractions"
+  },
+  {
+    "subjectCode": "3504",
+    "subjectEn": "Crime and justice/Police services",
+    "subjectFr": "Crime et justice/Services de police"
+  },
+  {
+    "subjectCode": "3505",
+    "subjectEn": "Crime and justice/Victimization",
+    "subjectFr": "Crime et justice/Victimisation"
+  },
+  {
+    "subjectCode": "3506",
+    "subjectEn": "Crime and justice/Community safety",
+    "subjectFr": "Crime et justice/S\u00e9curit\u00e9 communautaire"
+  },
+  {
+    "subjectCode": "3599",
+    "subjectEn": "Crime and justice/Other content related to Crime and justice",
+    "subjectFr": "Crime et justice/Autre contenu li\u00e9 au Crime et la justice"
+  },
+  {
+    "subjectCode": "3601",
+    "subjectEn": "Economic accounts/Stock and consumption of fixed capital",
+    "subjectFr": "Comptes \u00e9conomiques/Stock et consommation de capital fixe"
+  },
+  {
+    "subjectCode": "3602",
+    "subjectEn": "Economic accounts/Environment accounts",
+    "subjectFr": "Comptes \u00e9conomiques/Comptes de l'environnement"
+  },
+  {
+    "subjectCode": "3603",
+    "subjectEn": "Economic accounts/Government finance statistics",
+    "subjectFr": "Comptes \u00e9conomiques/Finances publiques"
+  },
+  {
+    "subjectCode": "3604",
+    "subjectEn": "Economic accounts/International accounts",
+    "subjectFr": "Comptes \u00e9conomiques/Comptes internationaux"
+  },
+  {
+    "subjectCode": "3605",
+    "subjectEn": "Economic accounts/National accounts and Gross Domestic Product",
+    "subjectFr": "Comptes \u00e9conomiques/Comptes nationaux et produit int\u00e9rieur brut"
+  },
+  {
+    "subjectCode": "3606",
+    "subjectEn": "Economic accounts/Productivity accounts",
+    "subjectFr": "Comptes \u00e9conomiques/Comptes de la productivit\u00e9"
+  },
+  {
+    "subjectCode": "3607",
+    "subjectEn": "Economic accounts/Purchasing power parities",
+    "subjectFr": "Comptes \u00e9conomiques/Parit\u00e9s de pouvoir d'achat"
+  },
+  {
+    "subjectCode": "3608",
+    "subjectEn": "Economic accounts/Satellite accounts",
+    "subjectFr": "Comptes \u00e9conomiques/Comptes satellites"
+  },
+  {
+    "subjectCode": "3699",
+    "subjectEn": "Economic accounts/Other content related to Economic accounts",
+    "subjectFr": "Comptes \u00e9conomiques/Autre contenu li\u00e9 aux Comptes \u00e9conomiques"
+  },
+  {
+    "subjectCode": "3701",
+    "subjectEn": "Education, training and learning/Adult learning",
+    "subjectFr": "\u00c9ducation, formation et apprentissage/Apprentissage des adultes"
+  },
+  {
+    "subjectCode": "3702",
+    "subjectEn": "Education, training and learning/Financial resources invested in education",
+    "subjectFr": "\u00c9ducation, formation et apprentissage/Ressources financi\u00e8res investies dans l'\u00e9ducation"
+  },
+  {
+    "subjectCode": "3703",
+    "subjectEn": "Education, training and learning/Education indicators",
+    "subjectFr": "\u00c9ducation, formation et apprentissage/Indicateurs de l'\u00e9ducation"
+  },
+  {
+    "subjectCode": "3704",
+    "subjectEn": "Education, training and learning/Educational attainment and qualifications",
+    "subjectFr": "\u00c9ducation, formation et apprentissage/Niveau de scolarit\u00e9 et qualifications"
+  },
+  {
+    "subjectCode": "3707",
+    "subjectEn": "Education, training and learning/Literacy",
+    "subjectFr": "\u00c9ducation, formation et apprentissage/Litt\u00e9ratie"
+  },
+  {
+    "subjectCode": "3708",
+    "subjectEn": "Education, training and learning/Education and labour market outcomes",
+    "subjectFr": "\u00c9ducation, formation et apprentissage/\u00c9ducation et r\u00e9sultats sur le march\u00e9 du travail"
+  },
+  {
+    "subjectCode": "3711",
+    "subjectEn": "Education, training and learning/Apprenticeship and trades",
+    "subjectFr": "\u00c9ducation, formation et apprentissage/Apprentis et m\u00e9tiers"
+  },
+  {
+    "subjectCode": "3712",
+    "subjectEn": "Education, training and learning/Early childhood education",
+    "subjectFr": "\u00c9ducation, formation et apprentissage/\u00c9ducation de la petite enfance"
+  },
+  {
+    "subjectCode": "3714",
+    "subjectEn": "Education, training and learning/Elementary and secondary education",
+    "subjectFr": "\u00c9ducation, formation et apprentissage/\u00c9tudes primaires et secondaires"
+  },
+  {
+    "subjectCode": "3715",
+    "subjectEn": "Education, training and learning/Postsecondary education",
+    "subjectFr": "\u00c9ducation, formation et apprentissage/\u00c9tudes postsecondaires"
+  },
+  {
+    "subjectCode": "3716",
+    "subjectEn": "Education, training and learning/Student pathways",
+    "subjectFr": "\u00c9ducation, formation et apprentissage/Cheminement des \u00e9tudiants"
+  },
+  {
+    "subjectCode": "3799",
+    "subjectEn": "Education, training and learning/Other content related to Education, training and learning",
+    "subjectFr": "\u00c9ducation, formation et apprentissage/Autre contenu li\u00e9 \u00e0 l'\u00c9ducation, la formation et l'apprentissage"
+  },
+  {
+    "subjectCode": "3801",
+    "subjectEn": "Environment/Air and climate",
+    "subjectFr": "Environnement/Air et climat"
+  },
+  {
+    "subjectCode": "3802",
+    "subjectEn": "Environment/Land, oceans, ecosystems and biodiversity",
+    "subjectFr": "Environnement/Terres, oc\u00e9ans, \u00e9cosyst\u00e8mes et biodiversit\u00e9"
+  },
+  {
+    "subjectCode": "3803",
+    "subjectEn": "Environment/Environmental protection, technology and practices",
+    "subjectFr": "Environnement/Protection de l\u2019environnement et technologies et pratiques environnementales"
+  },
+  {
+    "subjectCode": "3805",
+    "subjectEn": "Environment/Environmental-economic accounts",
+    "subjectFr": "Environnement/Comptes \u00e9conomiques et environnementaux"
+  },
+  {
+    "subjectCode": "3806",
+    "subjectEn": "Environment/Water and wastewater",
+    "subjectFr": "Environnement/Eau et eaux us\u00e9es"
+  },
+  {
+    "subjectCode": "3807",
+    "subjectEn": "Environment/Solid waste and hazardous substances",
+    "subjectFr": "Environnement/D\u00e9chets solides et substances dangereuses"
+  },
+  {
+    "subjectCode": "3810",
+    "subjectEn": "Environment/Natural disasters",
+    "subjectFr": "Environnement/D\u00e9sastres naturels"
+  },
+  {
+    "subjectCode": "3899",
+    "subjectEn": "Environment/Other content related to Environment",
+    "subjectFr": "Environnement/Autre contenu li\u00e9 \u00e0 l'Environnement"
+  },
+  {
+    "subjectCode": "3902",
+    "subjectEn": "Families, households and marital status/Families",
+    "subjectFr": "Familles, m\u00e9nages et \u00e9tat matrimonial/Familles"
+  },
+  {
+    "subjectCode": "3903",
+    "subjectEn": "Families, households and marital status/Households",
+    "subjectFr": "Familles, m\u00e9nages et \u00e9tat matrimonial/M\u00e9nages"
+  },
+  {
+    "subjectCode": "3904",
+    "subjectEn": "Families, households and marital status/Family characteristics of children",
+    "subjectFr": "Familles, m\u00e9nages et \u00e9tat matrimonial/Caract\u00e9ristiques familiales des enfants"
+  },
+  {
+    "subjectCode": "3905",
+    "subjectEn": "Families, households and marital status/Family characteristics of individuals",
+    "subjectFr": "Familles, m\u00e9nages et \u00e9tat matrimonial/Caract\u00e9ristiques familiales des individus"
+  },
+  {
+    "subjectCode": "3906",
+    "subjectEn": "Families, households and marital status/Couple relationships",
+    "subjectFr": "Familles, m\u00e9nages et \u00e9tat matrimonial/Relations de couple"
+  },
+  {
+    "subjectCode": "3999",
+    "subjectEn": "Families, households and marital status/Other content related to Families, households and marital status",
+    "subjectFr": "Familles, m\u00e9nages et \u00e9tat matrimonial/Autre contenu li\u00e9 aux Familles, m\u00e9nages et \u00e9tat matrimonial"
+  },
+  {
+    "subjectCode": "4101",
+    "subjectEn": "Indigenous peoples/Demographic characteristics and Indigenous groups",
+    "subjectFr": "Peuples autochtones/Caract\u00e9ristiques d\u00e9mographiques et groupes autochtones"
+  },
+  {
+    "subjectCode": "4102",
+    "subjectEn": "Indigenous peoples/Education, learning and skills",
+    "subjectFr": "Peuples autochtones/\u00c9ducation, apprentissage et comp\u00e9tences"
+  },
+  {
+    "subjectCode": "4103",
+    "subjectEn": "Indigenous peoples/Health and well-being",
+    "subjectFr": "Peuples autochtones/Sant\u00e9 et bien-\u00eatre"
+  },
+  {
+    "subjectCode": "4104",
+    "subjectEn": "Indigenous peoples/Victimization and crime",
+    "subjectFr": "Peuples autochtones/Victimisation et criminalit\u00e9"
+  },
+  {
+    "subjectCode": "4105",
+    "subjectEn": "Indigenous peoples/Language and culture",
+    "subjectFr": "Peuples autochtones/Langues et cultures"
+  },
+  {
+    "subjectCode": "4106",
+    "subjectEn": "Indigenous peoples/Living arrangements and housing",
+    "subjectFr": "Peuples autochtones/Situation des particuliers et logement"
+  },
+  {
+    "subjectCode": "4107",
+    "subjectEn": "Indigenous peoples/Labour and employment",
+    "subjectFr": "Peuples autochtones/Travail et emploi"
+  },
+  {
+    "subjectCode": "4108",
+    "subjectEn": "Indigenous peoples/Income and spending",
+    "subjectFr": "Peuples autochtones/Revenu et d\u00e9penses"
+  },
+  {
+    "subjectCode": "4109",
+    "subjectEn": "Indigenous peoples/Indigenous population profiles",
+    "subjectFr": "Peuples autochtones/Profils de la population autochtone "
+  },
+  {
+    "subjectCode": "4110",
+    "subjectEn": "Indigenous peoples/Indigenous children",
+    "subjectFr": "Peuples autochtones/Enfants autochtones"
+  },
+  {
+    "subjectCode": "4199",
+    "subjectEn": "Indigenous peoples/Other content related to Indigenous peoples",
+    "subjectFr": "Peuples autochtones/Autre contenu li\u00e9 aux Peuples autochtones"
+  },
+  {
+    "subjectCode": "4201",
+    "subjectEn": "Children and youth/Child development and behaviour",
+    "subjectFr": "Enfants et jeunes/D\u00e9veloppement et comportement de l'enfant"
+  },
+  {
+    "subjectCode": "4202",
+    "subjectEn": "Children and youth/Education",
+    "subjectFr": "Enfants et jeunes/\u00c9ducation"
+  },
+  {
+    "subjectCode": "4203",
+    "subjectEn": "Children and youth/Health of children and youth",
+    "subjectFr": "Enfants et jeunes/Sant\u00e9 des enfants et des jeunes "
+  },
+  {
+    "subjectCode": "4204",
+    "subjectEn": "Children and youth/Immigrant children and youth",
+    "subjectFr": "Enfants et jeunes/Enfants et jeunes immigrants"
+  },
+  {
+    "subjectCode": "4205",
+    "subjectEn": "Children and youth/Labour market activities for youth",
+    "subjectFr": "Enfants et jeunes/Activit\u00e9s sur le march\u00e9 du travail pour les jeunes"
+  },
+  {
+    "subjectCode": "4206",
+    "subjectEn": "Children and youth/Low income families",
+    "subjectFr": "Enfants et jeunes/Familles \u00e0 faible revenu"
+  },
+  {
+    "subjectCode": "4209",
+    "subjectEn": "Children and youth/Violence among children and youth",
+    "subjectFr": "Enfants et jeunes/Violence chez les enfants et les jeunes"
+  },
+  {
+    "subjectCode": "4210",
+    "subjectEn": "Children and youth/Child care",
+    "subjectFr": "Enfants et jeunes/Soins aux enfants"
+  },
+  {
+    "subjectCode": "4211",
+    "subjectEn": "Children and youth/Youth crime and justice",
+    "subjectFr": "Enfants et jeunes/Crime et justice chez les jeunes"
+  },
+  {
+    "subjectCode": "4213",
+    "subjectEn": "Children and youth/Children at home",
+    "subjectFr": "Enfants et jeunes/Pr\u00e9sence d'enfants \u00e0 la maison"
+  },
+  {
+    "subjectCode": "4299",
+    "subjectEn": "Children and youth/Other content related to Children and youth",
+    "subjectFr": "Enfants et jeunes/Autre contenu li\u00e9 aux Enfants et les jeunes"
+  },
+  {
+    "subjectCode": "4301",
+    "subjectEn": "Immigration and ethnocultural diversity/Citizenship",
+    "subjectFr": "Immigration et diversit\u00e9 ethnoculturelle/Citoyennet\u00e9"
+  },
+  {
+    "subjectCode": "4303",
+    "subjectEn": "Immigration and ethnocultural diversity/Immigrant generations",
+    "subjectFr": "Immigration et diversit\u00e9 ethnoculturelle/G\u00e9n\u00e9rations d'immigrants"
+  },
+  {
+    "subjectCode": "4305",
+    "subjectEn": "Immigration and ethnocultural diversity/Immigrants and non-permanent residents",
+    "subjectFr": "Immigration et diversit\u00e9 ethnoculturelle/Immigrants et r\u00e9sidents non permanents"
+  },
+  {
+    "subjectCode": "4308",
+    "subjectEn": "Immigration and ethnocultural diversity/Visible minorities",
+    "subjectFr": "Immigration et diversit\u00e9 ethnoculturelle/Minorit\u00e9s visibles"
+  },
+  {
+    "subjectCode": "4309",
+    "subjectEn": "Immigration and ethnocultural diversity/Ethnicity",
+    "subjectFr": "Immigration et diversit\u00e9 ethnoculturelle/Origine ethnique"
+  },
+  {
+    "subjectCode": "4310",
+    "subjectEn": "Immigration and ethnocultural diversity/Religious affiliation",
+    "subjectFr": "Immigration et diversit\u00e9 ethnoculturelle/Appartenance religieuse"
+  },
+  {
+    "subjectCode": "4399",
+    "subjectEn": "Immigration and ethnocultural diversity/Other content related to Immigration and ethnocultural diversity",
+    "subjectFr": "Immigration et diversit\u00e9 ethnoculturelle/Autre contenu reli\u00e9 \u00e0 l'Immigration et la diversit\u00e9 ethnoculturelle"
+  },
+  {
+    "subjectCode": "4401",
+    "subjectEn": "Older adults and population aging/Health and disability among older adults",
+    "subjectFr": "Adultes \u00e2g\u00e9s et vieillissement d\u00e9mographique/Sant\u00e9 et incapacit\u00e9 chez les adultes \u00e2g\u00e9s"
+  },
+  {
+    "subjectCode": "4402",
+    "subjectEn": "Older adults and population aging/Income, pensions and wealth",
+    "subjectFr": "Adultes \u00e2g\u00e9s et vieillissement d\u00e9mographique/Revenu, pension et patrimoine"
+  },
+  {
+    "subjectCode": "4403",
+    "subjectEn": "Older adults and population aging/Work and retirement",
+    "subjectFr": "Adultes \u00e2g\u00e9s et vieillissement d\u00e9mographique/Travail et retraite"
+  },
+  {
+    "subjectCode": "4404",
+    "subjectEn": "Older adults and population aging/Care and social support",
+    "subjectFr": "Adultes \u00e2g\u00e9s et vieillissement d\u00e9mographique/Soins et soutien social"
+  },
+  {
+    "subjectCode": "4405",
+    "subjectEn": "Older adults and population aging/Elder abuse and victimization",
+    "subjectFr": "Adultes \u00e2g\u00e9s et vieillissement d\u00e9mographique/Victimisation et abus envers les adultes \u00e2g\u00e9s"
+  },
+  {
+    "subjectCode": "4406",
+    "subjectEn": "Older adults and population aging/Housing and family and household characteristics of older adults",
+    "subjectFr": "Adultes \u00e2g\u00e9s et vieillissement d\u00e9mographique/Logement et caract\u00e9ristiques familiales et du m\u00e9nage des adultes \u00e2g\u00e9s"
+  },
+  {
+    "subjectCode": "4499",
+    "subjectEn": "Older adults and population aging/Other content related to Older adults and population aging",
+    "subjectFr": "Adultes \u00e2g\u00e9s et vieillissement d\u00e9mographique/Autre contenu li\u00e9 aux Adultes \u00e2g\u00e9s et le vieillissement d\u00e9mographique"
+  },
+  {
+    "subjectCode": "4501",
+    "subjectEn": "Society and community/Religion",
+    "subjectFr": "Soci\u00e9t\u00e9 et communaut\u00e9/Religion"
+  },
+  {
+    "subjectCode": "4502",
+    "subjectEn": "Society and community/Rural Canada",
+    "subjectFr": "Soci\u00e9t\u00e9 et communaut\u00e9/Canada rural"
+  },
+  {
+    "subjectCode": "4503",
+    "subjectEn": "Society and community/Civic participation",
+    "subjectFr": "Soci\u00e9t\u00e9 et communaut\u00e9/Participation communautaire"
+  },
+  {
+    "subjectCode": "4504",
+    "subjectEn": "Society and community/Time use",
+    "subjectFr": "Soci\u00e9t\u00e9 et communaut\u00e9/Emploi du temps"
+  },
+  {
+    "subjectCode": "4505",
+    "subjectEn": "Society and community/Volunteering and donating",
+    "subjectFr": "Soci\u00e9t\u00e9 et communaut\u00e9/Don et b\u00e9n\u00e9volat"
+  },
+  {
+    "subjectCode": "4506",
+    "subjectEn": "Society and community/Sex, gender and sexual orientation",
+    "subjectFr": "Soci\u00e9t\u00e9 et communaut\u00e9/Sexe, genre et orientation sexuelle"
+  },
+  {
+    "subjectCode": "4507",
+    "subjectEn": "Society and community/Equity and inclusion",
+    "subjectFr": "Soci\u00e9t\u00e9 et communaut\u00e9/\u00c9galit\u00e9 et inclusion"
+  },
+  {
+    "subjectCode": "4508",
+    "subjectEn": "Society and community/Social and personal networks",
+    "subjectFr": "Soci\u00e9t\u00e9 et communaut\u00e9/R\u00e9seaux sociaux et personnels"
+  },
+  {
+    "subjectCode": "4509",
+    "subjectEn": "Society and community/Cannabis",
+    "subjectFr": "Soci\u00e9t\u00e9 et communaut\u00e9/Cannabis"
+  },
+  {
+    "subjectCode": "4510",
+    "subjectEn": "Society and community/Coronavirus",
+    "subjectFr": "Soci\u00e9t\u00e9 et communaut\u00e9/Coronavirus"
+  },
+  {
+    "subjectCode": "4511",
+    "subjectEn": "Society and community/Canadian military experience",
+    "subjectFr": "Soci\u00e9t\u00e9 et communaut\u00e9/Exp\u00e9rience militaire Canadienne"
+  },
+  {
+    "subjectCode": "4599",
+    "subjectEn": "Society and community/Other content related to Society and community",
+    "subjectFr": "Soci\u00e9t\u00e9 et communaut\u00e9/Autre contenu li\u00e9 \u00e0 la Soci\u00e9t\u00e9 et la communaut\u00e9"
+  },
+  {
+    "subjectCode": "4601",
+    "subjectEn": "Housing/Dwelling characteristics",
+    "subjectFr": "Logement/Caract\u00e9ristiques du logement"
+  },
+  {
+    "subjectCode": "4602",
+    "subjectEn": "Housing/Housing costs and affordability",
+    "subjectFr": "Logement/Co\u00fbt de l'habitation et abordabilit\u00e9 du logement"
+  },
+  {
+    "subjectCode": "4603",
+    "subjectEn": "Housing/Housing price indexes",
+    "subjectFr": "Logement/Indices des prix des logements"
+  },
+  {
+    "subjectCode": "4604",
+    "subjectEn": "Housing/Housing and living arrangements",
+    "subjectFr": "Logement/Logement et situation dans le m\u00e9nage"
+  },
+  {
+    "subjectCode": "4605",
+    "subjectEn": "Housing/Residential construction and investment",
+    "subjectFr": "Logement/Construction r\u00e9sidentielle et investissements"
+  },
+  {
+    "subjectCode": "4606",
+    "subjectEn": "Housing/Vacancy rates",
+    "subjectFr": "Logement/Taux d'inoccupation"
+  },
+  {
+    "subjectCode": "4699",
+    "subjectEn": "Housing/Other content related to Housing",
+    "subjectFr": "Logement/Autre contenu li\u00e9 au Logement"
+  },
+  {
+    "subjectCode": "110101",
+    "subjectEn": "Income, pensions, spending and wealth/Household and family assets, debts and wealth/Household and family debt",
+    "subjectFr": "Revenu, pensions, d\u00e9penses et richesse/Actif, endettement et richesse des m\u00e9nages et des familles/Endettement des m\u00e9nages et des familles"
+  },
+  {
+    "subjectCode": "110102",
+    "subjectEn": "Income, pensions, spending and wealth/Household and family assets, debts and wealth/Net worth",
+    "subjectFr": "Revenu, pensions, d\u00e9penses et richesse/Actif, endettement et richesse des m\u00e9nages et des familles/Valeur nette"
+  },
+  {
+    "subjectCode": "110199",
+    "subjectEn": "Income, pensions, spending and wealth/Household and family assets, debts and wealth/Other content related to Household and family assets, debts and wealth",
+    "subjectFr": "Revenu, pensions, d\u00e9penses et richesse/Actif, endettement et richesse des m\u00e9nages et des familles/Autre contenu li\u00e9 \u00e0 l'Actif, l'endettement et la richesse des m\u00e9nages et des familles"
+  },
+  {
+    "subjectCode": "110201",
+    "subjectEn": "Income, pensions, spending and wealth/Household spending and savings/Household spending",
+    "subjectFr": "Revenu, pensions, d\u00e9penses et richesse/D\u00e9penses et \u00e9pargne des m\u00e9nages/D\u00e9penses des m\u00e9nages"
+  },
+  {
+    "subjectCode": "110202",
+    "subjectEn": "Income, pensions, spending and wealth/Household spending and savings/Shelter costs",
+    "subjectFr": "Revenu, pensions, d\u00e9penses et richesse/D\u00e9penses et \u00e9pargne des m\u00e9nages/Co\u00fbts d'habitation"
+  },
+  {
+    "subjectCode": "110203",
+    "subjectEn": "Income, pensions, spending and wealth/Household spending and savings/Savings",
+    "subjectFr": "Revenu, pensions, d\u00e9penses et richesse/D\u00e9penses et \u00e9pargne des m\u00e9nages/\u00c9pargne"
+  },
+  {
+    "subjectCode": "110299",
+    "subjectEn": "Income, pensions, spending and wealth/Household spending and savings/Other content related to Household spending and savings",
+    "subjectFr": "Revenu, pensions, d\u00e9penses et richesse/D\u00e9penses et \u00e9pargne des m\u00e9nages/Autre contenu li\u00e9 aux D\u00e9penses et l'\u00e9pargne des m\u00e9nages"
+  },
+  {
+    "subjectCode": "110301",
+    "subjectEn": "Income, pensions, spending and wealth/Household, family and personal income/Family income",
+    "subjectFr": "Revenu, pensions, d\u00e9penses et richesse/Revenu des m\u00e9nages, des familles et des particuliers/Revenu des familles"
+  },
+  {
+    "subjectCode": "110302",
+    "subjectEn": "Income, pensions, spending and wealth/Household, family and personal income/Household income",
+    "subjectFr": "Revenu, pensions, d\u00e9penses et richesse/Revenu des m\u00e9nages, des familles et des particuliers/Revenu des m\u00e9nages"
+  },
+  {
+    "subjectCode": "110303",
+    "subjectEn": "Income, pensions, spending and wealth/Household, family and personal income/Personal income",
+    "subjectFr": "Revenu, pensions, d\u00e9penses et richesse/Revenu des m\u00e9nages, des familles et des particuliers/Revenu des particuliers"
+  },
+  {
+    "subjectCode": "110304",
+    "subjectEn": "Income, pensions, spending and wealth/Household, family and personal income/Sources of income",
+    "subjectFr": "Revenu, pensions, d\u00e9penses et richesse/Revenu des m\u00e9nages, des familles et des particuliers/Sources de revenu"
+  },
+  {
+    "subjectCode": "110399",
+    "subjectEn": "Income, pensions, spending and wealth/Household, family and personal income/Other content related to Household, family and personal income",
+    "subjectFr": "Revenu, pensions, d\u00e9penses et richesse/Revenu des m\u00e9nages, des familles et des particuliers/Autre contenu li\u00e9 au Revenu des m\u00e9nages, des familles et des particuliers"
+  },
+  {
+    "subjectCode": "110401",
+    "subjectEn": "Income, pensions, spending and wealth/Low income and inequality/Income inequality",
+    "subjectFr": "Revenu, pensions, d\u00e9penses et richesse/Faible revenu et in\u00e9galit\u00e9/In\u00e9galit\u00e9"
+  },
+  {
+    "subjectCode": "110402",
+    "subjectEn": "Income, pensions, spending and wealth/Low income and inequality/Low income",
+    "subjectFr": "Revenu, pensions, d\u00e9penses et richesse/Faible revenu et in\u00e9galit\u00e9/Faible revenu"
+  },
+  {
+    "subjectCode": "110499",
+    "subjectEn": "Income, pensions, spending and wealth/Low income and inequality/Other content related to Low income and inequality",
+    "subjectFr": "Revenu, pensions, d\u00e9penses et richesse/Faible revenu et in\u00e9galit\u00e9/Autre contenu li\u00e9 au Faible revenu et l'in\u00e9galit\u00e9"
+  },
+  {
+    "subjectCode": "110501",
+    "subjectEn": "Income, pensions, spending and wealth/Pensions and retirement income programs/Pension plans and funds",
+    "subjectFr": "Revenu, pensions, d\u00e9penses et richesse/Pensions et programmes de revenu de retraite/R\u00e9gimes et fonds de pension"
+  },
+  {
+    "subjectCode": "110502",
+    "subjectEn": "Income, pensions, spending and wealth/Pensions and retirement income programs/Registered Retirement Savings Plan (RRSP)",
+    "subjectFr": "Revenu, pensions, d\u00e9penses et richesse/Pensions et programmes de revenu de retraite/R\u00e9gime enregistr\u00e9 d'\u00e9pargne-retraite (REER)"
+  },
+  {
+    "subjectCode": "110503",
+    "subjectEn": "Income, pensions, spending and wealth/Pensions and retirement income programs/Retirement planning",
+    "subjectFr": "Revenu, pensions, d\u00e9penses et richesse/Pensions et programmes de revenu de retraite/Planification de la retraite"
+  },
+  {
+    "subjectCode": "110599",
+    "subjectEn": "Income, pensions, spending and wealth/Pensions and retirement income programs/Other content related to Pensions and retirement income programs",
+    "subjectFr": "Revenu, pensions, d\u00e9penses et richesse/Pensions et programmes de revenu de retraite/Autre contenu li\u00e9 aux Pensions et programmes de revenu de retraite"
+  },
+  {
+    "subjectCode": "110601",
+    "subjectEn": "Income, pensions, spending and wealth/Personal and household taxation/Income taxes",
+    "subjectFr": "Revenu, pensions, d\u00e9penses et richesse/Imposition des particuliers et des m\u00e9nages/Imp\u00f4t sur le revenu"
+  },
+  {
+    "subjectCode": "110602",
+    "subjectEn": "Income, pensions, spending and wealth/Personal and household taxation/Property taxes",
+    "subjectFr": "Revenu, pensions, d\u00e9penses et richesse/Imposition des particuliers et des m\u00e9nages/Imp\u00f4t foncier"
+  },
+  {
+    "subjectCode": "110699",
+    "subjectEn": "Income, pensions, spending and wealth/Personal and household taxation/Other content related to Personal and household taxation",
+    "subjectFr": "Revenu, pensions, d\u00e9penses et richesse/Imposition des particuliers et des m\u00e9nages/Autre contenu li\u00e9 \u00e0 l'Imposition des particuliers et des m\u00e9nages"
+  },
+  {
+    "subjectCode": "130201",
+    "subjectEn": "Health/Diseases and physical health conditions/Arthritis",
+    "subjectFr": "Sant\u00e9/Maladies et \u00e9tat de sant\u00e9 physique/Arthrite"
+  },
+  {
+    "subjectCode": "130203",
+    "subjectEn": "Health/Diseases and physical health conditions/Cancer",
+    "subjectFr": "Sant\u00e9/Maladies et \u00e9tat de sant\u00e9 physique/Cancer"
+  },
+  {
+    "subjectCode": "130204",
+    "subjectEn": "Health/Diseases and physical health conditions/Cardiovascular diseases",
+    "subjectFr": "Sant\u00e9/Maladies et \u00e9tat de sant\u00e9 physique/Maladies cardiovasculaires"
+  },
+  {
+    "subjectCode": "130205",
+    "subjectEn": "Health/Diseases and physical health conditions/Diabetes",
+    "subjectFr": "Sant\u00e9/Maladies et \u00e9tat de sant\u00e9 physique/Diab\u00e8te"
+  },
+  {
+    "subjectCode": "130206",
+    "subjectEn": "Health/Diseases and physical health conditions/Blood pressure",
+    "subjectFr": "Sant\u00e9/Maladies et \u00e9tat de sant\u00e9 physique/Tension art\u00e9rielle"
+  },
+  {
+    "subjectCode": "130207",
+    "subjectEn": "Health/Diseases and physical health conditions/Influenza",
+    "subjectFr": "Sant\u00e9/Maladies et \u00e9tat de sant\u00e9 physique/Grippe"
+  },
+  {
+    "subjectCode": "130208",
+    "subjectEn": "Health/Diseases and physical health conditions/Injuries",
+    "subjectFr": "Sant\u00e9/Maladies et \u00e9tat de sant\u00e9 physique/Blessures"
+  },
+  {
+    "subjectCode": "130209",
+    "subjectEn": "Health/Diseases and physical health conditions/Body weight and obesity",
+    "subjectFr": "Sant\u00e9/Maladies et \u00e9tat de sant\u00e9 physique/Poids corporel et l'ob\u00e9sit\u00e9"
+  },
+  {
+    "subjectCode": "130210",
+    "subjectEn": "Health/Diseases and physical health conditions/Pain and discomfort",
+    "subjectFr": "Sant\u00e9/Maladies et \u00e9tat de sant\u00e9 physique/Douleurs et malaises"
+  },
+  {
+    "subjectCode": "130211",
+    "subjectEn": "Health/Diseases and physical health conditions/Neurological conditions",
+    "subjectFr": "Sant\u00e9/Maladies et \u00e9tat de sant\u00e9 physique/Probl\u00e8mes neurologiques"
+  },
+  {
+    "subjectCode": "130212",
+    "subjectEn": "Health/Diseases and physical health conditions/Sexually transmitted diseases",
+    "subjectFr": "Sant\u00e9/Maladies et \u00e9tat de sant\u00e9 physique/Maladies transmissibles sexuellement"
+  },
+  {
+    "subjectCode": "130218",
+    "subjectEn": "Health/Diseases and physical health conditions/Asthma",
+    "subjectFr": "Sant\u00e9/Maladies et \u00e9tat de sant\u00e9 physique/Asthme"
+  },
+  {
+    "subjectCode": "130219",
+    "subjectEn": "Health/Diseases and physical health conditions/Chronic obstructive pulmonary disease",
+    "subjectFr": "Sant\u00e9/Maladies et \u00e9tat de sant\u00e9 physique/Maladie pulmonaire obstructive chronique"
+  },
+  {
+    "subjectCode": "130221",
+    "subjectEn": "Health/Diseases and physical health conditions/Chronic conditions",
+    "subjectFr": "Sant\u00e9/Maladies et \u00e9tat de sant\u00e9 physique/Maladies chroniques"
+  },
+  {
+    "subjectCode": "130299",
+    "subjectEn": "Health/Diseases and physical health conditions/Other content related to Diseases and physical health conditions",
+    "subjectFr": "Sant\u00e9/Maladies et \u00e9tat de sant\u00e9 physique/Autre contenu li\u00e9 aux Maladies et \u00e9tat de sant\u00e9 physique"
+  },
+  {
+    "subjectCode": "130301",
+    "subjectEn": "Health/Environmental factors/Exposure to chemicals",
+    "subjectFr": "Sant\u00e9/Facteurs environnementaux/Exposition aux produits chimiques"
+  },
+  {
+    "subjectCode": "130302",
+    "subjectEn": "Health/Environmental factors/Second-hand smoke",
+    "subjectFr": "Sant\u00e9/Facteurs environnementaux/Fum\u00e9e secondaire"
+  },
+  {
+    "subjectCode": "130303",
+    "subjectEn": "Health/Environmental factors/Heavy metals",
+    "subjectFr": "Sant\u00e9/Facteurs environnementaux/M\u00e9taux lourds"
+  },
+  {
+    "subjectCode": "130399",
+    "subjectEn": "Health/Environmental factors/Other content related to Environmental factors",
+    "subjectFr": "Sant\u00e9/Facteurs environnementaux/Autre contenu li\u00e9 aux Facteurs environnementaux"
+  },
+  {
+    "subjectCode": "130401",
+    "subjectEn": "Health/Health care services/Access to health care",
+    "subjectFr": "Sant\u00e9/Services de soins de sant\u00e9/Acc\u00e8s aux soins de sant\u00e9"
+  },
+  {
+    "subjectCode": "130402",
+    "subjectEn": "Health/Health care services/Hospitalization",
+    "subjectFr": "Sant\u00e9/Services de soins de sant\u00e9/Hospitalisation"
+  },
+  {
+    "subjectCode": "130403",
+    "subjectEn": "Health/Health care services/Patient satisfaction",
+    "subjectFr": "Sant\u00e9/Services de soins de sant\u00e9/Satisfaction des patients"
+  },
+  {
+    "subjectCode": "130404",
+    "subjectEn": "Health/Health care services/Health care providers",
+    "subjectFr": "Sant\u00e9/Services de soins de sant\u00e9/Fournisseurs de soins de sant\u00e9"
+  },
+  {
+    "subjectCode": "130405",
+    "subjectEn": "Health/Health care services/Residential care",
+    "subjectFr": "Sant\u00e9/Services de soins de sant\u00e9/Soins pour b\u00e9n\u00e9ficiaires internes"
+  },
+  {
+    "subjectCode": "130406",
+    "subjectEn": "Health/Health care services/Home care and caregivers",
+    "subjectFr": "Sant\u00e9/Services de soins de sant\u00e9/Soins \u00e0 domicile et aidants"
+  },
+  {
+    "subjectCode": "130499",
+    "subjectEn": "Health/Health care services/Other content related to Health care services",
+    "subjectFr": "Sant\u00e9/Services de soins de sant\u00e9/Autre contenu li\u00e9 aux Services de soins de sant\u00e9"
+  },
+  {
+    "subjectCode": "130501",
+    "subjectEn": "Health/Life expectancy and deaths/Causes of death",
+    "subjectFr": "Sant\u00e9/Esp\u00e9rance de vie et d\u00e9c\u00e8s/Causes de d\u00e9c\u00e8s"
+  },
+  {
+    "subjectCode": "130502",
+    "subjectEn": "Health/Life expectancy and deaths/Infant mortality and fetal deaths (stillbirths)",
+    "subjectFr": "Sant\u00e9/Esp\u00e9rance de vie et d\u00e9c\u00e8s/Mortalit\u00e9 infantile et morts foetales (mortinaissances)"
+  },
+  {
+    "subjectCode": "130503",
+    "subjectEn": "Health/Life expectancy and deaths/Life expectancy",
+    "subjectFr": "Sant\u00e9/Esp\u00e9rance de vie et d\u00e9c\u00e8s/Esp\u00e9rance de vie"
+  },
+  {
+    "subjectCode": "130504",
+    "subjectEn": "Health/Life expectancy and deaths/Mortality and death rates",
+    "subjectFr": "Sant\u00e9/Esp\u00e9rance de vie et d\u00e9c\u00e8s/Mortalit\u00e9 et taux de mortalit\u00e9"
+  },
+  {
+    "subjectCode": "130506",
+    "subjectEn": "Health/Life expectancy and deaths/Survival rates",
+    "subjectFr": "Sant\u00e9/Esp\u00e9rance de vie et d\u00e9c\u00e8s/Taux de survie"
+  },
+  {
+    "subjectCode": "130599",
+    "subjectEn": "Health/Life expectancy and deaths/Other content related to Life expectancy and deaths",
+    "subjectFr": "Sant\u00e9/Esp\u00e9rance de vie et d\u00e9c\u00e8s/Autre contenu li\u00e9 \u00e0 l'Esp\u00e9rance de vie et les d\u00e9c\u00e8s"
+  },
+  {
+    "subjectCode": "130601",
+    "subjectEn": "Health/Lifestyle and social conditions/Alcohol and drug use",
+    "subjectFr": "Sant\u00e9/Mode de vie et conditions sociales/Consommation d'alcool et de drogues"
+  },
+  {
+    "subjectCode": "130602",
+    "subjectEn": "Health/Lifestyle and social conditions/Nutrition",
+    "subjectFr": "Sant\u00e9/Mode de vie et conditions sociales/Nutrition"
+  },
+  {
+    "subjectCode": "130603",
+    "subjectEn": "Health/Lifestyle and social conditions/Physical activity",
+    "subjectFr": "Sant\u00e9/Mode de vie et conditions sociales/Activit\u00e9 physique"
+  },
+  {
+    "subjectCode": "130604",
+    "subjectEn": "Health/Lifestyle and social conditions/Smoking",
+    "subjectFr": "Sant\u00e9/Mode de vie et conditions sociales/Tabagisme"
+  },
+  {
+    "subjectCode": "130605",
+    "subjectEn": "Health/Lifestyle and social conditions/Prescription drug use",
+    "subjectFr": "Sant\u00e9/Mode de vie et conditions sociales/Consommation de m\u00e9dicaments sur ordonnance"
+  },
+  {
+    "subjectCode": "130606",
+    "subjectEn": "Health/Lifestyle and social conditions/Sense of community belonging",
+    "subjectFr": "Sant\u00e9/Mode de vie et conditions sociales/Sentiment d'appartenance \u00e0 la communaut\u00e9 locale"
+  },
+  {
+    "subjectCode": "130607",
+    "subjectEn": "Health/Lifestyle and social conditions/Food insecurity",
+    "subjectFr": "Sant\u00e9/Mode de vie et conditions sociales/Ins\u00e9curit\u00e9 alimentaire"
+  },
+  {
+    "subjectCode": "130608",
+    "subjectEn": "Health/Lifestyle and social conditions/Socioeconomic conditions and health",
+    "subjectFr": "Sant\u00e9/Mode de vie et conditions sociales/Conditions socio\u00e9conomiques et la sant\u00e9"
+  },
+  {
+    "subjectCode": "130699",
+    "subjectEn": "Health/Lifestyle and social conditions/Other content related to Lifestyle and social conditions",
+    "subjectFr": "Sant\u00e9/Mode de vie et conditions sociales/Autre contenu li\u00e9 \u00e0 la Mode de vie et les conditions sociales"
+  },
+  {
+    "subjectCode": "130701",
+    "subjectEn": "Health/Mental health and well-being/Depression",
+    "subjectFr": "Sant\u00e9/Sant\u00e9 mentale et bien-\u00eatre/D\u00e9pression"
+  },
+  {
+    "subjectCode": "130702",
+    "subjectEn": "Health/Mental health and well-being/Emotional disorders",
+    "subjectFr": "Sant\u00e9/Sant\u00e9 mentale et bien-\u00eatre/Troubles affectifs"
+  },
+  {
+    "subjectCode": "130703",
+    "subjectEn": "Health/Mental health and well-being/Mental illness",
+    "subjectFr": "Sant\u00e9/Sant\u00e9 mentale et bien-\u00eatre/Maladies mentales"
+  },
+  {
+    "subjectCode": "130704",
+    "subjectEn": "Health/Mental health and well-being/Stress",
+    "subjectFr": "Sant\u00e9/Sant\u00e9 mentale et bien-\u00eatre/Stress"
+  },
+  {
+    "subjectCode": "130706",
+    "subjectEn": "Health/Mental health and well-being/Mental health care",
+    "subjectFr": "Sant\u00e9/Sant\u00e9 mentale et bien-\u00eatre/Soins de sant\u00e9 mentale"
+  },
+  {
+    "subjectCode": "130707",
+    "subjectEn": "Health/Mental health and well-being/Perceived or self-rated health",
+    "subjectFr": "Sant\u00e9/Sant\u00e9 mentale et bien-\u00eatre/Sant\u00e9 per\u00e7ue ou auto-\u00e9valuation de la sant\u00e9"
+  },
+  {
+    "subjectCode": "130708",
+    "subjectEn": "Health/Mental health and well-being/Suicide",
+    "subjectFr": "Sant\u00e9/Sant\u00e9 mentale et bien-\u00eatre/Suicide"
+  },
+  {
+    "subjectCode": "130799",
+    "subjectEn": "Health/Mental health and well-being/Other content related to Mental health and well-being",
+    "subjectFr": "Sant\u00e9/Sant\u00e9 mentale et bien-\u00eatre/Autre contenu li\u00e9 \u00e0 la Sant\u00e9 mentale et le bien-\u00eatre"
+  },
+  {
+    "subjectCode": "130801",
+    "subjectEn": "Health/Pregnancy and births/Birth weight",
+    "subjectFr": "Sant\u00e9/Grossesses et naissances/Poids \u00e0 la naissance"
+  },
+  {
+    "subjectCode": "130802",
+    "subjectEn": "Health/Pregnancy and births/Births and birth rates",
+    "subjectFr": "Sant\u00e9/Grossesses et naissances/Naissances et taux de f\u00e9condit\u00e9"
+  },
+  {
+    "subjectCode": "130803",
+    "subjectEn": "Health/Pregnancy and births/Breastfeeding",
+    "subjectFr": "Sant\u00e9/Grossesses et naissances/Allaitement maternel"
+  },
+  {
+    "subjectCode": "130804",
+    "subjectEn": "Health/Pregnancy and births/Pregnancy",
+    "subjectFr": "Sant\u00e9/Grossesses et naissances/Grossesse"
+  },
+  {
+    "subjectCode": "130899",
+    "subjectEn": "Health/Pregnancy and births/Other content related to Pregnancy and births",
+    "subjectFr": "Sant\u00e9/Grossesses et naissances/Autre contenu li\u00e9 aux Grossesses et les naissances"
+  },
+  {
+    "subjectCode": "140101",
+    "subjectEn": "Labour/Earnings, wages and non-wage benefits/Earnings and wages by occupation, industry or sector",
+    "subjectFr": "Travail/Gains, salaires et avantages sociaux/Gains et salaires selon la profession, l'industrie ou le secteur"
+  },
+  {
+    "subjectCode": "140102",
+    "subjectEn": "Labour/Earnings, wages and non-wage benefits/Earnings and wages by region or location",
+    "subjectFr": "Travail/Gains, salaires et avantages sociaux/Gains et salaires selon la r\u00e9gion ou le lieu"
+  },
+  {
+    "subjectCode": "140103",
+    "subjectEn": "Labour/Earnings, wages and non-wage benefits/Earnings by age or sex",
+    "subjectFr": "Travail/Gains, salaires et avantages sociaux/Gains selon l'\u00e2ge ou le sexe"
+  },
+  {
+    "subjectCode": "140104",
+    "subjectEn": "Labour/Earnings, wages and non-wage benefits/Earnings of immigrants",
+    "subjectFr": "Travail/Gains, salaires et avantages sociaux/Gains des immigrants"
+  },
+  {
+    "subjectCode": "140105",
+    "subjectEn": "Labour/Earnings, wages and non-wage benefits/Education, skills and earnings",
+    "subjectFr": "Travail/Gains, salaires et avantages sociaux/\u00c9ducation, comp\u00e9tences et gains"
+  },
+  {
+    "subjectCode": "140106",
+    "subjectEn": "Labour/Earnings, wages and non-wage benefits/Minimum wage or low-paid work",
+    "subjectFr": "Travail/Gains, salaires et avantages sociaux/Salaire minimum ou travail peu r\u00e9mun\u00e9r\u00e9"
+  },
+  {
+    "subjectCode": "140107",
+    "subjectEn": "Labour/Earnings, wages and non-wage benefits/Non-wage benefits",
+    "subjectFr": "Travail/Gains, salaires et avantages sociaux/Avantages sociaux"
+  },
+  {
+    "subjectCode": "140108",
+    "subjectEn": "Labour/Earnings, wages and non-wage benefits/Parents, families and earnings",
+    "subjectFr": "Travail/Gains, salaires et avantages sociaux/Parents, familles et gains"
+  },
+  {
+    "subjectCode": "140199",
+    "subjectEn": "Labour/Earnings, wages and non-wage benefits/Other content related to Earnings, wages and non-wage benefits",
+    "subjectFr": "Travail/Gains, salaires et avantages sociaux/Autre contenu li\u00e9 aux Gains, les salaires et les avantages sociaux"
+  },
+  {
+    "subjectCode": "140201",
+    "subjectEn": "Labour/Employment and unemployment/Employment by occupation, industry or sector",
+    "subjectFr": "Travail/Emploi et ch\u00f4mage/Emploi selon la profession, l'industrie ou le secteur"
+  },
+  {
+    "subjectCode": "140202",
+    "subjectEn": "Labour/Employment and unemployment/Education and the labour market",
+    "subjectFr": "Travail/Emploi et ch\u00f4mage/\u00c9ducation et march\u00e9 du travail"
+  },
+  {
+    "subjectCode": "140203",
+    "subjectEn": "Labour/Employment and unemployment/Regional labour markets",
+    "subjectFr": "Travail/Emploi et ch\u00f4mage/March\u00e9s du travail r\u00e9gionaux"
+  },
+  {
+    "subjectCode": "140204",
+    "subjectEn": "Labour/Employment and unemployment/Immigrants in the labour market",
+    "subjectFr": "Travail/Emploi et ch\u00f4mage/Immigrants sur le march\u00e9 du travail"
+  },
+  {
+    "subjectCode": "140205",
+    "subjectEn": "Labour/Employment and unemployment/Labour force characteristics",
+    "subjectFr": "Travail/Emploi et ch\u00f4mage/Caract\u00e9ristiques de la population active"
+  },
+  {
+    "subjectCode": "140207",
+    "subjectEn": "Labour/Employment and unemployment/Unemployment",
+    "subjectFr": "Travail/Emploi et ch\u00f4mage/Ch\u00f4mage"
+  },
+  {
+    "subjectCode": "140208",
+    "subjectEn": "Labour/Employment and unemployment/Women in the labour market",
+    "subjectFr": "Travail/Emploi et ch\u00f4mage/Femmes sur le march\u00e9 du travail"
+  },
+  {
+    "subjectCode": "140209",
+    "subjectEn": "Labour/Employment and unemployment/Youth and young adults in the labour market",
+    "subjectFr": "Travail/Emploi et ch\u00f4mage/Jeunes et jeunes adultes sur le march\u00e9 du travail"
+  },
+  {
+    "subjectCode": "140210",
+    "subjectEn": "Labour/Employment and unemployment/Indigenous peoples and the labour market",
+    "subjectFr": "Travail/Emploi et ch\u00f4mage/Peuples autochtones et march\u00e9 du travail"
+  },
+  {
+    "subjectCode": "140211",
+    "subjectEn": "Labour/Employment and unemployment/Labour market overview",
+    "subjectFr": "Travail/Emploi et ch\u00f4mage/Aper\u00e7u du march\u00e9 du travail"
+  },
+  {
+    "subjectCode": "140212",
+    "subjectEn": "Labour/Employment and unemployment/Persons with disabilities in the labour market",
+    "subjectFr": "Travail/Emploi et ch\u00f4mage/Personnes ayant une incapacit\u00e9 sur le march\u00e9 du travail"
+  },
+  {
+    "subjectCode": "140299",
+    "subjectEn": "Labour/Employment and unemployment/Other content related to Employment and unemployment",
+    "subjectFr": "Travail/Emploi et ch\u00f4mage/Autre contenu li\u00e9 \u00e0 l'Emploi et le ch\u00f4mage"
+  },
+  {
+    "subjectCode": "140401",
+    "subjectEn": "Labour/Hours of work and work arrangements/Hours of work",
+    "subjectFr": "Travail/Heures de travail et conditions de travail/Heures de travail"
+  },
+  {
+    "subjectCode": "140402",
+    "subjectEn": "Labour/Hours of work and work arrangements/Part-time and non-permanent employment",
+    "subjectFr": "Travail/Heures de travail et conditions de travail/Emplois \u00e0 temps partiel et non permanents"
+  },
+  {
+    "subjectCode": "140403",
+    "subjectEn": "Labour/Hours of work and work arrangements/Self-employment",
+    "subjectFr": "Travail/Heures de travail et conditions de travail/Travail autonome"
+  },
+  {
+    "subjectCode": "140404",
+    "subjectEn": "Labour/Hours of work and work arrangements/Working from home",
+    "subjectFr": "Travail/Heures de travail et conditions de travail/Travail \u00e0 domicile"
+  },
+  {
+    "subjectCode": "140499",
+    "subjectEn": "Labour/Hours of work and work arrangements/Other content related to Hours of work and work arrangements",
+    "subjectFr": "Travail/Heures de travail et conditions de travail/Autre contenu li\u00e9\u00a0aux Heures de travail et les conditions de travail"
+  },
+  {
+    "subjectCode": "140701",
+    "subjectEn": "Labour/Commuting to work/Commuting flows",
+    "subjectFr": "Travail/Navettage/Flux de navettage"
+  },
+  {
+    "subjectCode": "140702",
+    "subjectEn": "Labour/Commuting to work/Commuting to work characteristics",
+    "subjectFr": "Travail/Navettage/Caract\u00e9ristiques du navettage"
+  },
+  {
+    "subjectCode": "140703",
+    "subjectEn": "Labour/Commuting to work/Workplace type",
+    "subjectFr": "Travail/Navettage/Type de lieu de travail"
+  },
+  {
+    "subjectCode": "140799",
+    "subjectEn": "Labour/Commuting to work/Other content related to Commuting to work",
+    "subjectFr": "Travail/Navettage/Autre contenu li\u00e9 au Navettage"
+  },
+  {
+    "subjectCode": "150401",
+    "subjectEn": "Languages/Knowledge of languages/Indigenous languages",
+    "subjectFr": "Langues/Connaissances des langues/Langues autochtones"
+  },
+  {
+    "subjectCode": "150402",
+    "subjectEn": "Languages/Knowledge of languages/Other non-official languages",
+    "subjectFr": "Langues/Connaissances des langues/Autre langues non officielles"
+  },
+  {
+    "subjectCode": "150403",
+    "subjectEn": "Languages/Knowledge of languages/Official languages and English-French bilingualism",
+    "subjectFr": "Langues/Connaissances des langues/Langues officielles et bilinguisme fran\u00e7ais-anglais"
+  },
+  {
+    "subjectCode": "150499",
+    "subjectEn": "Languages/Knowledge of languages/Other content related to Knowledge of languages",
+    "subjectFr": "Langues/Connaissances des langues/Autre contenu li\u00e9 aux Connaissances des langues"
+  },
+  {
+    "subjectCode": "150701",
+    "subjectEn": "Languages/Language groups/First official language spoken",
+    "subjectFr": "Langues/Groupes linguistiques/Premi\u00e8re langue officielle parl\u00e9e"
+  },
+  {
+    "subjectCode": "150702",
+    "subjectEn": "Languages/Language groups/Mother tongue",
+    "subjectFr": "Langues/Groupes linguistiques/Langue maternelle"
+  },
+  {
+    "subjectCode": "150703",
+    "subjectEn": "Languages/Language groups/Official language minorities",
+    "subjectFr": "Langues/Groupes linguistiques/Minorit\u00e9s de langue officielle"
+  },
+  {
+    "subjectCode": "150799",
+    "subjectEn": "Languages/Language groups/Other content related to Language groups",
+    "subjectFr": "Langues/Groupes linguistiques/Autre contenu li\u00e9 aux Groupes linguistiques"
+  },
+  {
+    "subjectCode": "150801",
+    "subjectEn": "Languages/Use of languages/Languages spoken at home",
+    "subjectFr": "Langues/Utilisation des langues/Langues parl\u00e9es \u00e0 la maison"
+  },
+  {
+    "subjectCode": "150802",
+    "subjectEn": "Languages/Use of languages/Languages used at work",
+    "subjectFr": "Langues/Utilisation des langues/Langues utilis\u00e9es au travail"
+  },
+  {
+    "subjectCode": "150803",
+    "subjectEn": "Languages/Use of languages/Languages of instruction",
+    "subjectFr": "Langues/Utilisation des langues/Langues d'instruction"
+  },
+  {
+    "subjectCode": "150899",
+    "subjectEn": "Languages/Use of languages/Other content related to Use of languages",
+    "subjectFr": "Langues/Utilisation des langues/Autre contenu li\u00e9 \u00e0 l'Utilisation des langues"
+  },
+  {
+    "subjectCode": "170701",
+    "subjectEn": "Population and demography/Migration/Internal migration",
+    "subjectFr": "Population et d\u00e9mographie/Migration/Migration interne"
+  },
+  {
+    "subjectCode": "170702",
+    "subjectEn": "Population and demography/Migration/International migration",
+    "subjectFr": "Population et d\u00e9mographie/Migration/Migration internationale"
+  },
+  {
+    "subjectCode": "170799",
+    "subjectEn": "Population and demography/Migration/Other content related to Migration",
+    "subjectFr": "Population et d\u00e9mographie/Migration/Autre contenu li\u00e9 \u00e0 la Migration"
+  },
+  {
+    "subjectCode": "171001",
+    "subjectEn": "Population and demography/Population estimates/Annual estimates, provinces and territories",
+    "subjectFr": "Population et d\u00e9mographie/Estimations d\u00e9mographiques/Estimations annuelles, provinces et territoires"
+  },
+  {
+    "subjectCode": "171003",
+    "subjectEn": "Population and demography/Population estimates/Quarterly estimates, provinces and territories",
+    "subjectFr": "Population et d\u00e9mographie/Estimations d\u00e9mographiques/Estimations trimestrielles, provinces et territoires"
+  },
+  {
+    "subjectCode": "171004",
+    "subjectEn": "Population and demography/Population estimates/Annual subprovincial estimates",
+    "subjectFr": "Population et d\u00e9mographie/Estimations d\u00e9mographiques/Estimations annuelles infraprovinciales"
+  },
+  {
+    "subjectCode": "171099",
+    "subjectEn": "Population and demography/Population estimates/Other content related to Population estimates",
+    "subjectFr": "Population et d\u00e9mographie/Estimations d\u00e9mographiques/Autre contenu li\u00e9 aux Estimations d\u00e9mographiques"
+  },
+  {
+    "subjectCode": "171105",
+    "subjectEn": "Population and demography/Population projections/Projections by age and sex",
+    "subjectFr": "Population et d\u00e9mographie/Projections d\u00e9mographiques/Projections par \u00e2ge et sexe"
+  },
+  {
+    "subjectCode": "171106",
+    "subjectEn": "Population and demography/Population projections/Specific projections (microsimulation)",
+    "subjectFr": "Population et d\u00e9mographie/Projections d\u00e9mographiques/Projections sp\u00e9cifiques (microsimulation)"
+  },
+  {
+    "subjectCode": "171199",
+    "subjectEn": "Population and demography/Population projections/Other content related to Population projections",
+    "subjectFr": "Population et d\u00e9mographie/Projections d\u00e9mographiques/Autre contenu li\u00e9 aux Projections d\u00e9mographiques"
+  },
+  {
+    "subjectCode": "171201",
+    "subjectEn": "Population and demography/Census counts/Age, sex at birth and gender",
+    "subjectFr": "Population et d\u00e9mographie/Chiffres du recensement/\u00c2ge, sexe \u00e0 la naissance et genre"
+  },
+  {
+    "subjectCode": "171202",
+    "subjectEn": "Population and demography/Census counts/Total population",
+    "subjectFr": "Population et d\u00e9mographie/Chiffres du recensement/Population totale"
+  },
+  {
+    "subjectCode": "171203",
+    "subjectEn": "Population and demography/Census counts/Families, households and marital status",
+    "subjectFr": "Population et d\u00e9mographie/Chiffres du recensement/Familles, m\u00e9nages et \u00e9tat matrimonial "
+  },
+  {
+    "subjectCode": "171204",
+    "subjectEn": "Population and demography/Census counts/Mobility and migration",
+    "subjectFr": "Population et d\u00e9mographie/Chiffres du recensement/Mobilit\u00e9 et migration"
+  },
+  {
+    "subjectCode": "171205",
+    "subjectEn": "Population and demography/Census counts/Dwelling counts and types",
+    "subjectFr": "Population et d\u00e9mographie/Chiffres du recensement/Chiffres et types de logements"
+  },
+  {
+    "subjectCode": "171299",
+    "subjectEn": "Population and demography/Census counts/Other content related to Census counts",
+    "subjectFr": "Population et d\u00e9mographie/Chiffres du recensement/Autre contenu li\u00e9 aux Chiffres du recensement"
+  },
+  {
+    "subjectCode": "180501",
+    "subjectEn": "Prices and price indexes/Producer price indexes/Housing and construction price indexes",
+    "subjectFr": "Prix et indices des prix/Indices des prix \u00e0 la production/Indices de prix des logements et de la construction"
+  },
+  {
+    "subjectCode": "180502",
+    "subjectEn": "Prices and price indexes/Producer price indexes/Industrial product price indexes",
+    "subjectFr": "Prix et indices des prix/Indices des prix \u00e0 la production/Indices des prix des produits industriels"
+  },
+  {
+    "subjectCode": "180503",
+    "subjectEn": "Prices and price indexes/Producer price indexes/Machinery and equipment price indexes",
+    "subjectFr": "Prix et indices des prix/Indices des prix \u00e0 la production/Indices des prix des machines et du mat\u00e9riel"
+  },
+  {
+    "subjectCode": "180504",
+    "subjectEn": "Prices and price indexes/Producer price indexes/Services price indexes",
+    "subjectFr": "Prix et indices des prix/Indices des prix \u00e0 la production/Indices des prix des services"
+  },
+  {
+    "subjectCode": "180599",
+    "subjectEn": "Prices and price indexes/Producer price indexes/Other content related to Producer price indexes",
+    "subjectFr": "Prix et indices des prix/Indices des prix \u00e0 la production/Autre contenu li\u00e9 aux Indices des prix \u00e0 la production"
+  },
+  {
+    "subjectCode": "210201",
+    "subjectEn": "Business and consumer services and culture/Culture/Film, television and video production",
+    "subjectFr": "Services aux entreprises et aux consommateurs et culture/Culture/Production cin\u00e9matographique, t\u00e9l\u00e9visuelle et vid\u00e9o"
+  },
+  {
+    "subjectCode": "210202",
+    "subjectEn": "Business and consumer services and culture/Culture/Trade in culture goods and services",
+    "subjectFr": "Services aux entreprises et aux consommateurs et culture/Culture/Commerce des biens et de services de la culture"
+  },
+  {
+    "subjectCode": "210203",
+    "subjectEn": "Business and consumer services and culture/Culture/Music and performing arts",
+    "subjectFr": "Services aux entreprises et aux consommateurs et culture/Culture/Musique et arts du spectacle"
+  },
+  {
+    "subjectCode": "210204",
+    "subjectEn": "Business and consumer services and culture/Culture/Publishing",
+    "subjectFr": "Services aux entreprises et aux consommateurs et culture/Culture/\u00c9dition"
+  },
+  {
+    "subjectCode": "210206",
+    "subjectEn": "Business and consumer services and culture/Culture/Radio and television broadcasting",
+    "subjectFr": "Services aux entreprises et aux consommateurs et culture/Culture/Radiodiffusion et t\u00e9l\u00e9diffusion"
+  },
+  {
+    "subjectCode": "210299",
+    "subjectEn": "Business and consumer services and culture/Culture/Other content related to Culture",
+    "subjectFr": "Services aux entreprises et aux consommateurs et culture/Culture/Autre contenu li\u00e9 \u00e0 la Culture"
+  },
+  {
+    "subjectCode": "210401",
+    "subjectEn": "Business and consumer services and culture/Business and consumer services/Accounting and consulting services",
+    "subjectFr": "Services aux entreprises et aux consommateurs et culture/Services aux entreprises et aux consommateurs/Services de comptabilit\u00e9 et de conseils"
+  },
+  {
+    "subjectCode": "210402",
+    "subjectEn": "Business and consumer services and culture/Business and consumer services/Advertising services",
+    "subjectFr": "Services aux entreprises et aux consommateurs et culture/Services aux entreprises et aux consommateurs/Services de publicit\u00e9"
+  },
+  {
+    "subjectCode": "210404",
+    "subjectEn": "Business and consumer services and culture/Business and consumer services/Rental, leasing and real estate services",
+    "subjectFr": "Services aux entreprises et aux consommateurs et culture/Services aux entreprises et aux consommateurs/Services immobiliers et services de location et de location \u00e0 bail"
+  },
+  {
+    "subjectCode": "210407",
+    "subjectEn": "Business and consumer services and culture/Business and consumer services/Architect, engineering, design and surveying and mapping services",
+    "subjectFr": "Services aux entreprises et aux consommateurs et culture/Services aux entreprises et aux consommateurs/Services d'architecte, d'ing\u00e9nierie, de conception et de prospection, d'arpentage et de cartographie"
+  },
+  {
+    "subjectCode": "210408",
+    "subjectEn": "Business and consumer services and culture/Business and consumer services/Accommodation and food services",
+    "subjectFr": "Services aux entreprises et aux consommateurs et culture/Services aux entreprises et aux consommateurs/H\u00e9bergement et services de restauration"
+  },
+  {
+    "subjectCode": "210409",
+    "subjectEn": "Business and consumer services and culture/Business and consumer services/Sports and leisure",
+    "subjectFr": "Services aux entreprises et aux consommateurs et culture/Services aux entreprises et aux consommateurs/Sports et loisirs"
+  },
+  {
+    "subjectCode": "210410",
+    "subjectEn": "Business and consumer services and culture/Business and consumer services/Software development and computer services",
+    "subjectFr": "Services aux entreprises et aux consommateurs et culture/Services aux entreprises et aux consommateurs/D\u00e9veloppement de logiciels et les services informatiques"
+  },
+  {
+    "subjectCode": "210411",
+    "subjectEn": "Business and consumer services and culture/Business and consumer services/Repair and maintenance services",
+    "subjectFr": "Services aux entreprises et aux consommateurs et culture/Services aux entreprises et aux consommateurs/Services de r\u00e9paration et d'entretien"
+  },
+  {
+    "subjectCode": "210412",
+    "subjectEn": "Business and consumer services and culture/Business and consumer services/Employment services",
+    "subjectFr": "Services aux entreprises et aux consommateurs et culture/Services aux entreprises et aux consommateurs/Services d'emploi"
+  },
+  {
+    "subjectCode": "210413",
+    "subjectEn": "Business and consumer services and culture/Business and consumer services/Travel agencies and tour operators",
+    "subjectFr": "Services aux entreprises et aux consommateurs et culture/Services aux entreprises et aux consommateurs/Agences de voyages et voyagistes"
+  },
+  {
+    "subjectCode": "210414",
+    "subjectEn": "Business and consumer services and culture/Business and consumer services/Personal services",
+    "subjectFr": "Services aux entreprises et aux consommateurs et culture/Services aux entreprises et aux consommateurs/Services personnels"
+  },
+  {
+    "subjectCode": "210499",
+    "subjectEn": "Business and consumer services and culture/Business and consumer services/Other content related to Business and consumer services",
+    "subjectFr": "Services aux entreprises et aux consommateurs et culture/Services aux entreprises et aux consommateurs/Autre contenu li\u00e9 aux Services aux entreprises et aux consommateurs"
+  },
+  {
+    "subjectCode": "220401",
+    "subjectEn": "Digital economy and society/Digital technology and Internet use/Digital technology and Internet use by businesses and governments",
+    "subjectFr": "\u00c9conomie et soci\u00e9t\u00e9 num\u00e9riques/Utilisation d'Internet et de la technologie num\u00e9rique/Utilisation d'Internet et de la technologie num\u00e9rique par les entreprises et les gouvernements"
+  },
+  {
+    "subjectCode": "220403",
+    "subjectEn": "Digital economy and society/Digital technology and Internet use/Digital technology and Internet use by individuals and households",
+    "subjectFr": "\u00c9conomie et soci\u00e9t\u00e9 num\u00e9riques/Utilisation d'Internet et de la technologie num\u00e9rique/Utilisation d'Internet et de la technologie num\u00e9rique par les particuliers et les m\u00e9nages"
+  },
+  {
+    "subjectCode": "220499",
+    "subjectEn": "Digital economy and society/Digital technology and Internet use/Other content related to Digital technology and Internet use",
+    "subjectFr": "\u00c9conomie et soci\u00e9t\u00e9 num\u00e9riques/Utilisation d'Internet et de la technologie num\u00e9rique/Autre contenu li\u00e9 \u00e0 l'Utilisation d'Internet et de la technologie num\u00e9rique"
+  },
+  {
+    "subjectCode": "230101",
+    "subjectEn": "Transportation/Air transportation/Air fares",
+    "subjectFr": "Transport/Transport a\u00e9rien/Tarifs a\u00e9riens"
+  },
+  {
+    "subjectCode": "230102",
+    "subjectEn": "Transportation/Air transportation/Air passenger origin and destination",
+    "subjectFr": "Transport/Transport a\u00e9rien/Origine et destination des passagers a\u00e9riens"
+  },
+  {
+    "subjectCode": "230103",
+    "subjectEn": "Transportation/Air transportation/Aircraft movements",
+    "subjectFr": "Transport/Transport a\u00e9rien/Mouvements d'a\u00e9ronefs"
+  },
+  {
+    "subjectCode": "230104",
+    "subjectEn": "Transportation/Air transportation/Airport activity",
+    "subjectFr": "Transport/Transport a\u00e9rien/Activit\u00e9 a\u00e9roportuaire"
+  },
+  {
+    "subjectCode": "230105",
+    "subjectEn": "Transportation/Air transportation/Aviation financial and operating statistics",
+    "subjectFr": "Transport/Transport a\u00e9rien/Statistiques financi\u00e8res et d'exploitation de l'aviation"
+  },
+  {
+    "subjectCode": "230199",
+    "subjectEn": "Transportation/Air transportation/Other content related to Air transportation",
+    "subjectFr": "Transport/Transport a\u00e9rien/Autre contenu li\u00e9 au Transport a\u00e9rien"
+  },
+  {
+    "subjectCode": "230401",
+    "subjectEn": "Transportation/Road transportation/Trucking industry",
+    "subjectFr": "Transport/Transport routier/Industrie du camionnage"
+  },
+  {
+    "subjectCode": "230402",
+    "subjectEn": "Transportation/Road transportation/Motor vehicles",
+    "subjectFr": "Transport/Transport routier/V\u00e9hicules automobiles"
+  },
+  {
+    "subjectCode": "230403",
+    "subjectEn": "Transportation/Road transportation/Passenger bus and transit industries",
+    "subjectFr": "Transport/Transport routier/Industries du transport de passagers par autobus et du transport"
+  },
+  {
+    "subjectCode": "230404",
+    "subjectEn": "Transportation/Road transportation/Passenger-kilometres",
+    "subjectFr": "Transport/Transport routier/Passagers-kilom\u00e8tres"
+  },
+  {
+    "subjectCode": "230405",
+    "subjectEn": "Transportation/Road transportation/Vehicle-kilometres",
+    "subjectFr": "Transport/Transport routier/V\u00e9hicules-kilom\u00e8tres"
+  },
+  {
+    "subjectCode": "230499",
+    "subjectEn": "Transportation/Road transportation/Other content related to Road transportation",
+    "subjectFr": "Transport/Transport routier/Autre contenu li\u00e9 au Transport routier"
+  },
+  {
+    "subjectCode": "250701",
+    "subjectEn": "Energy/Fossil fuels/Coal",
+    "subjectFr": "\u00c9nergie/\u00c9nergies fossiles/Charbon"
+  },
+  {
+    "subjectCode": "250702",
+    "subjectEn": "Energy/Fossil fuels/Crude oil and natural gas",
+    "subjectFr": "\u00c9nergie/\u00c9nergies fossiles/P\u00e9trole brut et gaz naturel"
+  },
+  {
+    "subjectCode": "250703",
+    "subjectEn": "Energy/Fossil fuels/Petroleum products",
+    "subjectFr": "\u00c9nergie/\u00c9nergies fossiles/Produits p\u00e9troliers"
+  },
+  {
+    "subjectCode": "250799",
+    "subjectEn": "Energy/Fossil fuels/Other content related to Fossil fuels",
+    "subjectFr": "\u00c9nergie/\u00c9nergies fossiles/Autre contenu li\u00e9 aux \u00c9nergies fossiles"
+  },
+  {
+    "subjectCode": "270301",
+    "subjectEn": "Science and technology/Innovation and business strategy/Software licensing and advanced technology use",
+    "subjectFr": "Sciences et technologie/Innovation et strat\u00e9gies d'entreprise/Licence de logiciel et utilisation des technologies de pointe"
+  },
+  {
+    "subjectCode": "270302",
+    "subjectEn": "Science and technology/Innovation and business strategy/Products and processes",
+    "subjectFr": "Sciences et technologie/Innovation et strat\u00e9gies d'entreprise/Produits et processus"
+  },
+  {
+    "subjectCode": "270303",
+    "subjectEn": "Science and technology/Innovation and business strategy/Enterprise and subsidiary activities",
+    "subjectFr": "Sciences et technologie/Innovation et strat\u00e9gies d'entreprise/Activit\u00e9s des entreprises et des filiales"
+  },
+  {
+    "subjectCode": "270304",
+    "subjectEn": "Science and technology/Innovation and business strategy/Organizational and management practices",
+    "subjectFr": "Sciences et technologie/Innovation et strat\u00e9gies d'entreprise/Pratiques organisationnelles et de gestion"
+  },
+  {
+    "subjectCode": "270305",
+    "subjectEn": "Science and technology/Innovation and business strategy/Industrial activities",
+    "subjectFr": "Sciences et technologie/Innovation et strat\u00e9gies d'entreprise/Activit\u00e9s industrielles "
+  },
+  {
+    "subjectCode": "270306",
+    "subjectEn": "Science and technology/Innovation and business strategy/Patents, copyrights and trademarks",
+    "subjectFr": "Sciences et technologie/Innovation et strat\u00e9gies d'entreprise/Brevets, droits d'auteur et marques de commerce"
+  },
+  {
+    "subjectCode": "270399",
+    "subjectEn": "Science and technology/Innovation and business strategy/Other content related to Innovation and business strategy",
+    "subjectFr": "Sciences et technologie/Innovation et strat\u00e9gies d'entreprise/Autre contenu li\u00e9 \u00e0 l'Innovation et les strat\u00e9gies d'entreprise"
+  },
+  {
+    "subjectCode": "270501",
+    "subjectEn": "Science and technology/Research and development/Institutional expenditures and activities",
+    "subjectFr": "Sciences et technologie/Recherche et d\u00e9veloppement/D\u00e9penses et activit\u00e9s du secteur institutionnel"
+  },
+  {
+    "subjectCode": "270502",
+    "subjectEn": "Science and technology/Research and development/Private expenditures and activities",
+    "subjectFr": "Sciences et technologie/Recherche et d\u00e9veloppement/D\u00e9penses et activit\u00e9s du secteur priv\u00e9"
+  },
+  {
+    "subjectCode": "270503",
+    "subjectEn": "Science and technology/Research and development/Public expenditures and activities",
+    "subjectFr": "Sciences et technologie/Recherche et d\u00e9veloppement/D\u00e9penses et activit\u00e9s du secteur public"
+  },
+  {
+    "subjectCode": "270505",
+    "subjectEn": "Science and technology/Research and development/Health expenditures and activities",
+    "subjectFr": "Sciences et technologie/Recherche et d\u00e9veloppement/D\u00e9penses et activit\u00e9s du secteur de la sant\u00e9"
+  },
+  {
+    "subjectCode": "270599",
+    "subjectEn": "Science and technology/Research and development/Other content related to Research and development",
+    "subjectFr": "Sciences et technologie/Recherche et d\u00e9veloppement/Autre contenu li\u00e9 \u00e0 la Recherche et le d\u00e9veloppement"
+  },
+  {
+    "subjectCode": "320101",
+    "subjectEn": "Agriculture and food/Crop production/Field crops",
+    "subjectFr": "Agriculture et alimentation/Production v\u00e9g\u00e9tale/Grandes cultures"
+  },
+  {
+    "subjectCode": "320102",
+    "subjectEn": "Agriculture and food/Crop production/Vegetables",
+    "subjectFr": "Agriculture et alimentation/Production v\u00e9g\u00e9tale/L\u00e9gumes"
+  },
+  {
+    "subjectCode": "320104",
+    "subjectEn": "Agriculture and food/Crop production/Fruits, berries and nuts",
+    "subjectFr": "Agriculture et alimentation/Production v\u00e9g\u00e9tale/Fruits, petits fruits et noix"
+  },
+  {
+    "subjectCode": "320105",
+    "subjectEn": "Agriculture and food/Crop production/Greenhouses, mushrooms, nurseries, maple, sod and Christmas trees",
+    "subjectFr": "Agriculture et alimentation/Production v\u00e9g\u00e9tale/Serres, champignons, p\u00e9pini\u00e8res, gazon, \u00e9rable et arbres de No\u00ebl"
+  },
+  {
+    "subjectCode": "320199",
+    "subjectEn": "Agriculture and food/Crop production/Other content related to Crop production",
+    "subjectFr": "Agriculture et alimentation/Production v\u00e9g\u00e9tale/Autre contenu li\u00e9 \u00e0 la Production v\u00e9g\u00e9tale"
+  },
+  {
+    "subjectCode": "320201",
+    "subjectEn": "Agriculture and food/Farm business/Farm revenue and expenses",
+    "subjectFr": "Agriculture et alimentation/Entreprise agricole/Revenu et d\u00e9penses d'exploitation agricole"
+  },
+  {
+    "subjectCode": "320202",
+    "subjectEn": "Agriculture and food/Farm business/Farm capital",
+    "subjectFr": "Agriculture et alimentation/Entreprise agricole/Capital agricole"
+  },
+  {
+    "subjectCode": "320204",
+    "subjectEn": "Agriculture and food/Farm business/Farm and off-farm income",
+    "subjectFr": "Agriculture et alimentation/Entreprise agricole/Revenu agricole et non agricole"
+  },
+  {
+    "subjectCode": "320299",
+    "subjectEn": "Agriculture and food/Farm business/Other content related to Farm business",
+    "subjectFr": "Agriculture et alimentation/Entreprise agricole/Autre contenu li\u00e9 \u00e0 l'Entreprise agricole"
+  },
+  {
+    "subjectCode": "320301",
+    "subjectEn": "Agriculture and food/Farm characteristics/Organic farming and genetic modification",
+    "subjectFr": "Agriculture et alimentation/Caract\u00e9ristiques de la ferme/Agriculture biologique et modification g\u00e9n\u00e9tique"
+  },
+  {
+    "subjectCode": "320302",
+    "subjectEn": "Agriculture and food/Farm characteristics/Farm classification and farm type",
+    "subjectFr": "Agriculture et alimentation/Caract\u00e9ristiques de la ferme/Classification et type de ferme"
+  },
+  {
+    "subjectCode": "320399",
+    "subjectEn": "Agriculture and food/Farm characteristics/Other content related to Farm characteristics",
+    "subjectFr": "Agriculture et alimentation/Caract\u00e9ristiques de la ferme/Autre contenu li\u00e9 aux Caract\u00e9ristiques de la ferme"
+  },
+  {
+    "subjectCode": "320401",
+    "subjectEn": "Agriculture and food/Animal production/Aquaculture",
+    "subjectFr": "Agriculture et alimentation/Production animale/Aquaculture"
+  },
+  {
+    "subjectCode": "320402",
+    "subjectEn": "Agriculture and food/Animal production/Cattle",
+    "subjectFr": "Agriculture et alimentation/Production animale/B\u00e9tail"
+  },
+  {
+    "subjectCode": "320403",
+    "subjectEn": "Agriculture and food/Animal production/Dairy products",
+    "subjectFr": "Agriculture et alimentation/Production animale/Produits laitiers"
+  },
+  {
+    "subjectCode": "320404",
+    "subjectEn": "Agriculture and food/Animal production/Meat products",
+    "subjectFr": "Agriculture et alimentation/Production animale/Produits de viande"
+  },
+  {
+    "subjectCode": "320405",
+    "subjectEn": "Agriculture and food/Animal production/Poultry and eggs",
+    "subjectFr": "Agriculture et alimentation/Production animale/Volailles et \u0153ufs"
+  },
+  {
+    "subjectCode": "320407",
+    "subjectEn": "Agriculture and food/Animal production/Fur, pelt and wool products",
+    "subjectFr": "Agriculture et alimentation/Production animale/Produits des fourrures, peaux et laine"
+  },
+  {
+    "subjectCode": "320408",
+    "subjectEn": "Agriculture and food/Animal production/Sheep, goats, horses and other animals",
+    "subjectFr": "Agriculture et alimentation/Production animale/Moutons, caprins, chevaux et autres animaux"
+  },
+  {
+    "subjectCode": "320409",
+    "subjectEn": "Agriculture and food/Animal production/Pigs",
+    "subjectFr": "Agriculture et alimentation/Production animale/Porcs"
+  },
+  {
+    "subjectCode": "320410",
+    "subjectEn": "Agriculture and food/Animal production/Bees and honey",
+    "subjectFr": "Agriculture et alimentation/Production animale/Abeilles et miel"
+  },
+  {
+    "subjectCode": "320499",
+    "subjectEn": "Agriculture and food/Animal production/Other content related to Animal production",
+    "subjectFr": "Agriculture et alimentation/Production animale/Autre contenu li\u00e9 \u00e0 la Production animale"
+  },
+  {
+    "subjectCode": "320501",
+    "subjectEn": "Agriculture and food/Food/Food production and availability",
+    "subjectFr": "Agriculture et alimentation/Alimentation/Production et disponibilit\u00e9 des aliments"
+  },
+  {
+    "subjectCode": "320502",
+    "subjectEn": "Agriculture and food/Food/Diet and nutrition",
+    "subjectFr": "Agriculture et alimentation/Alimentation/R\u00e9gime alimentaire et nutrition"
+  },
+  {
+    "subjectCode": "320503",
+    "subjectEn": "Agriculture and food/Food/Food manufacturing",
+    "subjectFr": "Agriculture et alimentation/Alimentation/Fabrication d'aliments"
+  },
+  {
+    "subjectCode": "320504",
+    "subjectEn": "Agriculture and food/Food/Food prices",
+    "subjectFr": "Agriculture et alimentation/Alimentation/Prix des aliments"
+  },
+  {
+    "subjectCode": "320599",
+    "subjectEn": "Agriculture and food/Food/Other content related to Food",
+    "subjectFr": "Agriculture et alimentation/Alimentation/Autre contenu li\u00e9 \u00e0 l'Alimentation"
+  },
+  {
+    "subjectCode": "320601",
+    "subjectEn": "Agriculture and food/Land use/Environmental practices",
+    "subjectFr": "Agriculture et alimentation/Utilisation des terres/Pratiques environnementales"
+  },
+  {
+    "subjectCode": "320604",
+    "subjectEn": "Agriculture and food/Land use/Farm area, land tenure and land use",
+    "subjectFr": "Agriculture et alimentation/Utilisation des terres/Superficie agricole, mode d'occupation et utilisation des terres"
+  },
+  {
+    "subjectCode": "320606",
+    "subjectEn": "Agriculture and food/Land use/Water use and irrigation",
+    "subjectFr": "Agriculture et alimentation/Utilisation des terres/Utilisation de l'eau et irrigation"
+  },
+  {
+    "subjectCode": "320699",
+    "subjectEn": "Agriculture and food/Land use/Other content related to Land use",
+    "subjectFr": "Agriculture et alimentation/Utilisation des terres/Autre contenu li\u00e9 \u00e0 l'Utilisation des terres"
+  },
+  {
+    "subjectCode": "330101",
+    "subjectEn": "Business performance and ownership/Business dynamics/Business adaptation and adjustment",
+    "subjectFr": "Rendement des entreprises et propri\u00e9t\u00e9/Dynamique des entreprises/Adaptation et ajustement des entreprises"
+  },
+  {
+    "subjectCode": "330102",
+    "subjectEn": "Business performance and ownership/Business dynamics/Entry, exit, mergers and growth",
+    "subjectFr": "Rendement des entreprises et propri\u00e9t\u00e9/Dynamique des entreprises/Cr\u00e9ation, disparitions, fusions et croissance"
+  },
+  {
+    "subjectCode": "330103",
+    "subjectEn": "Business performance and ownership/Business dynamics/Current business conditions",
+    "subjectFr": "Rendement des entreprises et propri\u00e9t\u00e9/Dynamique des entreprises/Conditions actuelles des entreprises"
+  },
+  {
+    "subjectCode": "330104",
+    "subjectEn": "Business performance and ownership/Business dynamics/Regional and urban profiles",
+    "subjectFr": "Rendement des entreprises et propri\u00e9t\u00e9/Dynamique des entreprises/Profils r\u00e9gionaux et urbains"
+  },
+  {
+    "subjectCode": "330105",
+    "subjectEn": "Business performance and ownership/Business dynamics/Small and medium sized business",
+    "subjectFr": "Rendement des entreprises et propri\u00e9t\u00e9/Dynamique des entreprises/Petites et moyennes entreprises"
+  },
+  {
+    "subjectCode": "330199",
+    "subjectEn": "Business performance and ownership/Business dynamics/Other content related to Business dynamics",
+    "subjectFr": "Rendement des entreprises et propri\u00e9t\u00e9/Dynamique des entreprises/Autre contenu li\u00e9 \u00e0 la Dynamique des entreprises"
+  },
+  {
+    "subjectCode": "330201",
+    "subjectEn": "Business performance and ownership/Business ownership/Foreign and domestic control",
+    "subjectFr": "Rendement des entreprises et propri\u00e9t\u00e9/Propri\u00e9t\u00e9 des entreprises/Contr\u00f4le \u00e9tranger et canadien"
+  },
+  {
+    "subjectCode": "330202",
+    "subjectEn": "Business performance and ownership/Business ownership/Multinationals",
+    "subjectFr": "Rendement des entreprises et propri\u00e9t\u00e9/Propri\u00e9t\u00e9 des entreprises/Multinationales"
+  },
+  {
+    "subjectCode": "330299",
+    "subjectEn": "Business performance and ownership/Business ownership/Other content related to Business ownership",
+    "subjectFr": "Rendement des entreprises et propri\u00e9t\u00e9/Propri\u00e9t\u00e9 des entreprises/Autre contenu li\u00e9 \u00e0 la Propri\u00e9t\u00e9 des entreprises"
+  },
+  {
+    "subjectCode": "330301",
+    "subjectEn": "Business performance and ownership/Financial statements and performance/Corporate taxation",
+    "subjectFr": "Rendement des entreprises et propri\u00e9t\u00e9/\u00c9tats financiers et rendement/Fiscalit\u00e9 des entreprises"
+  },
+  {
+    "subjectCode": "330302",
+    "subjectEn": "Business performance and ownership/Financial statements and performance/Financial institutions and intermediaries",
+    "subjectFr": "Rendement des entreprises et propri\u00e9t\u00e9/\u00c9tats financiers et rendement/Institutions et interm\u00e9diaires financiers"
+  },
+  {
+    "subjectCode": "330303",
+    "subjectEn": "Business performance and ownership/Financial statements and performance/Financial performance",
+    "subjectFr": "Rendement des entreprises et propri\u00e9t\u00e9/\u00c9tats financiers et rendement/Performance financi\u00e8re"
+  },
+  {
+    "subjectCode": "330304",
+    "subjectEn": "Business performance and ownership/Financial statements and performance/Financial markets",
+    "subjectFr": "Rendement des entreprises et propri\u00e9t\u00e9/\u00c9tats financiers et rendement/March\u00e9s financiers"
+  },
+  {
+    "subjectCode": "330305",
+    "subjectEn": "Business performance and ownership/Financial statements and performance/Operating statistics",
+    "subjectFr": "Rendement des entreprises et propri\u00e9t\u00e9/\u00c9tats financiers et rendement/Statistiques d'exploitation"
+  },
+  {
+    "subjectCode": "330399",
+    "subjectEn": "Business performance and ownership/Financial statements and performance/Other content related to Financial statements and performance",
+    "subjectFr": "Rendement des entreprises et propri\u00e9t\u00e9/\u00c9tats financiers et rendement/Autre contenu li\u00e9 aux \u00c9tats financiers et le rendement"
+  },
+  {
+    "subjectCode": "350101",
+    "subjectEn": "Crime and justice/Correctional services/Adult correctional services",
+    "subjectFr": "Crime et justice/Services correctionnels/Services correctionnels pour adultes"
+  },
+  {
+    "subjectCode": "350102",
+    "subjectEn": "Crime and justice/Correctional services/Youth correctional services",
+    "subjectFr": "Crime et justice/Services correctionnels/Services correctionnels pour jeunes"
+  },
+  {
+    "subjectCode": "350199",
+    "subjectEn": "Crime and justice/Correctional services/Other content related to Correctional services",
+    "subjectFr": "Crime et justice/Services correctionnels/Autre contenu li\u00e9 aux Services correctionnels"
+  },
+  {
+    "subjectCode": "350201",
+    "subjectEn": "Crime and justice/Courts/Adult criminal courts",
+    "subjectFr": "Crime et justice/Tribunaux/Tribunaux criminels pour adultes"
+  },
+  {
+    "subjectCode": "350202",
+    "subjectEn": "Crime and justice/Courts/Civil courts",
+    "subjectFr": "Crime et justice/Tribunaux/Tribunaux civils"
+  },
+  {
+    "subjectCode": "350203",
+    "subjectEn": "Crime and justice/Courts/Youth courts",
+    "subjectFr": "Crime et justice/Tribunaux/Tribunaux de la jeunesse"
+  },
+  {
+    "subjectCode": "350204",
+    "subjectEn": "Crime and justice/Courts/Legal aid",
+    "subjectFr": "Crime et justice/Tribunaux/Aide juridique"
+  },
+  {
+    "subjectCode": "350299",
+    "subjectEn": "Crime and justice/Courts/Other content related to Courts",
+    "subjectFr": "Crime et justice/Tribunaux/Autre contenu li\u00e9 aux Tribunaux"
+  },
+  {
+    "subjectCode": "350302",
+    "subjectEn": "Crime and justice/Crimes and offences/Hate crimes",
+    "subjectFr": "Crime et justice/Crimes et infractions/Crimes haineux"
+  },
+  {
+    "subjectCode": "350303",
+    "subjectEn": "Crime and justice/Crimes and offences/Homicides",
+    "subjectFr": "Crime et justice/Crimes et infractions/Homicides"
+  },
+  {
+    "subjectCode": "350304",
+    "subjectEn": "Crime and justice/Crimes and offences/Sexual assaults",
+    "subjectFr": "Crime et justice/Crimes et infractions/Agressions sexuelles"
+  },
+  {
+    "subjectCode": "350305",
+    "subjectEn": "Crime and justice/Crimes and offences/Crime rates",
+    "subjectFr": "Crime et justice/Crimes et infractions/Taux de criminalit\u00e9"
+  },
+  {
+    "subjectCode": "350306",
+    "subjectEn": "Crime and justice/Crimes and offences/Crime Severity Index",
+    "subjectFr": "Crime et justice/Crimes et infractions/Indice de gravit\u00e9 de la criminalit\u00e9"
+  },
+  {
+    "subjectCode": "350399",
+    "subjectEn": "Crime and justice/Crimes and offences/Other content related to Crimes and offences",
+    "subjectFr": "Crime et justice/Crimes et infractions/Autre contenu li\u00e9 aux Crimes et les infractions"
+  },
+  {
+    "subjectCode": "350501",
+    "subjectEn": "Crime and justice/Victimization/Family violence",
+    "subjectFr": "Crime et justice/Victimisation/Violence familiale"
+  },
+  {
+    "subjectCode": "350502",
+    "subjectEn": "Crime and justice/Victimization/Transition homes",
+    "subjectFr": "Crime et justice/Victimisation/Maisons d'h\u00e9bergement"
+  },
+  {
+    "subjectCode": "350503",
+    "subjectEn": "Crime and justice/Victimization/Victim services",
+    "subjectFr": "Crime et justice/Victimisation/Services aux victimes"
+  },
+  {
+    "subjectCode": "350504",
+    "subjectEn": "Crime and justice/Victimization/Victimization of children and youth",
+    "subjectFr": "Crime et justice/Victimisation/Victimisation des enfants et jeunes"
+  },
+  {
+    "subjectCode": "350505",
+    "subjectEn": "Crime and justice/Victimization/Victimization of seniors",
+    "subjectFr": "Crime et justice/Victimisation/Victimisation des a\u00een\u00e9s"
+  },
+  {
+    "subjectCode": "350506",
+    "subjectEn": "Crime and justice/Victimization/Victimization of women",
+    "subjectFr": "Crime et justice/Victimisation/Victimisation des femmes"
+  },
+  {
+    "subjectCode": "350599",
+    "subjectEn": "Crime and justice/Victimization/Other content related to Victimization",
+    "subjectFr": "Crime et justice/Victimisation/Autre contenu li\u00e9 \u00e0 la Victimisation"
+  },
+  {
+    "subjectCode": "360301",
+    "subjectEn": "Economic accounts/Government finance statistics/Government financial flows and balance sheets",
+    "subjectFr": "Comptes \u00e9conomiques/Finances publiques/Flux financiers et bilan des administrations publiques"
+  },
+  {
+    "subjectCode": "360302",
+    "subjectEn": "Economic accounts/Government finance statistics/Government revenue and expenditures",
+    "subjectFr": "Comptes \u00e9conomiques/Finances publiques/Recettes et d\u00e9penses des administrations publiques"
+  },
+  {
+    "subjectCode": "360399",
+    "subjectEn": "Economic accounts/Government finance statistics/Other content related to Government finance statistics",
+    "subjectFr": "Comptes \u00e9conomiques/Finances publiques/Autre contenu li\u00e9 aux Finances publiques"
+  },
+  {
+    "subjectCode": "360401",
+    "subjectEn": "Economic accounts/International accounts/Balance of international payments",
+    "subjectFr": "Comptes \u00e9conomiques/Comptes internationaux/Balance des paiements internationaux"
+  },
+  {
+    "subjectCode": "360402",
+    "subjectEn": "Economic accounts/International accounts/International investment position",
+    "subjectFr": "Comptes \u00e9conomiques/Comptes internationaux/Bilan des investissements internationaux"
+  },
+  {
+    "subjectCode": "360403",
+    "subjectEn": "Economic accounts/International accounts/International trade in services",
+    "subjectFr": "Comptes \u00e9conomiques/Comptes internationaux/Commerce international de services"
+  },
+  {
+    "subjectCode": "360404",
+    "subjectEn": "Economic accounts/International accounts/International transactions in securities",
+    "subjectFr": "Comptes \u00e9conomiques/Comptes internationaux/Op\u00e9rations internationales en valeurs mobili\u00e8res"
+  },
+  {
+    "subjectCode": "360405",
+    "subjectEn": "Economic accounts/International accounts/Portfolio investment abroad",
+    "subjectFr": "Comptes \u00e9conomiques/Comptes internationaux/Investissements de portefeuille \u00e0 l'\u00e9tranger"
+  },
+  {
+    "subjectCode": "360499",
+    "subjectEn": "Economic accounts/International accounts/Other content related to International accounts",
+    "subjectFr": "Comptes \u00e9conomiques/Comptes internationaux/Autre contenu li\u00e9 aux Comptes internationaux"
+  },
+  {
+    "subjectCode": "360501",
+    "subjectEn": "Economic accounts/National accounts and Gross Domestic Product/Financial flows and national balance sheet accounts",
+    "subjectFr": "Comptes \u00e9conomiques/Comptes nationaux et produit int\u00e9rieur brut/Comptes des flux financiers et du bilan national"
+  },
+  {
+    "subjectCode": "360502",
+    "subjectEn": "Economic accounts/National accounts and Gross Domestic Product/Gross Domestic Product by income and by expenditure accounts",
+    "subjectFr": "Comptes \u00e9conomiques/Comptes nationaux et produit int\u00e9rieur brut/Produit int\u00e9rieur brut en termes de revenus et de d\u00e9penses"
+  },
+  {
+    "subjectCode": "360503",
+    "subjectEn": "Economic accounts/National accounts and Gross Domestic Product/Gross Domestic Product by industry accounts",
+    "subjectFr": "Comptes \u00e9conomiques/Comptes nationaux et produit int\u00e9rieur brut/Produit int\u00e9rieur brut par comptes des industries"
+  },
+  {
+    "subjectCode": "360504",
+    "subjectEn": "Economic accounts/National accounts and Gross Domestic Product/Supply and use tables",
+    "subjectFr": "Comptes \u00e9conomiques/Comptes nationaux et produit int\u00e9rieur brut/Tableaux des ressources et des emplois"
+  },
+  {
+    "subjectCode": "360599",
+    "subjectEn": "Economic accounts/National accounts and Gross Domestic Product/Other content related to National accounts and Gross Domestic Product",
+    "subjectFr": "Comptes \u00e9conomiques/Comptes nationaux et produit int\u00e9rieur brut/Autre contenu li\u00e9 aux Comptes nationaux et le produit int\u00e9rieur brut"
+  },
+  {
+    "subjectCode": "360601",
+    "subjectEn": "Economic accounts/Productivity accounts/Labour productivity",
+    "subjectFr": "Comptes \u00e9conomiques/Comptes de la productivit\u00e9/Productivit\u00e9 du travail"
+  },
+  {
+    "subjectCode": "360602",
+    "subjectEn": "Economic accounts/Productivity accounts/Multifactor productivity",
+    "subjectFr": "Comptes \u00e9conomiques/Comptes de la productivit\u00e9/Productivit\u00e9 multifactorielle"
+  },
+  {
+    "subjectCode": "360699",
+    "subjectEn": "Economic accounts/Productivity accounts/Other content related to Productivity accounts",
+    "subjectFr": "Comptes \u00e9conomiques/Comptes de la productivit\u00e9/Autre contenu li\u00e9 aux Comptes de la productivit\u00e9"
+  },
+  {
+    "subjectCode": "360801",
+    "subjectEn": "Economic accounts/Satellite accounts/Culture accounts",
+    "subjectFr": "Comptes \u00e9conomiques/Comptes satellites/Compte satellite de la culture"
+  },
+  {
+    "subjectCode": "360802",
+    "subjectEn": "Economic accounts/Satellite accounts/Pension accounts",
+    "subjectFr": "Comptes \u00e9conomiques/Comptes satellites/Compte satellite des pensions"
+  },
+  {
+    "subjectCode": "360803",
+    "subjectEn": "Economic accounts/Satellite accounts/Tourism accounts",
+    "subjectFr": "Comptes \u00e9conomiques/Comptes satellites/Compte satellite du tourisme"
+  },
+  {
+    "subjectCode": "360804",
+    "subjectEn": "Economic accounts/Satellite accounts/Underground economy",
+    "subjectFr": "Comptes \u00e9conomiques/Comptes satellites/\u00c9conomie souterraine"
+  },
+  {
+    "subjectCode": "360805",
+    "subjectEn": "Economic accounts/Satellite accounts/Natural resources accounts",
+    "subjectFr": "Comptes \u00e9conomiques/Comptes satellites/Compte satellite des ressources naturelles"
+  },
+  {
+    "subjectCode": "360806",
+    "subjectEn": "Economic accounts/Satellite accounts/Cannabis accounts",
+    "subjectFr": "Comptes \u00e9conomiques/Comptes satellites/Compte satellite du cannabis"
+  },
+  {
+    "subjectCode": "360899",
+    "subjectEn": "Economic accounts/Satellite accounts/Other content related to Satellite accounts",
+    "subjectFr": "Comptes \u00e9conomiques/Comptes satellites/Autre contenu li\u00e9 aux Comptes satellites"
+  },
+  {
+    "subjectCode": "370201",
+    "subjectEn": "Education, training and learning/Financial resources invested in education/Financial resources invested in elementary and secondary education",
+    "subjectFr": "\u00c9ducation, formation et apprentissage/Ressources financi\u00e8res investies dans l'\u00e9ducation/Ressources financi\u00e8res investies dans l'enseignement primaire et secondaire"
+  },
+  {
+    "subjectCode": "370202",
+    "subjectEn": "Education, training and learning/Financial resources invested in education/Financial resources invested in postsecondary education",
+    "subjectFr": "\u00c9ducation, formation et apprentissage/Ressources financi\u00e8res investies dans l'\u00e9ducation/Ressources financi\u00e8res investies dans l'enseignement postsecondaire"
+  },
+  {
+    "subjectCode": "370299",
+    "subjectEn": "Education, training and learning/Financial resources invested in education/Other content related to Financial resources invested in education",
+    "subjectFr": "\u00c9ducation, formation et apprentissage/Ressources financi\u00e8res investies dans l'\u00e9ducation/Autre contenu li\u00e9 aux Ressources financi\u00e8res investies dans l'\u00e9ducation"
+  },
+  {
+    "subjectCode": "370301",
+    "subjectEn": "Education, training and learning/Education indicators/Characteristics of the school-age population, indicators",
+    "subjectFr": "\u00c9ducation, formation et apprentissage/Indicateurs de l'\u00e9ducation/Caract\u00e9ristiques de la population d'\u00e2ge scolaire, indicateurs"
+  },
+  {
+    "subjectCode": "370302",
+    "subjectEn": "Education, training and learning/Education indicators/Elementary and secondary education, indicators",
+    "subjectFr": "\u00c9ducation, formation et apprentissage/Indicateurs de l'\u00e9ducation/\u00c9tudes primaires et secondaires, indicateurs"
+  },
+  {
+    "subjectCode": "370303",
+    "subjectEn": "Education, training and learning/Education indicators/Financing of education systems, indicators",
+    "subjectFr": "\u00c9ducation, formation et apprentissage/Indicateurs de l'\u00e9ducation/Financement des syst\u00e8mes d'\u00e9ducation, indicateurs"
+  },
+  {
+    "subjectCode": "370304",
+    "subjectEn": "Education, training and learning/Education indicators/Postsecondary education, indicators",
+    "subjectFr": "\u00c9ducation, formation et apprentissage/Indicateurs de l'\u00e9ducation/\u00c9tudes postsecondaires, indicateurs"
+  },
+  {
+    "subjectCode": "370305",
+    "subjectEn": "Education, training and learning/Education indicators/Transitions and outcomes, indicators",
+    "subjectFr": "\u00c9ducation, formation et apprentissage/Indicateurs de l'\u00e9ducation/Transitions et r\u00e9sultats, indicateurs"
+  },
+  {
+    "subjectCode": "370399",
+    "subjectEn": "Education, training and learning/Education indicators/Other education indicators",
+    "subjectFr": "\u00c9ducation, formation et apprentissage/Indicateurs de l'\u00e9ducation/Autres indicateurs de l'\u00e9ducation"
+  },
+  {
+    "subjectCode": "371401",
+    "subjectEn": "Education, training and learning/Elementary and secondary education/Enrolments and attendance, elementary and secondary",
+    "subjectFr": "\u00c9ducation, formation et apprentissage/\u00c9tudes primaires et secondaires/Effectifs et fr\u00e9quentation scolaire, \u00e9tudes primaires et secondaires"
+  },
+  {
+    "subjectCode": "371402",
+    "subjectEn": "Education, training and learning/Elementary and secondary education/Graduates, elementary and secondary",
+    "subjectFr": "\u00c9ducation, formation et apprentissage/\u00c9tudes primaires et secondaires/Dipl\u00f4m\u00e9s, \u00e9tudes primaires et secondaires"
+  },
+  {
+    "subjectCode": "371403",
+    "subjectEn": "Education, training and learning/Elementary and secondary education/Teachers and educators",
+    "subjectFr": "\u00c9ducation, formation et apprentissage/\u00c9tudes primaires et secondaires/Enseignants et \u00e9ducateurs"
+  },
+  {
+    "subjectCode": "371499",
+    "subjectEn": "Education, training and learning/Elementary and secondary education/Other content related to Elementary and secondary education",
+    "subjectFr": "\u00c9ducation, formation et apprentissage/\u00c9tudes primaires et secondaires/Autre contenu li\u00e9 aux \u00c9tudes primaires et secondaires"
+  },
+  {
+    "subjectCode": "371501",
+    "subjectEn": "Education, training and learning/Postsecondary education/Enrolments and attendance, postsecondary",
+    "subjectFr": "\u00c9ducation, formation et apprentissage/\u00c9tudes postsecondaires/Effectifs et fr\u00e9quentation scolaire, \u00e9tudes postsecondaires"
+  },
+  {
+    "subjectCode": "371502",
+    "subjectEn": "Education, training and learning/Postsecondary education/Faculty and teachers",
+    "subjectFr": "\u00c9ducation, formation et apprentissage/\u00c9tudes postsecondaires/Corps professoral et enseignants"
+  },
+  {
+    "subjectCode": "371503",
+    "subjectEn": "Education, training and learning/Postsecondary education/Field of study",
+    "subjectFr": "\u00c9ducation, formation et apprentissage/\u00c9tudes postsecondaires/Domaines d'\u00e9tudes"
+  },
+  {
+    "subjectCode": "371504",
+    "subjectEn": "Education, training and learning/Postsecondary education/Graduates, postsecondary",
+    "subjectFr": "\u00c9ducation, formation et apprentissage/\u00c9tudes postsecondaires/Dipl\u00f4m\u00e9s, \u00e9tudes postsecondaires"
+  },
+  {
+    "subjectCode": "371505",
+    "subjectEn": "Education, training and learning/Postsecondary education/Location of study",
+    "subjectFr": "\u00c9ducation, formation et apprentissage/\u00c9tudes postsecondaires/Lieu des \u00e9tudes"
+  },
+  {
+    "subjectCode": "371506",
+    "subjectEn": "Education, training and learning/Postsecondary education/Student financial assistance and debt",
+    "subjectFr": "\u00c9ducation, formation et apprentissage/\u00c9tudes postsecondaires/Aide financi\u00e8re aux \u00e9tudes et endettement \u00e9tudiant"
+  },
+  {
+    "subjectCode": "371508",
+    "subjectEn": "Education, training and learning/Postsecondary education/Tuition and other fees",
+    "subjectFr": "\u00c9ducation, formation et apprentissage/\u00c9tudes postsecondaires/Frais de scolarit\u00e9 et autres frais"
+  },
+  {
+    "subjectCode": "371599",
+    "subjectEn": "Education, training and learning/Postsecondary education/Other content related to Postsecondary education",
+    "subjectFr": "\u00c9ducation, formation et apprentissage/\u00c9tudes postsecondaires/Autre contenu li\u00e9 aux \u00c9tudes postsecondaires"
+  },
+  {
+    "subjectCode": "380101",
+    "subjectEn": "Environment/Air and climate/Air quality and pollutants",
+    "subjectFr": "Environnement/Air et climat/Qualit\u00e9 de l\u2019air et polluants"
+  },
+  {
+    "subjectCode": "380102",
+    "subjectEn": "Environment/Air and climate/Climate",
+    "subjectFr": "Environnement/Air et climat/Climat"
+  },
+  {
+    "subjectCode": "380103",
+    "subjectEn": "Environment/Air and climate/Greenhouse gases",
+    "subjectFr": "Environnement/Air et climat/Gaz \u00e0 effet de serre"
+  },
+  {
+    "subjectCode": "380199",
+    "subjectEn": "Environment/Air and climate/Other content related to Air and climate",
+    "subjectFr": "Environnement/Air et climat/Autre contenu li\u00e9 \u00e0 l'Air et climat"
+  },
+  {
+    "subjectCode": "380301",
+    "subjectEn": "Environment/Environmental protection, technology and practices/Household environmental practices",
+    "subjectFr": "Environnement/Protection de l\u2019environnement et technologies et pratiques environnementales/Pratiques environnementales des m\u00e9nages"
+  },
+  {
+    "subjectCode": "380302",
+    "subjectEn": "Environment/Environmental protection, technology and practices/Environmental protection and clean technology",
+    "subjectFr": "Environnement/Protection de l\u2019environnement et technologies et pratiques environnementales/Protection de l\u2019environnement et technologies propres"
+  },
+  {
+    "subjectCode": "380399",
+    "subjectEn": "Environment/Environmental protection, technology and practices/Other content related to Environmental protection, technology and practices",
+    "subjectFr": "Environnement/Protection de l\u2019environnement et technologies et pratiques environnementales/Autre contenu li\u00e9 \u00e0 la Protection de l\u2019environnement et technologies et pratiques environnementales"
+  },
+  {
+    "subjectCode": "380601",
+    "subjectEn": "Environment/Water and wastewater/Water infrastructure and costs",
+    "subjectFr": "Environnement/Eau et eaux us\u00e9es/Infrastructures et co\u00fbts relatifs \u00e0 l\u2019eau"
+  },
+  {
+    "subjectCode": "380602",
+    "subjectEn": "Environment/Water and wastewater/Water resources",
+    "subjectFr": "Environnement/Eau et eaux us\u00e9es/Ressources en eau"
+  },
+  {
+    "subjectCode": "380603",
+    "subjectEn": "Environment/Water and wastewater/Water use and wastewater",
+    "subjectFr": "Environnement/Eau et eaux us\u00e9es/Utilisation de l\u2019eau et eaux us\u00e9es"
+  },
+  {
+    "subjectCode": "380699",
+    "subjectEn": "Environment/Water and wastewater/Other content related to Water and wastewater",
+    "subjectFr": "Environnement/Eau et eaux us\u00e9es/Autre contenu li\u00e9 \u00e0 l'Eau et eaux us\u00e9es"
+  },
+  {
+    "subjectCode": "380701",
+    "subjectEn": "Environment/Solid waste and hazardous substances/Accidents involving dangerous goods",
+    "subjectFr": "Environnement/D\u00e9chets solides et substances dangereuses/Accidents impliquant des marchandises dangereuses"
+  },
+  {
+    "subjectCode": "380704",
+    "subjectEn": "Environment/Solid waste and hazardous substances/Solid waste management",
+    "subjectFr": "Environnement/D\u00e9chets solides et substances dangereuses/Gestion des d\u00e9chets solides"
+  },
+  {
+    "subjectCode": "380799",
+    "subjectEn": "Environment/Solid waste and hazardous substances/Other content related to Solid waste and hazardous substances",
+    "subjectFr": "Environnement/D\u00e9chets solides et substances dangereuses/Autre contenu li\u00e9 aux D\u00e9chets solides et substances dangereuses"
+  },
+  {
+    "subjectCode": "420101",
+    "subjectEn": "Children and youth/Child development and behaviour/Healthy behaviours among youth",
+    "subjectFr": "Enfants et jeunes/D\u00e9veloppement et comportement de l'enfant/Comportements de sant\u00e9 chez les jeunes"
+  },
+  {
+    "subjectCode": "420102",
+    "subjectEn": "Children and youth/Child development and behaviour/Risk behaviours among youth",
+    "subjectFr": "Enfants et jeunes/D\u00e9veloppement et comportement de l'enfant/Comportements \u00e0 risque chez les jeunes"
+  },
+  {
+    "subjectCode": "420103",
+    "subjectEn": "Children and youth/Child development and behaviour/Self-perceptions among youth",
+    "subjectFr": "Enfants et jeunes/D\u00e9veloppement et comportement de l'enfant/Autoperceptions chez les jeunes"
+  },
+  {
+    "subjectCode": "420104",
+    "subjectEn": "Children and youth/Child development and behaviour/Home life among youth",
+    "subjectFr": "Enfants et jeunes/D\u00e9veloppement et comportement de l'enfant/Vie familiale chez les jeunes"
+  },
+  {
+    "subjectCode": "420199",
+    "subjectEn": "Children and youth/Child development and behaviour/Other content related to Child development and behaviour",
+    "subjectFr": "Enfants et jeunes/D\u00e9veloppement et comportement de l'enfant/Autre contenu li\u00e9 au D\u00e9veloppement et le comportement de l'enfant"
+  },
+  {
+    "subjectCode": "430501",
+    "subjectEn": "Immigration and ethnocultural diversity/Immigrants and non-permanent residents/Education, training and skills",
+    "subjectFr": "Immigration et diversit\u00e9 ethnoculturelle/Immigrants et r\u00e9sidents non permanents/\u00c9ducation, formation et comp\u00e9tences"
+  },
+  {
+    "subjectCode": "430502",
+    "subjectEn": "Immigration and ethnocultural diversity/Immigrants and non-permanent residents/Families and households",
+    "subjectFr": "Immigration et diversit\u00e9 ethnoculturelle/Immigrants et r\u00e9sidents non permanents/Familles et m\u00e9nages"
+  },
+  {
+    "subjectCode": "430503",
+    "subjectEn": "Immigration and ethnocultural diversity/Immigrants and non-permanent residents/Health and well-being of immigrants",
+    "subjectFr": "Immigration et diversit\u00e9 ethnoculturelle/Immigrants et r\u00e9sidents non permanents/Sant\u00e9 et bien-\u00eatre des immigrants"
+  },
+  {
+    "subjectCode": "430504",
+    "subjectEn": "Immigration and ethnocultural diversity/Immigrants and non-permanent residents/Labour and income",
+    "subjectFr": "Immigration et diversit\u00e9 ethnoculturelle/Immigrants et r\u00e9sidents non permanents/Travail et revenu"
+  },
+  {
+    "subjectCode": "430506",
+    "subjectEn": "Immigration and ethnocultural diversity/Immigrants and non-permanent residents/Languages of immigrants",
+    "subjectFr": "Immigration et diversit\u00e9 ethnoculturelle/Immigrants et r\u00e9sidents non permanents/Langues des immigrants"
+  },
+  {
+    "subjectCode": "430507",
+    "subjectEn": "Immigration and ethnocultural diversity/Immigrants and non-permanent residents/Population, demography and place of birth",
+    "subjectFr": "Immigration et diversit\u00e9 ethnoculturelle/Immigrants et r\u00e9sidents non permanents/Population, d\u00e9mographie et lieu de naissance"
+  },
+  {
+    "subjectCode": "430508",
+    "subjectEn": "Immigration and ethnocultural diversity/Immigrants and non-permanent residents/Immigration status and period of immigration ",
+    "subjectFr": "Immigration et diversit\u00e9 ethnoculturelle/Immigrants et r\u00e9sidents non permanents/Statut d'immigration et p\u00e9riode d'immigration"
+  },
+  {
+    "subjectCode": "430599",
+    "subjectEn": "Immigration and ethnocultural diversity/Immigrants and non-permanent residents/Other content related to Immigrants and non-permanent residents",
+    "subjectFr": "Immigration et diversit\u00e9 ethnoculturelle/Immigrants et r\u00e9sidents non permanents/Autre contenu li\u00e9 aux Immigrants et les r\u00e9sidents non permanents"
+  },
+  {
+    "subjectCode": "451001",
+    "subjectEn": "Society and community/Coronavirus/Coronavirus disease",
+    "subjectFr": "Soci\u00e9t\u00e9 et communaut\u00e9/Coronavirus/Maladie \u00e0 coronavirus"
+  },
+  {
+    "subjectCode": "451002",
+    "subjectEn": "Society and community/Coronavirus/Labour impacts of COVID-19",
+    "subjectFr": "Soci\u00e9t\u00e9 et communaut\u00e9/Coronavirus/R\u00e9percussions de la COVID-19 sur le travail"
+  },
+  {
+    "subjectCode": "451003",
+    "subjectEn": "Society and community/Coronavirus/Economic impacts of COVID-19",
+    "subjectFr": "Soci\u00e9t\u00e9 et communaut\u00e9/Coronavirus/R\u00e9percussions \u00e9conomiques de la COVID-19"
+  },
+  {
+    "subjectCode": "451004",
+    "subjectEn": "Society and community/Coronavirus/Social impacts of COVID-19",
+    "subjectFr": "Soci\u00e9t\u00e9 et communaut\u00e9/Coronavirus/R\u00e9percussions sociales de la COVID-19"
+  },
+  {
+    "subjectCode": "451099",
+    "subjectEn": "Society and community/Coronavirus/Other content related to Coronavirus",
+    "subjectFr": "Soci\u00e9t\u00e9 et communaut\u00e9/Coronavirus/Autre contenue li\u00e9 au Coronavirus"
+  },
+  {
+    "subjectCode": "451101",
+    "subjectEn": "Society and community/Canadian military experience/Currently serving members",
+    "subjectFr": "Soci\u00e9t\u00e9 et communaut\u00e9/Exp\u00e9rience militaire Canadienne/Membres actifs"
+  },
+  {
+    "subjectCode": "451102",
+    "subjectEn": "Society and community/Canadian military experience/Veterans",
+    "subjectFr": "Soci\u00e9t\u00e9 et communaut\u00e9/Exp\u00e9rience militaire Canadienne/Anciens combattants"
+  },
+  {
+    "subjectCode": "451199",
+    "subjectEn": "Society and community/Canadian military experience/Other content related to Canadian military experience",
+    "subjectFr": "Soci\u00e9t\u00e9 et communaut\u00e9/Exp\u00e9rience militaire Canadienne/Autre contenu li\u00e9 \u00e0 l'exp\u00e9rience militaire Canadienne"
+  }
+]

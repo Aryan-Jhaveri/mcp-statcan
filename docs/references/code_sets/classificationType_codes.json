@@ -1,0 +1,447 @@
+[
+  {
+    "classificationTypeCode": 1,
+    "classificationTypeEn": "Geography",
+    "classificationTypeFr": "G\u00e9ographie"
+  },
+  {
+    "classificationTypeCode": 10,
+    "classificationTypeEn": "HFCE",
+    "classificationTypeFr": "DCFM"
+  },
+  {
+    "classificationTypeCode": 11,
+    "classificationTypeEn": "HS 6-digit level",
+    "classificationTypeFr": "SH niveau 6"
+  },
+  {
+    "classificationTypeCode": 12,
+    "classificationTypeEn": "IOIC2011Link1961",
+    "classificationTypeFr": "CIES2011lien1961"
+  },
+  {
+    "classificationTypeCode": 13,
+    "classificationTypeEn": "IOIC2011Link1997",
+    "classificationTypeFr": "CIES2011lien1997"
+  },
+  {
+    "classificationTypeCode": 14,
+    "classificationTypeEn": "LFSSPEC",
+    "classificationTypeFr": "EPASPEC"
+  },
+  {
+    "classificationTypeCode": 15,
+    "classificationTypeEn": "LFSSPEC2007",
+    "classificationTypeFr": "EPASPEC2007"
+  },
+  {
+    "classificationTypeCode": 16,
+    "classificationTypeEn": "NAICS1997",
+    "classificationTypeFr": "SCIAN1997"
+  },
+  {
+    "classificationTypeCode": 17,
+    "classificationTypeEn": "NAICS2002",
+    "classificationTypeFr": "SCIAN2002"
+  },
+  {
+    "classificationTypeCode": 18,
+    "classificationTypeEn": "NAICS2007",
+    "classificationTypeFr": "SCIAN2007"
+  },
+  {
+    "classificationTypeCode": 19,
+    "classificationTypeEn": "NAICS2012",
+    "classificationTypeFr": "SCIAN2012"
+  },
+  {
+    "classificationTypeCode": 2,
+    "classificationTypeEn": "Category",
+    "classificationTypeFr": "Cat\u00e9gorie"
+  },
+  {
+    "classificationTypeCode": 20,
+    "classificationTypeEn": "NAPCS",
+    "classificationTypeFr": "SCPAN"
+  },
+  {
+    "classificationTypeCode": 21,
+    "classificationTypeEn": "NAPCS_V",
+    "classificationTypeFr": "SCPAN_V"
+  },
+  {
+    "classificationTypeCode": 22,
+    "classificationTypeEn": "NAPCS2012",
+    "classificationTypeFr": "SCPAN2012"
+  },
+  {
+    "classificationTypeCode": 23,
+    "classificationTypeEn": "NOCS2001",
+    "classificationTypeFr": "CNPS2001"
+  },
+  {
+    "classificationTypeCode": 24,
+    "classificationTypeEn": "NOCS2006",
+    "classificationTypeFr": "CNPS2006"
+  },
+  {
+    "classificationTypeCode": 25,
+    "classificationTypeEn": "RETTRDSPEC",
+    "classificationTypeFr": "COMDETSPEC"
+  },
+  {
+    "classificationTypeCode": 26,
+    "classificationTypeEn": "RETTRDSPEC6",
+    "classificationTypeFr": "COMDETSPEC6"
+  },
+  {
+    "classificationTypeCode": 27,
+    "classificationTypeEn": "SCCAI2011",
+    "classificationTypeFr": "CTPZI2011"
+  },
+  {
+    "classificationTypeCode": 28,
+    "classificationTypeEn": "SCG",
+    "classificationTypeFr": "CTB"
+  },
+  {
+    "classificationTypeCode": 29,
+    "classificationTypeEn": "SIC1980E",
+    "classificationTypeFr": "CTI1980E"
+  },
+  {
+    "classificationTypeCode": 3,
+    "classificationTypeEn": "Commodity",
+    "classificationTypeFr": "Produit"
+  },
+  {
+    "classificationTypeCode": 30,
+    "classificationTypeEn": "Standard Industrial Classification, 1960 (SIC)",
+    "classificationTypeFr": "Classification type d'industries, 1960 (CTI)"
+  },
+  {
+    "classificationTypeCode": 31,
+    "classificationTypeEn": "Standard Industrial Classification, 1970 (SIC)",
+    "classificationTypeFr": "Classification type des industries, 1970 (CTI)"
+  },
+  {
+    "classificationTypeCode": 32,
+    "classificationTypeEn": "Violations",
+    "classificationTypeFr": "Infractions"
+  },
+  {
+    "classificationTypeCode": 33,
+    "classificationTypeEn": "WHLSTRDSPEC",
+    "classificationTypeFr": "COMGROSSPEC"
+  },
+  {
+    "classificationTypeCode": 34,
+    "classificationTypeEn": "World Health Organization, International Classification of Diseases for Oncology, Second Edition (ICD-O-2)",
+    "classificationTypeFr": "Organisation mondiale de la sant\u00e9, Classification internationale des maladies pour l'oncologie, Deuxi\u00e8me \u00e9dition (CIM-O-2)"
+  },
+  {
+    "classificationTypeCode": 35,
+    "classificationTypeEn": "World Health Organization, International Classification of Diseases for Oncology, Third Edition (ICD-O-3)",
+    "classificationTypeFr": "Organisation mondiale de la sant\u00e9, Classification internationale des maladies pour l'oncologie, Troisi\u00e8me \u00e9dition (CIM-O-3)"
+  },
+  {
+    "classificationTypeCode": 36,
+    "classificationTypeEn": "World Health Organization, International Classification of Diseases, Ninth Revision (ICD-9)",
+    "classificationTypeFr": "Organisation mondiale de la sant\u00e9, Classification internationale des maladies, Neuvi\u00e8me r\u00e9vision (CIM-9)"
+  },
+  {
+    "classificationTypeCode": 37,
+    "classificationTypeEn": "World Health Organization, International Statistical Classification of Diseases and Related Health Problems, Tenth Revision (ICD-10)",
+    "classificationTypeFr": "Organisation mondiale de la sant\u00e9, Classification statistique internationale des maladies et des probl\u00e8mes de sant\u00e9 connexes, Dixi\u00e8me r\u00e9vision (CIM-10)"
+  },
+  {
+    "classificationTypeCode": 38,
+    "classificationTypeEn": "NOCS2011",
+    "classificationTypeFr": "CNP2011"
+  },
+  {
+    "classificationTypeCode": 39,
+    "classificationTypeEn": "LFSSPEC2012",
+    "classificationTypeFr": "EPASPEC2012"
+  },
+  {
+    "classificationTypeCode": 4,
+    "classificationTypeEn": "Industry",
+    "classificationTypeFr": "Industrie"
+  },
+  {
+    "classificationTypeCode": 40,
+    "classificationTypeEn": "Product",
+    "classificationTypeFr": "Produit"
+  },
+  {
+    "classificationTypeCode": 41,
+    "classificationTypeEn": "NAPCS2017CPPI",
+    "classificationTypeFr": "SCPAN2017IPOP"
+  },
+  {
+    "classificationTypeCode": 42,
+    "classificationTypeEn": "NAICS2017",
+    "classificationTypeFr": "SCIAN2017"
+  },
+  {
+    "classificationTypeCode": 43,
+    "classificationTypeEn": "SDAC2003",
+    "classificationTypeFr": "CTAD2003"
+  },
+  {
+    "classificationTypeCode": 44,
+    "classificationTypeEn": "NAPCS2017",
+    "classificationTypeFr": "SCPAN2017"
+  },
+  {
+    "classificationTypeCode": 45,
+    "classificationTypeEn": "BEC4",
+    "classificationTypeFr": "GCE4"
+  },
+  {
+    "classificationTypeCode": 46,
+    "classificationTypeEn": "Health regions 2015",
+    "classificationTypeFr": "R\u00e9gions sociosanitaires de 2015"
+  },
+  {
+    "classificationTypeCode": 47,
+    "classificationTypeEn": "Health regions 2017",
+    "classificationTypeFr": "R\u00e9gions sociosanitaires de 2017"
+  },
+  {
+    "classificationTypeCode": 48,
+    "classificationTypeEn": "NOC2016",
+    "classificationTypeFr": "CNP2016"
+  },
+  {
+    "classificationTypeCode": 49,
+    "classificationTypeEn": "World Health Organization, International Statistical Classification of Diseases and Related Health Problems, Ninth Revision (ICD-9) and Tenth Revision (ICD-10)",
+    "classificationTypeFr": "Organisation mondiale de la Sant\u00e9, Classification statistique internationale des maladies et des probl\u00e8mes de sant\u00e9 connexes, Neuvi\u00e8me r\u00e9vision (CIM-9) et Dixi\u00e8me r\u00e9vision (CIM-10)"
+  },
+  {
+    "classificationTypeCode": 5,
+    "classificationTypeEn": "Business sector industries",
+    "classificationTypeFr": "Les industries du secteur des entreprises"
+  },
+  {
+    "classificationTypeCode": 50,
+    "classificationTypeEn": "CIP2016VAR",
+    "classificationTypeFr": "CPE2016VAR"
+  },
+  {
+    "classificationTypeCode": 51,
+    "classificationTypeEn": "NAICS2017v2",
+    "classificationTypeFr": "SCIAN2017v2"
+  },
+  {
+    "classificationTypeCode": 52,
+    "classificationTypeEn": "CIP2016VARPG",
+    "classificationTypeFr": "CPE2016VARRP"
+  },
+  {
+    "classificationTypeCode": 53,
+    "classificationTypeEn": "SCCAI2016",
+    "classificationTypeFr": "CTPZI2016"
+  },
+  {
+    "classificationTypeCode": 54,
+    "classificationTypeEn": "CIP2016VARSTEMandBHASE",
+    "classificationTypeFr": "CPE2016VARSTGMetSACHES"
+  },
+  {
+    "classificationTypeCode": 55,
+    "classificationTypeEn": "SCCAI2017",
+    "classificationTypeFr": "CTPZI2017"
+  },
+  {
+    "classificationTypeCode": 56,
+    "classificationTypeEn": "BEC5",
+    "classificationTypeFr": "GCE5"
+  },
+  {
+    "classificationTypeCode": 57,
+    "classificationTypeEn": "IOIC2016Link1961",
+    "classificationTypeFr": "CIES2016lien1961"
+  },
+  {
+    "classificationTypeCode": 58,
+    "classificationTypeEn": "Gender2018",
+    "classificationTypeFr": "Genre2018"
+  },
+  {
+    "classificationTypeCode": 59,
+    "classificationTypeEn": "Minority2015",
+    "classificationTypeFr": "Minorti\u00e92015"
+  },
+  {
+    "classificationTypeCode": 6,
+    "classificationTypeEn": "CCOFOG2014",
+    "classificationTypeFr": "CCFAPC2014"
+  },
+  {
+    "classificationTypeCode": 60,
+    "classificationTypeEn": "CAI2015",
+    "classificationTypeFr": "CIA2015"
+  },
+  {
+    "classificationTypeCode": 61,
+    "classificationTypeEn": "SCTG1996",
+    "classificationTypeFr": "CTBT1996"
+  },
+  {
+    "classificationTypeCode": 62,
+    "classificationTypeEn": "IOIC2016Summary",
+    "classificationTypeFr": "CIES2016Sommaire"
+  },
+  {
+    "classificationTypeCode": 63,
+    "classificationTypeEn": "CAVAR1",
+    "classificationTypeFr": "CAVAR1"
+  },
+  {
+    "classificationTypeCode": 64,
+    "classificationTypeEn": "CFOLS",
+    "classificationTypeFr": "CPLOP"
+  },
+  {
+    "classificationTypeCode": 65,
+    "classificationTypeEn": "NAICS2017v3",
+    "classificationTypeFr": "SCIAN2017v3"
+  },
+  {
+    "classificationTypeCode": 66,
+    "classificationTypeEn": "SCCAI2018",
+    "classificationTypeFr": "CTPZI2018"
+  },
+  {
+    "classificationTypeCode": 67,
+    "classificationTypeEn": "SCCAIV2018",
+    "classificationTypeFr": "CTPZIV2018"
+  },
+  {
+    "classificationTypeCode": 68,
+    "classificationTypeEn": "CIP2016VCannabis",
+    "classificationTypeFr": "CPE2016VCannabis"
+  },
+  {
+    "classificationTypeCode": 69,
+    "classificationTypeEn": "CIP2016VCannabisPrimary",
+    "classificationTypeFr": "CPE2016VCannabisPrincipaux"
+  },
+  {
+    "classificationTypeCode": 7,
+    "classificationTypeEn": "CGFS2014",
+    "classificationTypeFr": "SFPC2014"
+  },
+  {
+    "classificationTypeCode": 70,
+    "classificationTypeEn": "CIP2016VARCannabisSTEMandBHASE",
+    "classificationTypeFr": "CPE2016VARCannabisSTGMetSACHES"
+  },
+  {
+    "classificationTypeCode": 71,
+    "classificationTypeEn": "LFSSPEC2017",
+    "classificationTypeFr": "EPASPEC2017"
+  },
+  {
+    "classificationTypeCode": 72,
+    "classificationTypeEn": "HS 4-digit level",
+    "classificationTypeFr": "HS niveau 4"
+  },
+  {
+    "classificationTypeCode": 73,
+    "classificationTypeEn": "SCCAI2019",
+    "classificationTypeFr": "CTPZI2019"
+  },
+  {
+    "classificationTypeCode": 74,
+    "classificationTypeEn": "NAICS2022",
+    "classificationTypeFr": "SCIAN2022"
+  },
+  {
+    "classificationTypeCode": 75,
+    "classificationTypeEn": "NAPCS2022",
+    "classificationTypeFr": "SCPAN2022"
+  },
+  {
+    "classificationTypeCode": 76,
+    "classificationTypeEn": "LFSNOC2021",
+    "classificationTypeFr": "EPACNP2021"
+  },
+  {
+    "classificationTypeCode": 77,
+    "classificationTypeEn": "ICNPO",
+    "classificationTypeFr": "CIOSBL"
+  },
+  {
+    "classificationTypeCode": 78,
+    "classificationTypeEn": "NAICS",
+    "classificationTypeFr": "SCIAN"
+  },
+  {
+    "classificationTypeCode": 79,
+    "classificationTypeEn": "NOC2021",
+    "classificationTypeFr": "CNP2021"
+  },
+  {
+    "classificationTypeCode": 8,
+    "classificationTypeEn": "CIP2000SPEC",
+    "classificationTypeFr": "CPE2000SPEC"
+  },
+  {
+    "classificationTypeCode": 80,
+    "classificationTypeEn": "CIP2021VARPG",
+    "classificationTypeFr": "CPE2021VARRP"
+  },
+  {
+    "classificationTypeCode": 81,
+    "classificationTypeEn": "CIP2021VARSTEMandBHASE",
+    "classificationTypeFr": "CPE2021VARSTIMetSACHES"
+  },
+  {
+    "classificationTypeCode": 82,
+    "classificationTypeEn": "NAICS2022v1",
+    "classificationTypeFr": "SCIAN2022v1"
+  },
+  {
+    "classificationTypeCode": 83,
+    "classificationTypeEn": "CIP2021VCannabisPrimary",
+    "classificationTypeFr": "CPE2021VCannabisPrincipaux"
+  },
+  {
+    "classificationTypeCode": 84,
+    "classificationTypeEn": "CIP2021VARCannabisSTEMandBHASE",
+    "classificationTypeFr": "CPE2021VARCannabisSTIMetSACHES"
+  },
+  {
+    "classificationTypeCode": 85,
+    "classificationTypeEn": "CIP2021VCannabis",
+    "classificationTypeFr": "CPE2021VCannabis"
+  },
+  {
+    "classificationTypeCode": 86,
+    "classificationTypeEn": "CIP2021",
+    "classificationTypeFr": "CPE2021"
+  },
+  {
+    "classificationTypeCode": 87,
+    "classificationTypeEn": "SCCAI2022",
+    "classificationTypeFr": "CTPZI2022"
+  },
+  {
+    "classificationTypeCode": 88,
+    "classificationTypeEn": "LFSSPEC2022",
+    "classificationTypeFr": "EPASPEC2022"
+  },
+  {
+    "classificationTypeCode": 89,
+    "classificationTypeEn": "CIP2021VAlternative",
+    "classificationTypeFr": "CPE2021VAlternatifs"
+  },
+  {
+    "classificationTypeCode": 9,
+    "classificationTypeEn": "CIP2011SPEC",
+    "classificationTypeFr": "CPE2011SPEC"
+  }
+]

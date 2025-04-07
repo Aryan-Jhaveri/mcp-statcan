@@ -1,0 +1,47 @@
+[
+  {
+    "codeId": 0,
+    "codeTextEn": "Success",
+    "codeTextFr": "Succ\u00e8s"
+  },
+  {
+    "codeId": 1,
+    "codeTextEn": "Invalid date",
+    "codeTextFr": "Date invalide"
+  },
+  {
+    "codeId": 2,
+    "codeTextEn": "Invalid cube and series combination",
+    "codeTextFr": "Combinaison invalide de cube et de s\u00e9rie"
+  },
+  {
+    "codeId": 3,
+    "codeTextEn": "Request failed",
+    "codeTextFr": "La demande a \u00e9chou\u00e9e"
+  },
+  {
+    "codeId": 4,
+    "codeTextEn": "Vector is invalid",
+    "codeTextFr": "Vecteur invalide"
+  },
+  {
+    "codeId": 5,
+    "codeTextEn": "Cube product id is invalid",
+    "codeTextFr": "Identificateur du produit invalide"
+  },
+  {
+    "codeId": 6,
+    "codeTextEn": "Cube is currently being published. Please try again later.",
+    "codeTextFr": "Le cube est en cours de publication. Veuillez r\u00e9essayer plus tard."
+  },
+  {
+    "codeId": 7,
+    "codeTextEn": "Cube is not available. For more information, contact us\n(toll-free 1-800-263-1136;   514-283-8300; STATCAN.infostats-infostats.STATCAN@canada.ca).",
+    "codeTextFr": "Le cube n'est pas disponible. Pour plus d'information, contactez-nous\nsans frais 1-800-263-1136; 514-283-8300;   STATCAN.infostats-infostats.STATCAN@canada.ca)."
+  },
+  {
+    "codeId": 8,
+    "codeTextEn": "Invalid number of reference periods",
+    "codeTextFr": "Nombre de p\u00e9riodes de r\u00e9f\u00e9rence invalide."
+  }
+]

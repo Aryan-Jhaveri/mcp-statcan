@@ -1,0 +1,8 @@
+getFullTableDownloadSDMX
+GET URL:
+https://www150.statcan.gc.ca/t1/wds/rest/getFullTableDownloadSDMX/14100287 
+RESULT: 
+{
+  "status": "SUCCESS",
+  "object": "https://www150.statcan.gc.ca/n1/tbl/sdmx/14100287-SDMX.zip"
+}

@@ -1,0 +1,16 @@
+getChangedSeriesList
+Users can choose to ask for what series have changed today. This can be invoked at any time of day and will reflect the list of series that have been updated at 8:30am EST on a given release up until midnight that same day.
+GET URL:
+https://www150.statcan.gc.ca/t1/wds/rest/getChangedSeriesList 
+"status": "SUCCESS",
+"object": {
+  "status": "SUCCESS",
+  "object": [
+    {
+      "responseStatusCode": 0,
+      "vectorId": 107028707,
+      "productId": 25100059,
+      "coordinate": "5.2.1.0.0.0.0.0.0.0",
+      "releaseTime": "2018-01-23T08:30"
+    },
+… repeating objects

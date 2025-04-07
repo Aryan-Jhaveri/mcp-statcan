@@ -1,0 +1,31 @@
+getChangedSeriesDataFromVector
+POST URL:
+https://www150.statcan.gc.ca/t1/wds/rest/getChangedSeriesDataFromVector 
+POST BODY:
+[{"vectorId":32164132}] 
+Both methods return the same result.
+RESULT: 
+[
+  {
+    "status": "SUCCESS",
+    "object":{
+    "responseStatusCode": 0,
+    "productId": 35100003,
+    "coordinate": "1.12.0.0.0.0.0.0.0.0",
+    "vectorId": 32164132,
+     "vectorDataPoint": [
+        {
+    "refPer": "1994-01-01",
+    "refPer2": "1995-01-01",
+    "refPerRaw": "1994-01-01",
+    "refPerRaw2": "1995-01-01",
+    "value": 1052,
+    "decimals": 0,
+    "scalarFactorCode": 0,
+    "symbolCode": 0,
+    "statusCode": 7,
+    "securityLevelCode": 0,
+    "releaseTime": 2017-12-07T08:30,
+    "frequencyCode": 13
+  }
+… repeating objects

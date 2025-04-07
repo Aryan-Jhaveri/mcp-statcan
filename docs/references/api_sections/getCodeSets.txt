@@ -1,0 +1,22 @@
+getCodeSets
+GET URL:
+https://www150.statcan.gc.ca/t1/wds/rest/getCodeSets 
+RESULT: 
+{
+  "status": "SUCCESS",
+  "object": {
+    "scalar": [
+      {
+        "scalarFactorCode": 0,
+        "scalarFactorDescEn": "units ",
+        "scalarFactorDescFr": "unités"
+      },
+… repeating objects
+    ],
+    "frequency": [
+      {
+        "frequencyCode": 1,
+        "frequencyDescEn": "Daily",
+        "frequencyDescFr": "Quotidien"
+      },
+… repeating objects

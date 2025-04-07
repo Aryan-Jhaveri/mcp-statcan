@@ -1,0 +1,9 @@
+getFullTableDownloadCSV
+For users who require the full table/cube of extracted time series, a static file download is available in both CSV and SDMX (XML) formats. Both return a link to the ProductId (PID) supplied in the URL. The CSV version also lets users select either the English (en) or French (fr) versions. The example uses English as the desired output language for CSV. In the case of accessing an SDMX full table download, it does not require a language selection due to being a bilingual format.
+GET URL:
+https://www150.statcan.gc.ca/t1/wds/rest/getFullTableDownloadCSV/14100287/en 
+RESULT: 
+{
+  "status": "SUCCESS",
+  "object": "https://www150.statcan.gc.ca/n1/tbl/csv/14100287-eng.zip"
+}

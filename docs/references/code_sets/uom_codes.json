@@ -1,0 +1,2292 @@
+[
+  {
+    "memberUomCode": 0,
+    "memberUomEn": null,
+    "memberUomFr": null
+  },
+  {
+    "memberUomCode": 1,
+    "memberUomEn": "1981=100",
+    "memberUomFr": "1981=100"
+  },
+  {
+    "memberUomCode": 10,
+    "memberUomEn": "199712=100",
+    "memberUomFr": "199712=100"
+  },
+  {
+    "memberUomCode": 100,
+    "memberUomEn": "Dollars per 8 litres",
+    "memberUomFr": "Dollars par 8 litres"
+  },
+  {
+    "memberUomCode": 101,
+    "memberUomEn": "Dollars per 9 litres",
+    "memberUomFr": "Dollars par 9 litres"
+  },
+  {
+    "memberUomCode": 102,
+    "memberUomEn": "Dollars per 9,000 feet",
+    "memberUomFr": "Dollars par 9 000 pieds"
+  },
+  {
+    "memberUomCode": 103,
+    "memberUomEn": "Dollars per 9.5 litres",
+    "memberUomFr": "Dollars par 9,5 litres"
+  },
+  {
+    "memberUomCode": 104,
+    "memberUomEn": "Dollars per bushel",
+    "memberUomFr": "Dollars par boisseaux"
+  },
+  {
+    "memberUomCode": 105,
+    "memberUomEn": "Dollars per carton",
+    "memberUomFr": "Dollars par carton"
+  },
+  {
+    "memberUomCode": 106,
+    "memberUomEn": "Dollars per dozen",
+    "memberUomFr": "Dollars par douzaine"
+  },
+  {
+    "memberUomCode": 107,
+    "memberUomEn": "Dollars per hour",
+    "memberUomFr": "Dollars par heure"
+  },
+  {
+    "memberUomCode": 108,
+    "memberUomEn": "Dollars per hundredweight",
+    "memberUomFr": "Dollars par quintal"
+  },
+  {
+    "memberUomCode": 109,
+    "memberUomEn": "Dollars per hundredweight",
+    "memberUomFr": "Dollars par poids de cent douze livres"
+  },
+  {
+    "memberUomCode": 11,
+    "memberUomEn": "1997=100",
+    "memberUomFr": "1997=100"
+  },
+  {
+    "memberUomCode": 110,
+    "memberUomEn": "Dollars per hundredweight",
+    "memberUomFr": "Dollars par poids de cent livres"
+  },
+  {
+    "memberUomCode": 111,
+    "memberUomEn": "Dollars per hundredweight",
+    "memberUomFr": "Dollars par quintaux"
+  },
+  {
+    "memberUomCode": 112,
+    "memberUomEn": "Dollars per hundredweight of milk",
+    "memberUomFr": "Dollars par poids de cent douze livres de lait"
+  },
+  {
+    "memberUomCode": 113,
+    "memberUomEn": "Dollars per kilogram",
+    "memberUomFr": "Dollars par kilogramme"
+  },
+  {
+    "memberUomCode": 114,
+    "memberUomEn": "Dollars per kilolitre",
+    "memberUomFr": "Dollars par kilolitre"
+  },
+  {
+    "memberUomCode": 115,
+    "memberUomEn": "Dollars per kilometre",
+    "memberUomFr": "Dollars par kilom\u00e8tre"
+  },
+  {
+    "memberUomCode": 116,
+    "memberUomEn": "Dollars per litre",
+    "memberUomFr": "Dollars par litre"
+  },
+  {
+    "memberUomCode": 117,
+    "memberUomEn": "Dollars per metric tonne",
+    "memberUomFr": "Dollars par tonne m\u00e9trique"
+  },
+  {
+    "memberUomCode": 118,
+    "memberUomEn": "Dollars per person",
+    "memberUomFr": "Dollars par personne"
+  },
+  {
+    "memberUomCode": 119,
+    "memberUomEn": "Dollars per pound",
+    "memberUomFr": "Dollars par livre"
+  },
+  {
+    "memberUomCode": 12,
+    "memberUomEn": "1999=100",
+    "memberUomFr": "1999=100"
+  },
+  {
+    "memberUomCode": 120,
+    "memberUomEn": "Dollars per ton",
+    "memberUomFr": "Dollars par tonne"
+  },
+  {
+    "memberUomCode": 121,
+    "memberUomEn": "Dollars per tonne",
+    "memberUomFr": "Dollars par tonne m\u00e9trique"
+  },
+  {
+    "memberUomCode": 122,
+    "memberUomEn": "Dollars per tonnes",
+    "memberUomFr": "Dollars par tonnes m\u00e9triques"
+  },
+  {
+    "memberUomCode": 123,
+    "memberUomEn": "Dollars per unit of real GDP",
+    "memberUomFr": "Dollars par unit\u00e9 de PIB r\u00e9el"
+  },
+  {
+    "memberUomCode": 124,
+    "memberUomEn": "Dollars, 1972=100",
+    "memberUomFr": "Dollars, 1972=100"
+  },
+  {
+    "memberUomCode": 125,
+    "memberUomEn": "Dollars, 1981=100",
+    "memberUomFr": "Dollars, 1981=100"
+  },
+  {
+    "memberUomCode": 126,
+    "memberUomEn": "Dollars, 1982=100",
+    "memberUomFr": "Dollars, 1982=100"
+  },
+  {
+    "memberUomCode": 127,
+    "memberUomEn": "Dollars, 1986=100",
+    "memberUomFr": "Dollars, 1986=100"
+  },
+  {
+    "memberUomCode": 128,
+    "memberUomEn": "Dollars, 1992",
+    "memberUomFr": "Dollars, 1992"
+  },
+  {
+    "memberUomCode": 129,
+    "memberUomEn": "Dozens",
+    "memberUomFr": "Douzaines"
+  },
+  {
+    "memberUomCode": 13,
+    "memberUomEn": "2000=100",
+    "memberUomFr": "2000=100"
+  },
+  {
+    "memberUomCode": 130,
+    "memberUomEn": "Dozens per person, per year",
+    "memberUomFr": "Douzaines par personne, par ann\u00e9e"
+  },
+  {
+    "memberUomCode": 131,
+    "memberUomEn": "Duration",
+    "memberUomFr": "Dur\u00e9e"
+  },
+  {
+    "memberUomCode": 132,
+    "memberUomEn": "Eggs",
+    "memberUomFr": "Oeufs"
+  },
+  {
+    "memberUomCode": 133,
+    "memberUomEn": "Employees",
+    "memberUomFr": "Employ\u00e9s"
+  },
+  {
+    "memberUomCode": 134,
+    "memberUomEn": "Employees",
+    "memberUomFr": "Travailleurs"
+  },
+  {
+    "memberUomCode": 135,
+    "memberUomEn": "Enterprises",
+    "memberUomFr": "Entreprises"
+  },
+  {
+    "memberUomCode": 136,
+    "memberUomEn": "Establishments",
+    "memberUomFr": "\u00c9tablissements"
+  },
+  {
+    "memberUomCode": 137,
+    "memberUomEn": "Evenings",
+    "memberUomFr": "Soir\u00e9es"
+  },
+  {
+    "memberUomCode": 138,
+    "memberUomEn": "Families",
+    "memberUomFr": "Familles"
+  },
+  {
+    "memberUomCode": 139,
+    "memberUomEn": "Firms",
+    "memberUomFr": "Entreprises"
+  },
+  {
+    "memberUomCode": 14,
+    "memberUomEn": "2002 constant dollars",
+    "memberUomFr": "Dollars constants de 2002"
+  },
+  {
+    "memberUomCode": 140,
+    "memberUomEn": "Foreign-born persons",
+    "memberUomFr": "Personnes n\u00e9es \u00e0 l'\u00e9tranger"
+  },
+  {
+    "memberUomCode": 141,
+    "memberUomEn": "Full-time equivalent",
+    "memberUomFr": "\u00c9quivalence temps plein"
+  },
+  {
+    "memberUomCode": 142,
+    "memberUomEn": "Gallons",
+    "memberUomFr": "Gallons"
+  },
+  {
+    "memberUomCode": 143,
+    "memberUomEn": "Gigajoules",
+    "memberUomFr": "Gigajoules"
+  },
+  {
+    "memberUomCode": 144,
+    "memberUomEn": "Gigajoules per thousand current dollars of production",
+    "memberUomFr": "Gigajoules par millier de dollars courants de production"
+  },
+  {
+    "memberUomCode": 145,
+    "memberUomEn": "Gigalitres",
+    "memberUomFr": "Gigalitres"
+  },
+  {
+    "memberUomCode": 146,
+    "memberUomEn": "Gigawatt hours",
+    "memberUomFr": "Gigawatt-heures"
+  },
+  {
+    "memberUomCode": 147,
+    "memberUomEn": "Grams",
+    "memberUomFr": "Grammes"
+  },
+  {
+    "memberUomCode": 148,
+    "memberUomEn": "Head",
+    "memberUomFr": "T\u00eate"
+  },
+  {
+    "memberUomCode": 149,
+    "memberUomEn": "Hectares",
+    "memberUomFr": "Hectares"
+  },
+  {
+    "memberUomCode": 15,
+    "memberUomEn": "2002/2003 constant dollars",
+    "memberUomFr": "Dollars constants de 2002-2003"
+  },
+  {
+    "memberUomCode": 150,
+    "memberUomEn": "High 95% confidence interval",
+    "memberUomFr": "Limite sup\u00e9rieure de l'intervalle de confiance de 95 %"
+  },
+  {
+    "memberUomCode": 151,
+    "memberUomEn": "Hogs",
+    "memberUomFr": "Porcs"
+  },
+  {
+    "memberUomCode": 152,
+    "memberUomEn": "Hours",
+    "memberUomFr": "Heures"
+  },
+  {
+    "memberUomCode": 153,
+    "memberUomEn": "Hours in thousands",
+    "memberUomFr": "Heures en milliers"
+  },
+  {
+    "memberUomCode": 154,
+    "memberUomEn": "Households",
+    "memberUomFr": "M\u00e9nages"
+  },
+  {
+    "memberUomCode": 155,
+    "memberUomEn": "Hundredweight",
+    "memberUomFr": "Poids de cent douze livres"
+  },
+  {
+    "memberUomCode": 156,
+    "memberUomEn": "Hundredweight",
+    "memberUomFr": "Poids de cent livres"
+  },
+  {
+    "memberUomCode": 157,
+    "memberUomEn": "Hundredweight",
+    "memberUomFr": "Quintaux"
+  },
+  {
+    "memberUomCode": 158,
+    "memberUomEn": "Hundredweight per acre",
+    "memberUomFr": "Quintaux par acre"
+  },
+  {
+    "memberUomCode": 159,
+    "memberUomEn": "Hundredweight per harvested acres",
+    "memberUomFr": "Quintaux \u00e0 l'acre r\u00e9colt\u00e9"
+  },
+  {
+    "memberUomCode": 16,
+    "memberUomEn": "200212=100",
+    "memberUomFr": "200212=100"
+  },
+  {
+    "memberUomCode": 160,
+    "memberUomEn": "Index",
+    "memberUomFr": "Indice"
+  },
+  {
+    "memberUomCode": 161,
+    "memberUomEn": "Index, 1926=100",
+    "memberUomFr": "Indice, 1926=100"
+  },
+  {
+    "memberUomCode": 162,
+    "memberUomEn": "Index, 1948=100/1968=100",
+    "memberUomFr": "Indices, 1948=100/1968=100"
+  },
+  {
+    "memberUomCode": 163,
+    "memberUomEn": "Index, 1961=100",
+    "memberUomFr": "Indice, 1961=100"
+  },
+  {
+    "memberUomCode": 164,
+    "memberUomEn": "Index, 1967=100",
+    "memberUomFr": "Indice, 1967=100"
+  },
+  {
+    "memberUomCode": 165,
+    "memberUomEn": "Index, 1971=100",
+    "memberUomFr": "Indice, 1971=100"
+  },
+  {
+    "memberUomCode": 166,
+    "memberUomEn": "Index, 1972=100",
+    "memberUomFr": "Indice, 1972=100"
+  },
+  {
+    "memberUomCode": 167,
+    "memberUomEn": "Index, 1975=1000",
+    "memberUomFr": "Indice, 1975=1000"
+  },
+  {
+    "memberUomCode": 168,
+    "memberUomEn": "Index, 1977=100",
+    "memberUomFr": "Indice, 1977=100"
+  },
+  {
+    "memberUomCode": 169,
+    "memberUomEn": "Index, 1981=100",
+    "memberUomFr": "Indice, 1981=100"
+  },
+  {
+    "memberUomCode": 17,
+    "memberUomEn": "2002=100",
+    "memberUomFr": "2002=100"
+  },
+  {
+    "memberUomCode": 170,
+    "memberUomEn": "Index, 1982-84=100",
+    "memberUomFr": "Indice, 1982-84=100"
+  },
+  {
+    "memberUomCode": 171,
+    "memberUomEn": "Index, 1986=100",
+    "memberUomFr": "Indice, 1986=100"
+  },
+  {
+    "memberUomCode": 172,
+    "memberUomEn": "Index, 1990=100",
+    "memberUomFr": "Indice, 1990=100"
+  },
+  {
+    "memberUomCode": 173,
+    "memberUomEn": "Index, 1992=100",
+    "memberUomFr": "Indice, 1992=100"
+  },
+  {
+    "memberUomCode": 174,
+    "memberUomEn": "Index, 199712=100",
+    "memberUomFr": "Indice, 199712=100"
+  },
+  {
+    "memberUomCode": 175,
+    "memberUomEn": "Index, 1997=100",
+    "memberUomFr": "Indice, 1997=100"
+  },
+  {
+    "memberUomCode": 176,
+    "memberUomEn": "Index, 2000=1000",
+    "memberUomFr": "Indice, 2000=1000"
+  },
+  {
+    "memberUomCode": 177,
+    "memberUomEn": "Index, 2001=100",
+    "memberUomFr": "Indice, 2001=100"
+  },
+  {
+    "memberUomCode": 178,
+    "memberUomEn": "Index, 2002=100",
+    "memberUomFr": "Indice, 2002=100"
+  },
+  {
+    "memberUomCode": 179,
+    "memberUomEn": "Index, 2003=100",
+    "memberUomFr": "Indice, 2003=100"
+  },
+  {
+    "memberUomCode": 18,
+    "memberUomEn": "2007 constant dollars",
+    "memberUomFr": "Dollars constants de 2007"
+  },
+  {
+    "memberUomCode": 180,
+    "memberUomEn": "Index, 2006=100",
+    "memberUomFr": "Indice, 2006=100"
+  },
+  {
+    "memberUomCode": 181,
+    "memberUomEn": "Index, 2007=100",
+    "memberUomFr": "Indice, 2007=100"
+  },
+  {
+    "memberUomCode": 182,
+    "memberUomEn": "Index, 2008=100",
+    "memberUomFr": "Indice, 2008=100"
+  },
+  {
+    "memberUomCode": 183,
+    "memberUomEn": "Index, 2009=100",
+    "memberUomFr": "Indice, 2009=100"
+  },
+  {
+    "memberUomCode": 184,
+    "memberUomEn": "Index, 2010=100",
+    "memberUomFr": "Indice, 2010=100"
+  },
+  {
+    "memberUomCode": 185,
+    "memberUomEn": "Index, 2011=100",
+    "memberUomFr": "Indice, 2011=100"
+  },
+  {
+    "memberUomCode": 186,
+    "memberUomEn": "Index, 2013=100",
+    "memberUomFr": "Indice, 2013=100"
+  },
+  {
+    "memberUomCode": 187,
+    "memberUomEn": "Index, 82-90=100",
+    "memberUomFr": "Indice, 82-90=100"
+  },
+  {
+    "memberUomCode": 188,
+    "memberUomEn": "Index, combined city average=100",
+    "memberUomFr": "Indice, moyenne des villes combin\u00e9es=100"
+  },
+  {
+    "memberUomCode": 189,
+    "memberUomEn": "Index,1992=100",
+    "memberUomFr": "Indice, 1992=100"
+  },
+  {
+    "memberUomCode": 19,
+    "memberUomEn": "200704=100",
+    "memberUomFr": "200704=100"
+  },
+  {
+    "memberUomCode": 190,
+    "memberUomEn": "Jobs",
+    "memberUomFr": "Emplois"
+  },
+  {
+    "memberUomCode": 191,
+    "memberUomEn": "Kilocalories",
+    "memberUomFr": "Kilocalories"
+  },
+  {
+    "memberUomCode": 192,
+    "memberUomEn": "Kilograms",
+    "memberUomFr": "Kilogrammes"
+  },
+  {
+    "memberUomCode": 193,
+    "memberUomEn": "Kilograms per hectare",
+    "memberUomFr": "Kilogrammes par hectare"
+  },
+  {
+    "memberUomCode": 194,
+    "memberUomEn": "Kilograms per person, per year",
+    "memberUomFr": "Kilogrammes par personne, par ann\u00e9e"
+  },
+  {
+    "memberUomCode": 195,
+    "memberUomEn": "Kilolitres",
+    "memberUomFr": "Kilolitres"
+  },
+  {
+    "memberUomCode": 196,
+    "memberUomEn": "Kilometres",
+    "memberUomFr": "Kilom\u00e8tres"
+  },
+  {
+    "memberUomCode": 197,
+    "memberUomEn": "Kilometres per hour",
+    "memberUomFr": "Kilom\u00e8tres par heure"
+  },
+  {
+    "memberUomCode": 198,
+    "memberUomEn": "Kilotonnes",
+    "memberUomFr": "Kilotonnes"
+  },
+  {
+    "memberUomCode": 199,
+    "memberUomEn": "Kilowatt-hours",
+    "memberUomFr": "Kilowattheures"
+  },
+  {
+    "memberUomCode": 2,
+    "memberUomEn": "198203=100",
+    "memberUomFr": "198203=100"
+  },
+  {
+    "memberUomCode": 20,
+    "memberUomEn": "2007=100",
+    "memberUomFr": "2007=100"
+  },
+  {
+    "memberUomCode": 200,
+    "memberUomEn": "Kilowatts",
+    "memberUomFr": "Kilowatts"
+  },
+  {
+    "memberUomCode": 201,
+    "memberUomEn": "Layers",
+    "memberUomFr": "Pondeuses"
+  },
+  {
+    "memberUomCode": 202,
+    "memberUomEn": "Lines",
+    "memberUomFr": "Lignes"
+  },
+  {
+    "memberUomCode": 203,
+    "memberUomEn": "Litres",
+    "memberUomFr": "Litres"
+  },
+  {
+    "memberUomCode": 204,
+    "memberUomEn": "Litres absolute alcohol",
+    "memberUomFr": "Litres d'alcool absolu"
+  },
+  {
+    "memberUomCode": 205,
+    "memberUomEn": "Litres per person, per year",
+    "memberUomFr": "Litres par personne, par ann\u00e9e"
+  },
+  {
+    "memberUomCode": 206,
+    "memberUomEn": "Low 95% confidence interval",
+    "memberUomFr": "Limite inf\u00e9rieure de l'intervalle de confiance de 95 %"
+  },
+  {
+    "memberUomCode": 207,
+    "memberUomEn": "Mean number",
+    "memberUomFr": "Nombre moyen"
+  },
+  {
+    "memberUomCode": 208,
+    "memberUomEn": "Megalitres",
+    "memberUomFr": "M\u00e9galitres"
+  },
+  {
+    "memberUomCode": 209,
+    "memberUomEn": "Megatonnes",
+    "memberUomFr": "M\u00e9gatonnes"
+  },
+  {
+    "memberUomCode": 21,
+    "memberUomEn": "2010=100",
+    "memberUomFr": "2010=100"
+  },
+  {
+    "memberUomCode": 210,
+    "memberUomEn": "Megawatt hours",
+    "memberUomFr": "M\u00e9gawatt heures"
+  },
+  {
+    "memberUomCode": 211,
+    "memberUomEn": "Message",
+    "memberUomFr": "Appel"
+  },
+  {
+    "memberUomCode": 212,
+    "memberUomEn": "Metric bundles",
+    "memberUomFr": "Paquets m\u00e9triques"
+  },
+  {
+    "memberUomCode": 213,
+    "memberUomEn": "Metric rolls",
+    "memberUomFr": "Rouleaux m\u00e9triques"
+  },
+  {
+    "memberUomCode": 214,
+    "memberUomEn": "Metric tonnes",
+    "memberUomFr": "Tonnes m\u00e9triques"
+  },
+  {
+    "memberUomCode": 215,
+    "memberUomEn": "Metric units",
+    "memberUomFr": "Unit\u00e9s m\u00e9triques"
+  },
+  {
+    "memberUomCode": 216,
+    "memberUomEn": "Micrograms",
+    "memberUomFr": "Microgrammes"
+  },
+  {
+    "memberUomCode": 217,
+    "memberUomEn": "Milligrams",
+    "memberUomFr": "Milligrammes"
+  },
+  {
+    "memberUomCode": 218,
+    "memberUomEn": "Millimetres",
+    "memberUomFr": "Millim\u00e8tres"
+  },
+  {
+    "memberUomCode": 219,
+    "memberUomEn": "Minutes",
+    "memberUomFr": "Minutes"
+  },
+  {
+    "memberUomCode": 22,
+    "memberUomEn": "201104=100",
+    "memberUomFr": "201104=100"
+  },
+  {
+    "memberUomCode": 220,
+    "memberUomEn": "Months",
+    "memberUomFr": "Mois"
+  },
+  {
+    "memberUomCode": 221,
+    "memberUomEn": "Month/day",
+    "memberUomFr": "Mois/jour"
+  },
+  {
+    "memberUomCode": 222,
+    "memberUomEn": "National currency per Canadian dollar",
+    "memberUomFr": "Monnaie nationale par dollar canadien"
+  },
+  {
+    "memberUomCode": 223,
+    "memberUomEn": "Number",
+    "memberUomFr": "Nombre"
+  },
+  {
+    "memberUomCode": 224,
+    "memberUomEn": "Niacin equivalent",
+    "memberUomFr": "\u00c9quivalent en niacine"
+  },
+  {
+    "memberUomCode": 225,
+    "memberUomEn": "Nights",
+    "memberUomFr": "Nuit\u00e9es"
+  },
+  {
+    "memberUomCode": 226,
+    "memberUomEn": "Number in thousands",
+    "memberUomFr": "Nombre en milliers"
+  },
+  {
+    "memberUomCode": 227,
+    "memberUomEn": "Number of farms reporting",
+    "memberUomFr": "Nombre d'exploitations d\u00e9clarantes"
+  },
+  {
+    "memberUomCode": 228,
+    "memberUomEn": "Number of visits",
+    "memberUomFr": "Nombre de visites"
+  },
+  {
+    "memberUomCode": 229,
+    "memberUomEn": "Number per square kilometre",
+    "memberUomFr": "Nombre par kilom\u00e8tre carr\u00e9"
+  },
+  {
+    "memberUomCode": 23,
+    "memberUomEn": "2012 constant dollars",
+    "memberUomFr": "Dollars constants de 2012"
+  },
+  {
+    "memberUomCode": 230,
+    "memberUomEn": "Other British- and foreign-born persons",
+    "memberUomFr": "Personnes n\u00e9es dans un autre pays britannique et \u00e0 l'\u00e9tranger"
+  },
+  {
+    "memberUomCode": 231,
+    "memberUomEn": "Other British-born persons",
+    "memberUomFr": "Personnes n\u00e9es dans un autre pays britannique"
+  },
+  {
+    "memberUomCode": 232,
+    "memberUomEn": "Oven-dry metric tonnes",
+    "memberUomFr": "Tonnes m\u00e9triques s\u00e9ch\u00e9es au four"
+  },
+  {
+    "memberUomCode": 233,
+    "memberUomEn": "Pairs",
+    "memberUomFr": "Paires"
+  },
+  {
+    "memberUomCode": 234,
+    "memberUomEn": "Passenger-kilometres",
+    "memberUomFr": "Passagers-kilom\u00e8tres"
+  },
+  {
+    "memberUomCode": 235,
+    "memberUomEn": "Passenger-kilometres",
+    "memberUomFr": "Voyageur-kilom\u00e8tres"
+  },
+  {
+    "memberUomCode": 236,
+    "memberUomEn": "Passengers",
+    "memberUomFr": "Passagers"
+  },
+  {
+    "memberUomCode": 237,
+    "memberUomEn": "Passengers",
+    "memberUomFr": "Voyageurs"
+  },
+  {
+    "memberUomCode": 238,
+    "memberUomEn": "Passengers-miles",
+    "memberUomFr": "Voyageurs-mille"
+  },
+  {
+    "memberUomCode": 239,
+    "memberUomEn": "Percent",
+    "memberUomFr": "Pourcent"
+  },
+  {
+    "memberUomCode": 24,
+    "memberUomEn": "2012/01=100",
+    "memberUomFr": "2012/01=100"
+  },
+  {
+    "memberUomCode": 240,
+    "memberUomEn": "Percent change (1986=100)",
+    "memberUomFr": "Variation en pourcentage (1986=100)"
+  },
+  {
+    "memberUomCode": 241,
+    "memberUomEn": "Percent change (1992=100)",
+    "memberUomFr": "Variation en pourcentage (1992=100)"
+  },
+  {
+    "memberUomCode": 242,
+    "memberUomEn": "Percentage",
+    "memberUomFr": "Pourcentage"
+  },
+  {
+    "memberUomCode": 243,
+    "memberUomEn": "Percentage of gross domestic income",
+    "memberUomFr": "Pourcentage du revenu int\u00e9rieur brut"
+  },
+  {
+    "memberUomCode": 244,
+    "memberUomEn": "Percentage of gross domestic product",
+    "memberUomFr": "Pourcentage du produit int\u00e9rieur brut"
+  },
+  {
+    "memberUomCode": 245,
+    "memberUomEn": "Percentage of households",
+    "memberUomFr": "Pourcentage des m\u00e9nages"
+  },
+  {
+    "memberUomCode": 246,
+    "memberUomEn": "Percentage share",
+    "memberUomFr": "Part en pourcentage"
+  },
+  {
+    "memberUomCode": 247,
+    "memberUomEn": "Person-trips",
+    "memberUomFr": "Voyages-personnes"
+  },
+  {
+    "memberUomCode": 248,
+    "memberUomEn": "Person-visits",
+    "memberUomFr": "Visites-personnes"
+  },
+  {
+    "memberUomCode": 249,
+    "memberUomEn": "Persons",
+    "memberUomFr": "Personnes"
+  },
+  {
+    "memberUomCode": 25,
+    "memberUomEn": "2013=100",
+    "memberUomFr": "2013=100"
+  },
+  {
+    "memberUomCode": 250,
+    "memberUomEn": "Petajoules",
+    "memberUomFr": "P\u00e9tajoules"
+  },
+  {
+    "memberUomCode": 251,
+    "memberUomEn": "Point",
+    "memberUomFr": "Point"
+  },
+  {
+    "memberUomCode": 252,
+    "memberUomEn": "Policies",
+    "memberUomFr": "Polices"
+  },
+  {
+    "memberUomCode": 253,
+    "memberUomEn": "Poults",
+    "memberUomFr": "Dindonneau"
+  },
+  {
+    "memberUomCode": 254,
+    "memberUomEn": "Pounds",
+    "memberUomFr": "Livres"
+  },
+  {
+    "memberUomCode": 255,
+    "memberUomEn": "Pounds of milk",
+    "memberUomFr": "Livres de lait"
+  },
+  {
+    "memberUomCode": 256,
+    "memberUomEn": "Pounds per acre",
+    "memberUomFr": "Livres par acre"
+  },
+  {
+    "memberUomCode": 257,
+    "memberUomEn": "Rate",
+    "memberUomFr": "Taux"
+  },
+  {
+    "memberUomCode": 258,
+    "memberUomEn": "Rate per 1,000 births",
+    "memberUomFr": "Taux pour 1 000 naissances"
+  },
+  {
+    "memberUomCode": 259,
+    "memberUomEn": "Rate per 1,000 legally married females",
+    "memberUomFr": "Taux pour 1 000 femmes mari\u00e9es l\u00e9galement"
+  },
+  {
+    "memberUomCode": 26,
+    "memberUomEn": "Access lines",
+    "memberUomFr": "Lignes d'acc\u00e8s"
+  },
+  {
+    "memberUomCode": 260,
+    "memberUomEn": "Rate per 1,000 legally married males",
+    "memberUomFr": "Taux pour 1 000 hommes mari\u00e9s l\u00e9galement"
+  },
+  {
+    "memberUomCode": 261,
+    "memberUomEn": "Rate per 1,000 live births",
+    "memberUomFr": "Taux pour 1 000 naissances vivantes"
+  },
+  {
+    "memberUomCode": 262,
+    "memberUomEn": "Rate per 1,000 males",
+    "memberUomFr": "Taux pour 1 000 hommes"
+  },
+  {
+    "memberUomCode": 263,
+    "memberUomEn": "Rate per 1,000 marriages",
+    "memberUomFr": "Taux pour 1 000 mariages"
+  },
+  {
+    "memberUomCode": 264,
+    "memberUomEn": "Rate per 1,000 total births",
+    "memberUomFr": "Taux pour 1 000 naissances totales"
+  },
+  {
+    "memberUomCode": 265,
+    "memberUomEn": "Rate per 100,000 population",
+    "memberUomFr": "Taux pour 100 000 personnes"
+  },
+  {
+    "memberUomCode": 266,
+    "memberUomEn": "Rates per 1,000 females",
+    "memberUomFr": "Taux pour 1 000 femmes"
+  },
+  {
+    "memberUomCode": 267,
+    "memberUomEn": "Rates per 1,000 population",
+    "memberUomFr": "Taux pour 1 000 personnes"
+  },
+  {
+    "memberUomCode": 268,
+    "memberUomEn": "Rates per 1,000 unmarried females",
+    "memberUomFr": "Taux pour 1 000 femmes non mari\u00e9es"
+  },
+  {
+    "memberUomCode": 269,
+    "memberUomEn": "Rates per 1,000 unmarried males",
+    "memberUomFr": "Taux pour 1 000 hommes non mari\u00e9s"
+  },
+  {
+    "memberUomCode": 27,
+    "memberUomEn": "Accidents",
+    "memberUomFr": "Accidents"
+  },
+  {
+    "memberUomCode": 270,
+    "memberUomEn": "Ratio",
+    "memberUomFr": "Rapport"
+  },
+  {
+    "memberUomCode": 271,
+    "memberUomEn": "Ratio",
+    "memberUomFr": "Ratio"
+  },
+  {
+    "memberUomCode": 272,
+    "memberUomEn": "Ratio",
+    "memberUomFr": "Taux"
+  },
+  {
+    "memberUomCode": 273,
+    "memberUomEn": "Records",
+    "memberUomFr": "Disques"
+  },
+  {
+    "memberUomCode": 274,
+    "memberUomEn": "Retinol equivalent",
+    "memberUomFr": "\u00c9quivalent r\u00e9tinol"
+  },
+  {
+    "memberUomCode": 275,
+    "memberUomEn": "Seat-kilometres",
+    "memberUomFr": "Si\u00e8ges-kilom\u00e8tres"
+  },
+  {
+    "memberUomCode": 276,
+    "memberUomEn": "Shares",
+    "memberUomFr": "Actions"
+  },
+  {
+    "memberUomCode": 277,
+    "memberUomEn": "Shares",
+    "memberUomFr": "Parts"
+  },
+  {
+    "memberUomCode": 278,
+    "memberUomEn": "Shelters",
+    "memberUomFr": "Refuges"
+  },
+  {
+    "memberUomCode": 279,
+    "memberUomEn": "Square feet",
+    "memberUomFr": "Pieds carr\u00e9s"
+  },
+  {
+    "memberUomCode": 28,
+    "memberUomEn": "Acres",
+    "memberUomFr": "Acres"
+  },
+  {
+    "memberUomCode": 280,
+    "memberUomEn": "Square kilometres",
+    "memberUomFr": "Kilom\u00e8tres carr\u00e9s"
+  },
+  {
+    "memberUomCode": 281,
+    "memberUomEn": "Square metres",
+    "memberUomFr": "M\u00e8tres carr\u00e9s"
+  },
+  {
+    "memberUomCode": 282,
+    "memberUomEn": "Tapes",
+    "memberUomFr": "Rubans"
+  },
+  {
+    "memberUomCode": 283,
+    "memberUomEn": "Terajoules",
+    "memberUomFr": "T\u00e9rajoules"
+  },
+  {
+    "memberUomCode": 284,
+    "memberUomEn": "Thousands of dollars",
+    "memberUomFr": "Milliers de dollars"
+  },
+  {
+    "memberUomCode": 285,
+    "memberUomEn": "Tonne-kilometres",
+    "memberUomFr": "Tonnes-kilom\u00e8tres"
+  },
+  {
+    "memberUomCode": 286,
+    "memberUomEn": "Tonne-miles",
+    "memberUomFr": "Tonne-mille"
+  },
+  {
+    "memberUomCode": 287,
+    "memberUomEn": "Tonnes",
+    "memberUomFr": "Tonnes"
+  },
+  {
+    "memberUomCode": 288,
+    "memberUomEn": "Tonnes",
+    "memberUomFr": "Tonnes m\u00e9triques"
+  },
+  {
+    "memberUomCode": 289,
+    "memberUomEn": "Tonnes of oil equivalent",
+    "memberUomFr": "\u00c9quivalent des tonnes du p\u00e9trole"
+  },
+  {
+    "memberUomCode": 29,
+    "memberUomEn": "Age-sex-standardized rate per 100,000 population",
+    "memberUomFr": "Taux normalis\u00e9 selon l'\u00e2ge et le sexe pour 100 000 personnes"
+  },
+  {
+    "memberUomCode": 290,
+    "memberUomEn": "Tonnes per thousand current dollars of production",
+    "memberUomFr": "Tonnes par millier de dollars courants de production"
+  },
+  {
+    "memberUomCode": 291,
+    "memberUomEn": "Tons",
+    "memberUomFr": "Tonnes"
+  },
+  {
+    "memberUomCode": 292,
+    "memberUomEn": "Tons",
+    "memberUomFr": "Tonnes imp\u00e9riales"
+  },
+  {
+    "memberUomCode": 293,
+    "memberUomEn": "Tons per acre",
+    "memberUomFr": "Tonnes par acre"
+  },
+  {
+    "memberUomCode": 294,
+    "memberUomEn": "Troy ounces",
+    "memberUomFr": "Onces troy"
+  },
+  {
+    "memberUomCode": 295,
+    "memberUomEn": "Twenty feet equivalent units",
+    "memberUomFr": "Unit\u00e9s \u00e9quivalent \u00e0 vingt pieds"
+  },
+  {
+    "memberUomCode": 296,
+    "memberUomEn": "US dollars per unit of real GDP",
+    "memberUomFr": "Dollars am\u00e9ricains par unit\u00e9 de PIB r\u00e9el"
+  },
+  {
+    "memberUomCode": 297,
+    "memberUomEn": "United States Dollars",
+    "memberUomFr": "Dollars des \u00c9tats-Unis"
+  },
+  {
+    "memberUomCode": 298,
+    "memberUomEn": "United States dollars",
+    "memberUomFr": "Dollars des \u00c9tats-Unis"
+  },
+  {
+    "memberUomCode": 299,
+    "memberUomEn": "United States dollars per Canadian dollar",
+    "memberUomFr": "Dollars \u00c9tats-Unis par dollar canadien"
+  },
+  {
+    "memberUomCode": 3,
+    "memberUomEn": "1986=100",
+    "memberUomFr": "1986=100"
+  },
+  {
+    "memberUomCode": 30,
+    "memberUomEn": "Age-standardized rate per 100,000 population",
+    "memberUomFr": "Taux normalis\u00e9 selon l'\u00e2ge pour 100 000 personnes"
+  },
+  {
+    "memberUomCode": 300,
+    "memberUomEn": "Units",
+    "memberUomFr": "Unit\u00e9s"
+  },
+  {
+    "memberUomCode": 301,
+    "memberUomEn": "Vehicle-kilometres",
+    "memberUomFr": "V\u00e9hicule-kilom\u00e8tres"
+  },
+  {
+    "memberUomCode": 302,
+    "memberUomEn": "Vehicles",
+    "memberUomFr": "V\u00e9hicules"
+  },
+  {
+    "memberUomCode": 303,
+    "memberUomEn": "Weeks",
+    "memberUomFr": "Semaines"
+  },
+  {
+    "memberUomCode": 304,
+    "memberUomEn": "Weights",
+    "memberUomFr": "Pond\u00e9rations"
+  },
+  {
+    "memberUomCode": 305,
+    "memberUomEn": "Weights, 1986=100",
+    "memberUomFr": "Pond\u00e9rations, 1986=100"
+  },
+  {
+    "memberUomCode": 306,
+    "memberUomEn": "Weights, 1997=100",
+    "memberUomFr": "Pond\u00e9rations, 1997=100"
+  },
+  {
+    "memberUomCode": 307,
+    "memberUomEn": "Women",
+    "memberUomFr": "Femmes"
+  },
+  {
+    "memberUomCode": 308,
+    "memberUomEn": "Years",
+    "memberUomFr": "Ann\u00e9es"
+  },
+  {
+    "memberUomCode": 309,
+    "memberUomEn": "Dollars, 2002",
+    "memberUomFr": "Dollars, 2002"
+  },
+  {
+    "memberUomCode": 31,
+    "memberUomEn": "Agreements",
+    "memberUomFr": "Conventions"
+  },
+  {
+    "memberUomCode": 310,
+    "memberUomEn": "Micrograms per litre (\u00b5g/L)",
+    "memberUomFr": "Microgrammes par litre (\u00b5g/L)"
+  },
+  {
+    "memberUomCode": 311,
+    "memberUomEn": "Minutes per day",
+    "memberUomFr": "Minutes par jour"
+  },
+  {
+    "memberUomCode": 312,
+    "memberUomEn": "Nanograms per millilitre (ng/mL)",
+    "memberUomFr": "Nanogrammes par millilitre (ng/mL)"
+  },
+  {
+    "memberUomCode": 313,
+    "memberUomEn": "Nanomoles per litre (nmol/L)",
+    "memberUomFr": "Nanomoles par litre (nmol/L)"
+  },
+  {
+    "memberUomCode": 314,
+    "memberUomEn": "2013 constant dollars",
+    "memberUomFr": "Dollars constants de 2013"
+  },
+  {
+    "memberUomCode": 315,
+    "memberUomEn": "Dollars per head",
+    "memberUomFr": "Dollars par pomme"
+  },
+  {
+    "memberUomCode": 316,
+    "memberUomEn": "Quarts",
+    "memberUomFr": "Pintes"
+  },
+  {
+    "memberUomCode": 317,
+    "memberUomEn": "Dollars per thousand cubic metres",
+    "memberUomFr": "Dollars par millier de m\u00e8tres cubes"
+  },
+  {
+    "memberUomCode": 318,
+    "memberUomEn": "Litres per person per day",
+    "memberUomFr": "Litres par personne par jour"
+  },
+  {
+    "memberUomCode": 319,
+    "memberUomEn": "Twenty feet equivalent units ",
+    "memberUomFr": "Unit\u00e9s \u00e9quivalent \u00e0 vingt pieds "
+  },
+  {
+    "memberUomCode": 32,
+    "memberUomEn": "Average hours per day",
+    "memberUomFr": "Moyenne des heures par jour"
+  },
+  {
+    "memberUomCode": 320,
+    "memberUomEn": "Gigajoules per thousand cubic metres",
+    "memberUomFr": "Gigajoules par millier de m\u00e8tres cubes"
+  },
+  {
+    "memberUomCode": 321,
+    "memberUomEn": "2007 chained dollars",
+    "memberUomFr": "Dollars encha\u00een\u00e9s 2007"
+  },
+  {
+    "memberUomCode": 322,
+    "memberUomEn": "2014 constant dollars",
+    "memberUomFr": "Dollars constants de 2014"
+  },
+  {
+    "memberUomCode": 323,
+    "memberUomEn": "Cubic kilometres",
+    "memberUomFr": "Kilom\u00e8tres cubes"
+  },
+  {
+    "memberUomCode": 324,
+    "memberUomEn": "2015=100",
+    "memberUomFr": "2015=100"
+  },
+  {
+    "memberUomCode": 325,
+    "memberUomEn": "Weight in carats",
+    "memberUomFr": "Poids en carats"
+  },
+  {
+    "memberUomCode": 326,
+    "memberUomEn": "Number of gross",
+    "memberUomFr": "Nombre en grosses"
+  },
+  {
+    "memberUomCode": 327,
+    "memberUomEn": "Volume in hectolitres",
+    "memberUomFr": "Volume en hectolitres"
+  },
+  {
+    "memberUomCode": 328,
+    "memberUomEn": "Weight in kilograms of named substance",
+    "memberUomFr": "Poids en kilogrammes de la mati\u00e8re mentionn\u00e9e"
+  },
+  {
+    "memberUomCode": 329,
+    "memberUomEn": "Weight in air dry kilograms",
+    "memberUomFr": "Poids en kilogrammes s\u00e9ch\u00e9s \u00e0 l'air"
+  },
+  {
+    "memberUomCode": 33,
+    "memberUomEn": "Bankruptcies",
+    "memberUomFr": "Faillites"
+  },
+  {
+    "memberUomCode": 330,
+    "memberUomEn": "Volume in litres of pure alcohol",
+    "memberUomFr": "Volume en litres d'alcool pur"
+  },
+  {
+    "memberUomCode": 331,
+    "memberUomEn": "Volume in litres",
+    "memberUomFr": "Volume en litres"
+  },
+  {
+    "memberUomCode": 332,
+    "memberUomEn": "Area in square metres",
+    "memberUomFr": "Superficie en m\u00e8tres carr\u00e9s"
+  },
+  {
+    "memberUomCode": 333,
+    "memberUomEn": "Volume in cubic metres",
+    "memberUomFr": "Volume en m\u00e8tres cubes"
+  },
+  {
+    "memberUomCode": 334,
+    "memberUomEn": "Length in metres",
+    "memberUomFr": "Longueurs en m\u00e8tres"
+  },
+  {
+    "memberUomCode": 335,
+    "memberUomEn": "Megawatt-Hour",
+    "memberUomFr": "M\u00e9gawattheure"
+  },
+  {
+    "memberUomCode": 336,
+    "memberUomEn": "Number of packages",
+    "memberUomFr": "Nombre de paquets"
+  },
+  {
+    "memberUomCode": 337,
+    "memberUomEn": "Thousands of cubic metres",
+    "memberUomFr": "Milliers de m\u00e8tres cubes"
+  },
+  {
+    "memberUomCode": 338,
+    "memberUomEn": "Weight in metric tonne",
+    "memberUomFr": "Poids en tonne m\u00e9trique"
+  },
+  {
+    "memberUomCode": 339,
+    "memberUomEn": "Metric tonne air dry",
+    "memberUomFr": "Tonne m\u00e9trique s\u00e9ch\u00e9e \u00e0 l'air"
+  },
+  {
+    "memberUomCode": 34,
+    "memberUomEn": "Barrels",
+    "memberUomFr": "Barils"
+  },
+  {
+    "memberUomCode": 340,
+    "memberUomEn": "Number of dozens",
+    "memberUomFr": "Nombre de douzaines"
+  },
+  {
+    "memberUomCode": 341,
+    "memberUomEn": "Weight in grams",
+    "memberUomFr": "Poids en grammes"
+  },
+  {
+    "memberUomCode": 342,
+    "memberUomEn": "Weight in kilograms",
+    "memberUomFr": "Poids en kilogrammes"
+  },
+  {
+    "memberUomCode": 343,
+    "memberUomEn": "Blank",
+    "memberUomFr": "Blanc"
+  },
+  {
+    "memberUomCode": 344,
+    "memberUomEn": "Number of pairs",
+    "memberUomFr": "Nombre de paires"
+  },
+  {
+    "memberUomCode": 345,
+    "memberUomEn": "2015 constant dollars",
+    "memberUomFr": "Dollars constants de 2015"
+  },
+  {
+    "memberUomCode": 346,
+    "memberUomEn": "2014=100",
+    "memberUomFr": "2014=100"
+  },
+  {
+    "memberUomCode": 347,
+    "memberUomEn": "Index, 201612=100",
+    "memberUomFr": "Indice, 201612=100"
+  },
+  {
+    "memberUomCode": 348,
+    "memberUomEn": "Index, 2012=100",
+    "memberUomFr": "Indice, 2012=100"
+  },
+  {
+    "memberUomCode": 349,
+    "memberUomEn": "Available seat-kilometres",
+    "memberUomFr": "Si\u00e8ges-kilom\u00e8tres disponibles"
+  },
+  {
+    "memberUomCode": 35,
+    "memberUomEn": "Barrels per day",
+    "memberUomFr": "Barils par jour"
+  },
+  {
+    "memberUomCode": 350,
+    "memberUomEn": "2016 constant dollars",
+    "memberUomFr": "Dollars constants de 2016"
+  },
+  {
+    "memberUomCode": 351,
+    "memberUomEn": "Index, 2014=100",
+    "memberUomFr": "Indice, 2014=100"
+  },
+  {
+    "memberUomCode": 352,
+    "memberUomEn": "Nanograms per litre (ng/L)",
+    "memberUomFr": "Nanogrammes par litre (ng/L)"
+  },
+  {
+    "memberUomCode": 353,
+    "memberUomEn": "Micromoles per millimole (\u00b5mol/mmol)",
+    "memberUomFr": "Micromoles par millimole (\u00b5mol/mmol)"
+  },
+  {
+    "memberUomCode": 354,
+    "memberUomEn": "Micromoles per litre (\u00b5mol/L)",
+    "memberUomFr": "Micromoles par litre (\u00b5mol/L)"
+  },
+  {
+    "memberUomCode": 355,
+    "memberUomEn": "Milligrams per Litre (mg/L)",
+    "memberUomFr": "Milligrammes par litre (mg/L)"
+  },
+  {
+    "memberUomCode": 356,
+    "memberUomEn": "Micrograms per cubic metre (\u00b5g/m3)",
+    "memberUomFr": "Microgrammes par m\u00e8tre cube (\u00b5g/m3)"
+  },
+  {
+    "memberUomCode": 357,
+    "memberUomEn": "M.ft.b.m",
+    "memberUomFr": "Milliers de PMP"
+  },
+  {
+    "memberUomCode": 358,
+    "memberUomEn": "Basis points",
+    "memberUomFr": "Points de base"
+  },
+  {
+    "memberUomCode": 359,
+    "memberUomEn": "Dollars per gram",
+    "memberUomFr": "Dollars par gramme"
+  },
+  {
+    "memberUomCode": 36,
+    "memberUomEn": "Benefit periods",
+    "memberUomFr": "P\u00e9riodes de prestations"
+  },
+  {
+    "memberUomCode": 360,
+    "memberUomEn": "Centimetres",
+    "memberUomFr": "Centim\u00e8tres"
+  },
+  {
+    "memberUomCode": 361,
+    "memberUomEn": "Kilograms per metre squared",
+    "memberUomFr": "Kilogrammes par m\u00e8tre carr\u00e9"
+  },
+  {
+    "memberUomCode": 362,
+    "memberUomEn": "Millilitres per kilogram per minute",
+    "memberUomFr": "Millilitres par kilogramme par minute"
+  },
+  {
+    "memberUomCode": 363,
+    "memberUomEn": "Millimetres of mercury",
+    "memberUomFr": "Millimtres de mercure"
+  },
+  {
+    "memberUomCode": 364,
+    "memberUomEn": "Beats per minute",
+    "memberUomFr": "Battements par minute"
+  },
+  {
+    "memberUomCode": 365,
+    "memberUomEn": "Grams per litre",
+    "memberUomFr": "Grammes par litre"
+  },
+  {
+    "memberUomCode": 366,
+    "memberUomEn": "Millimoles per litre",
+    "memberUomFr": "Milimoles par litre"
+  },
+  {
+    "memberUomCode": 367,
+    "memberUomEn": "Billions per litre",
+    "memberUomFr": "Milliards par litre"
+  },
+  {
+    "memberUomCode": 368,
+    "memberUomEn": "Picomoles per litre",
+    "memberUomFr": "Picomoles par litre"
+  },
+  {
+    "memberUomCode": 369,
+    "memberUomEn": "Milli-international units per litre",
+    "memberUomFr": "Milli-units internationale par litre"
+  },
+  {
+    "memberUomCode": 37,
+    "memberUomEn": "Birds",
+    "memberUomFr": "Oiseaux"
+  },
+  {
+    "memberUomCode": 370,
+    "memberUomEn": "Constant dollars",
+    "memberUomFr": "Dollars constants"
+  },
+  {
+    "memberUomCode": 371,
+    "memberUomEn": "Number of farms",
+    "memberUomFr": "Nombre d'exploitations"
+  },
+  {
+    "memberUomCode": 372,
+    "memberUomEn": "Farm operators",
+    "memberUomFr": "Exploitants agricoles"
+  },
+  {
+    "memberUomCode": 373,
+    "memberUomEn": "Index, 2017=100",
+    "memberUomFr": "Indice, 2017=100"
+  },
+  {
+    "memberUomCode": 374,
+    "memberUomEn": "Index, 2015=100",
+    "memberUomFr": "Indice, 2015=100"
+  },
+  {
+    "memberUomCode": 375,
+    "memberUomEn": "1997 chained dollars",
+    "memberUomFr": "En dollars encha\u00een\u00e9s 1997"
+  },
+  {
+    "memberUomCode": 376,
+    "memberUomEn": "Number, indices of change",
+    "memberUomFr": "Nombre, indices de variation"
+  },
+  {
+    "memberUomCode": 377,
+    "memberUomEn": "Per dollar of output",
+    "memberUomFr": "Par dollar de production"
+  },
+  {
+    "memberUomCode": 378,
+    "memberUomEn": "Per million dollars of output",
+    "memberUomFr": "Par million de dollar de production"
+  },
+  {
+    "memberUomCode": 379,
+    "memberUomEn": "Average years",
+    "memberUomFr": "Moyenne des ann\u00e9es"
+  },
+  {
+    "memberUomCode": 38,
+    "memberUomEn": "Births",
+    "memberUomFr": "Naissances"
+  },
+  {
+    "memberUomCode": 380,
+    "memberUomEn": "Grams per day",
+    "memberUomFr": "Grammes par jour"
+  },
+  {
+    "memberUomCode": 381,
+    "memberUomEn": "2012 chained dollars",
+    "memberUomFr": "Dollars encha\u00eenes 2012"
+  },
+  {
+    "memberUomCode": 382,
+    "memberUomEn": "Chained (2012) dollars per hour",
+    "memberUomFr": "Dollars encha\u00een\u00e9s (2012) par heure"
+  },
+  {
+    "memberUomCode": 383,
+    "memberUomEn": "2012=100",
+    "memberUomFr": "2012=100"
+  },
+  {
+    "memberUomCode": 384,
+    "memberUomEn": "Units per litre",
+    "memberUomFr": "Unit\u00e9s par litre"
+  },
+  {
+    "memberUomCode": 385,
+    "memberUomEn": "Cents per dozen",
+    "memberUomFr": "Cents par douzaine"
+  },
+  {
+    "memberUomCode": 386,
+    "memberUomEn": "Index, 2016=100",
+    "memberUomFr": "Indice, 2016=100"
+  },
+  {
+    "memberUomCode": 387,
+    "memberUomEn": "2017 constant dollars",
+    "memberUomFr": "Dollars constants de 2017"
+  },
+  {
+    "memberUomCode": 388,
+    "memberUomEn": "201812=100",
+    "memberUomFr": "201812=100"
+  },
+  {
+    "memberUomCode": 389,
+    "memberUomEn": "2011 constant dollars",
+    "memberUomFr": "Dollars constants de 2011"
+  },
+  {
+    "memberUomCode": 39,
+    "memberUomEn": "Blocks",
+    "memberUomFr": "Blocs"
+  },
+  {
+    "memberUomCode": 390,
+    "memberUomEn": "2018=100",
+    "memberUomFr": "2018=100"
+  },
+  {
+    "memberUomCode": 391,
+    "memberUomEn": "Chained (2012) dollars in thousands",
+    "memberUomFr": "Dollars encha\u00een\u00e9s (2012) en milliers"
+  },
+  {
+    "memberUomCode": 392,
+    "memberUomEn": "Litres per litre",
+    "memberUomFr": "Litres par litre"
+  },
+  {
+    "memberUomCode": 393,
+    "memberUomEn": "Femtolitres",
+    "memberUomFr": "Femtolitres"
+  },
+  {
+    "memberUomCode": 394,
+    "memberUomEn": "Nanomoles per millimole (nmol/mmol)",
+    "memberUomFr": "Nanomoles par millimole (nmol/mmol)"
+  },
+  {
+    "memberUomCode": 395,
+    "memberUomEn": "Rate per 100,000 live births",
+    "memberUomFr": "Taux pour 100 000 naissances vivantes"
+  },
+  {
+    "memberUomCode": 396,
+    "memberUomEn": "Percentage point",
+    "memberUomFr": "Point de pourcentage"
+  },
+  {
+    "memberUomCode": 397,
+    "memberUomEn": "Age-standardized rate per 100,000 person-years at risk",
+    "memberUomFr": "Taux normalis\u00e9s selon l\u2019\u00e2ge pour 100 000 ann\u00e9es-personnes \u00e0 risque"
+  },
+  {
+    "memberUomCode": 398,
+    "memberUomEn": "Index, 2018=100",
+    "memberUomFr": "Indice, 2018=100"
+  },
+  {
+    "memberUomCode": 399,
+    "memberUomEn": "Carats",
+    "memberUomFr": "Carats"
+  },
+  {
+    "memberUomCode": 4,
+    "memberUomEn": "198812=100",
+    "memberUomFr": "198812=100"
+  },
+  {
+    "memberUomCode": 40,
+    "memberUomEn": "Board feet",
+    "memberUomFr": "Pied planche"
+  },
+  {
+    "memberUomCode": 400,
+    "memberUomEn": "2018 constant dollars",
+    "memberUomFr": "Dollars constants de 2018"
+  },
+  {
+    "memberUomCode": 401,
+    "memberUomEn": "2019=100",
+    "memberUomFr": "2019=100"
+  },
+  {
+    "memberUomCode": 402,
+    "memberUomEn": "2017=100",
+    "memberUomFr": "2017=100"
+  },
+  {
+    "memberUomCode": 403,
+    "memberUomEn": "Index, 202001=100",
+    "memberUomFr": "Indice, 202001=100"
+  },
+  {
+    "memberUomCode": 404,
+    "memberUomEn": "2019 constant dollars",
+    "memberUomFr": "Dollars constants de 2019"
+  },
+  {
+    "memberUomCode": 405,
+    "memberUomEn": "Incidents",
+    "memberUomFr": "Incidents"
+  },
+  {
+    "memberUomCode": 406,
+    "memberUomEn": "Tonnes per thousand dollars",
+    "memberUomFr": "Tonnes par milliers de dollars"
+  },
+  {
+    "memberUomCode": 407,
+    "memberUomEn": "Index value (2019=0)",
+    "memberUomFr": "Valeur de l\u2019index (2019=0)"
+  },
+  {
+    "memberUomCode": 408,
+    "memberUomEn": "Megajoules",
+    "memberUomFr": "M\u00e9gajoules"
+  },
+  {
+    "memberUomCode": 409,
+    "memberUomEn": "Full cords",
+    "memberUomFr": "Pleines cordes"
+  },
+  {
+    "memberUomCode": 41,
+    "memberUomEn": "Bricks",
+    "memberUomFr": "Briques"
+  },
+  {
+    "memberUomCode": 410,
+    "memberUomEn": "Metres",
+    "memberUomFr": "M\u00e8tres"
+  },
+  {
+    "memberUomCode": 411,
+    "memberUomEn": "Grams per one million people per day",
+    "memberUomFr": "Grammes par million de personnes par jour"
+  },
+  {
+    "memberUomCode": 412,
+    "memberUomEn": "Kilonewtons (kN)",
+    "memberUomFr": "Kilonewtons (kN)"
+  },
+  {
+    "memberUomCode": 413,
+    "memberUomEn": "Force per unit mass (m/s2)",
+    "memberUomFr": "Force par unite de masse (m/s2)"
+  },
+  {
+    "memberUomCode": 414,
+    "memberUomEn": "Kilowatt per kilogram (kW/kg)",
+    "memberUomFr": "Kilowatt par kilogramme (kW/kg)"
+  },
+  {
+    "memberUomCode": 415,
+    "memberUomEn": "Meters per second (m/s)",
+    "memberUomFr": "M\u00e8tres par seconde (m/s)"
+  },
+  {
+    "memberUomCode": 416,
+    "memberUomEn": "Milligrams per cubic centimeter (mg/cm\u00b3)",
+    "memberUomFr": "Milligrammes par centim\u00e8tre cube (mg/cm\u00b3)"
+  },
+  {
+    "memberUomCode": 417,
+    "memberUomEn": "Square millimeters (mm2)",
+    "memberUomFr": "Millim\u00e8tres carr\u00e9 (mm2)"
+  },
+  {
+    "memberUomCode": 418,
+    "memberUomEn": "Travellers",
+    "memberUomFr": "Voyageurs"
+  },
+  {
+    "memberUomCode": 419,
+    "memberUomEn": "Visitors",
+    "memberUomFr": "Visiteurs"
+  },
+  {
+    "memberUomCode": 42,
+    "memberUomEn": "Bushels",
+    "memberUomFr": "Boisseaux"
+  },
+  {
+    "memberUomCode": 420,
+    "memberUomEn": "Millimoles per litre (mmol/L)",
+    "memberUomFr": "Millimoles par litre (mmol/L)"
+  },
+  {
+    "memberUomCode": 421,
+    "memberUomEn": "Watts per kilogram (W/kg)",
+    "memberUomFr": "Watts par kilogramme (W/kg)"
+  },
+  {
+    "memberUomCode": 422,
+    "memberUomEn": "Average",
+    "memberUomFr": "Moyenne"
+  },
+  {
+    "memberUomCode": 423,
+    "memberUomEn": "Average number",
+    "memberUomFr": "Nombre moyen"
+  },
+  {
+    "memberUomCode": 424,
+    "memberUomEn": "Rate per 1,000 married persons",
+    "memberUomFr": "Taux pour 1 000 personnes mari\u00e9es"
+  },
+  {
+    "memberUomCode": 425,
+    "memberUomEn": "2020 constant dollars",
+    "memberUomFr": "Dollars constants de 2020"
+  },
+  {
+    "memberUomCode": 426,
+    "memberUomEn": "Index, 2019=100",
+    "memberUomFr": "Indice, 2019=100"
+  },
+  {
+    "memberUomCode": 427,
+    "memberUomEn": "202204=100",
+    "memberUomFr": "202204=100"
+  },
+  {
+    "memberUomCode": 428,
+    "memberUomEn": "Persons in thousands",
+    "memberUomFr": "Personnes en milliers"
+  },
+  {
+    "memberUomCode": 429,
+    "memberUomEn": "2021 constant dollars",
+    "memberUomFr": "Dollars constants de 2021"
+  },
+  {
+    "memberUomCode": 43,
+    "memberUomEn": "Bushels per acre",
+    "memberUomFr": "Boisseaux par acre"
+  },
+  {
+    "memberUomCode": 430,
+    "memberUomEn": "Index, 2020=100",
+    "memberUomFr": "Indice, 2020=100"
+  },
+  {
+    "memberUomCode": 431,
+    "memberUomEn": "Average percentage",
+    "memberUomFr": "Pourcentage moyen"
+  },
+  {
+    "memberUomCode": 432,
+    "memberUomEn": "Rate per 1,000 persons of the same marital status",
+    "memberUomFr": "Taux pour 1000 personnes du m\u00eame \u00e9tat matrimonial"
+  },
+  {
+    "memberUomCode": 433,
+    "memberUomEn": "Feet",
+    "memberUomFr": "Pieds"
+  },
+  {
+    "memberUomCode": 434,
+    "memberUomEn": "Index, 2021=100",
+    "memberUomFr": "Indice, 2021=100"
+  },
+  {
+    "memberUomCode": 435,
+    "memberUomEn": "198901=100",
+    "memberUomFr": "198901=100"
+  },
+  {
+    "memberUomCode": 436,
+    "memberUomEn": "Count",
+    "memberUomFr": "Nombre"
+  },
+  {
+    "memberUomCode": 437,
+    "memberUomEn": "Kilometres per square kilometre",
+    "memberUomFr": "Kilom\u00e8tres par kilom\u00e8tre carr\u00e9"
+  },
+  {
+    "memberUomCode": 438,
+    "memberUomEn": "202304=100",
+    "memberUomFr": "202304=100"
+  },
+  {
+    "memberUomCode": 439,
+    "memberUomEn": "2022 constant dollars",
+    "memberUomFr": "Dollars constants de 2022"
+  },
+  {
+    "memberUomCode": 44,
+    "memberUomEn": "Businesses",
+    "memberUomFr": "Entreprises"
+  },
+  {
+    "memberUomCode": 440,
+    "memberUomEn": "2017 chained dollars",
+    "memberUomFr": "Dollars encha\u00een\u00e9s 2017"
+  },
+  {
+    "memberUomCode": 441,
+    "memberUomEn": "Tonnes per hectare",
+    "memberUomFr": "Tonnes par hectare"
+  },
+  {
+    "memberUomCode": 442,
+    "memberUomEn": "Milligrams per one thousand people per day (mg/1000 people/day)",
+    "memberUomFr": "Milligrammes pour mille personnes par jour (milligrammes/1000 personnes/jour)"
+  },
+  {
+    "memberUomCode": 443,
+    "memberUomEn": "Count per hectare",
+    "memberUomFr": "Nombre par hectare"
+  },
+  {
+    "memberUomCode": 444,
+    "memberUomEn": "Average number of weeks",
+    "memberUomFr": "Nombre moyen de semaines"
+  },
+  {
+    "memberUomCode": 445,
+    "memberUomEn": "Chained (2017) dollars in thousands",
+    "memberUomFr": "Dollars encha\u00een\u00e9s (2017) en milliers"
+  },
+  {
+    "memberUomCode": 446,
+    "memberUomEn": "Chained (2017) dollars per hour",
+    "memberUomFr": "Dollars encha\u00een\u00e9s (2017) par heure"
+  },
+  {
+    "memberUomCode": 447,
+    "memberUomEn": "Boolean",
+    "memberUomFr": "Bool\u00e9en"
+  },
+  {
+    "memberUomCode": 448,
+    "memberUomEn": "Rate per 1,000 population",
+    "memberUomFr": "Taux pour 1 000 habitants"
+  },
+  {
+    "memberUomCode": 449,
+    "memberUomEn": "2023 constant dollars",
+    "memberUomFr": "Dollars constants de 2023"
+  },
+  {
+    "memberUomCode": 45,
+    "memberUomEn": "Calves",
+    "memberUomFr": "Veaux"
+  },
+  {
+    "memberUomCode": 450,
+    "memberUomEn": "Millions of cubic meters",
+    "memberUomFr": "Millions de m\u00e8tres cubes"
+  },
+  {
+    "memberUomCode": 451,
+    "memberUomEn": "Index, 2023=100",
+    "memberUomFr": "Indice, 2023=100"
+  },
+  {
+    "memberUomCode": 452,
+    "memberUomEn": "202404=100",
+    "memberUomFr": "202404=100"
+  },
+  {
+    "memberUomCode": 453,
+    "memberUomEn": "Cubic metres per square metre",
+    "memberUomFr": "M\u00e8tres cubes par m\u00e8tre carr\u00e9"
+  },
+  {
+    "memberUomCode": 454,
+    "memberUomEn": "Index, 202407=100",
+    "memberUomFr": "Indice, 202407=100"
+  },
+  {
+    "memberUomCode": 455,
+    "memberUomEn": "2024 constant dollars",
+    "memberUomFr": "Dollars constants de 2024"
+  },
+  {
+    "memberUomCode": 456,
+    "memberUomEn": "Arbitrary Unit",
+    "memberUomFr": "Unit\u00e9 arbitraire"
+  },
+  {
+    "memberUomCode": 46,
+    "memberUomEn": "Canada = 100",
+    "memberUomFr": "Canada = 100"
+  },
+  {
+    "memberUomCode": 47,
+    "memberUomEn": "Canadian dollars",
+    "memberUomFr": "Dollars canadiens"
+  },
+  {
+    "memberUomCode": 48,
+    "memberUomEn": "Canadian dollars per hundredweight",
+    "memberUomFr": "Dollars canadiens par poids de cent livres"
+  },
+  {
+    "memberUomCode": 49,
+    "memberUomEn": "Canadian dollars per unit of foreign currency",
+    "memberUomFr": "Dollars canadiens par unit\u00e9 de devise \u00e9trang\u00e8re"
+  },
+  {
+    "memberUomCode": 5,
+    "memberUomEn": "1992 constant dollars",
+    "memberUomFr": "Dollars constants de 1992"
+  },
+  {
+    "memberUomCode": 50,
+    "memberUomEn": "Carriers",
+    "memberUomFr": "Transporteurs"
+  },
+  {
+    "memberUomCode": 51,
+    "memberUomEn": "Cars",
+    "memberUomFr": "Wagons"
+  },
+  {
+    "memberUomCode": 52,
+    "memberUomEn": "Cassettes",
+    "memberUomFr": "Cassettes"
+  },
+  {
+    "memberUomCode": 53,
+    "memberUomEn": "Cattle",
+    "memberUomFr": "Bovins"
+  },
+  {
+    "memberUomCode": 54,
+    "memberUomEn": "Cent/dozen",
+    "memberUomFr": "Cent/douzaine"
+  },
+  {
+    "memberUomCode": 55,
+    "memberUomEn": "Cents",
+    "memberUomFr": "Cents"
+  },
+  {
+    "memberUomCode": 56,
+    "memberUomEn": "Cents per cubic metre",
+    "memberUomFr": "Cents par m\u00e8tre cube"
+  },
+  {
+    "memberUomCode": 57,
+    "memberUomEn": "Cents per litre",
+    "memberUomFr": "Cents par litre"
+  },
+  {
+    "memberUomCode": 58,
+    "memberUomEn": "Cents per pound",
+    "memberUomFr": "Cents par livre"
+  },
+  {
+    "memberUomCode": 59,
+    "memberUomEn": "Cents per pound of butter fat",
+    "memberUomFr": "Cents par livre de gras de beurre"
+  },
+  {
+    "memberUomCode": 6,
+    "memberUomEn": "1992 constant dollars per square kilometre",
+    "memberUomFr": "Dollars constants de 1992 par kilom\u00e8tre carr\u00e9"
+  },
+  {
+    "memberUomCode": 60,
+    "memberUomEn": "Chained (2002) dollars",
+    "memberUomFr": "Dollars encha\u00een\u00e9s (2002)"
+  },
+  {
+    "memberUomCode": 61,
+    "memberUomEn": "Chained (2002) dollars per hour",
+    "memberUomFr": "Dollars encha\u00een\u00e9s (2002) par heure"
+  },
+  {
+    "memberUomCode": 62,
+    "memberUomEn": "Chained (2007) dollars in thousands",
+    "memberUomFr": "Dollars encha\u00een\u00e9s (2007) en milliers"
+  },
+  {
+    "memberUomCode": 63,
+    "memberUomEn": "Chained (2007) dollars per hour",
+    "memberUomFr": "Dollars encha\u00een\u00e9s (2007) par heure"
+  },
+  {
+    "memberUomCode": 64,
+    "memberUomEn": "Chicks",
+    "memberUomFr": "Poussins"
+  },
+  {
+    "memberUomCode": 65,
+    "memberUomEn": "Children",
+    "memberUomFr": "Enfants"
+  },
+  {
+    "memberUomCode": 66,
+    "memberUomEn": "Cigarettes",
+    "memberUomFr": "Cigarettes"
+  },
+  {
+    "memberUomCode": 67,
+    "memberUomEn": "Cigars",
+    "memberUomFr": "Cigars"
+  },
+  {
+    "memberUomCode": 68,
+    "memberUomEn": "Claims",
+    "memberUomFr": "Demandes"
+  },
+  {
+    "memberUomCode": 69,
+    "memberUomEn": "Corporations",
+    "memberUomFr": "Corporations"
+  },
+  {
+    "memberUomCode": 7,
+    "memberUomEn": "1992=100",
+    "memberUomFr": "1992=100"
+  },
+  {
+    "memberUomCode": 70,
+    "memberUomEn": "Corporations",
+    "memberUomFr": "Soci\u00e9t\u00e9s"
+  },
+  {
+    "memberUomCode": 71,
+    "memberUomEn": "Crude rate per 100,000 population",
+    "memberUomFr": "Taux brut pour 100 000 personnes"
+  },
+  {
+    "memberUomCode": 72,
+    "memberUomEn": "Cubic metres",
+    "memberUomFr": "M\u00e8tres cubes"
+  },
+  {
+    "memberUomCode": 73,
+    "memberUomEn": "Cubic metres dry",
+    "memberUomFr": "M\u00e8tres cubes sec"
+  },
+  {
+    "memberUomCode": 74,
+    "memberUomEn": "Cubic yards",
+    "memberUomFr": "Verges cubes"
+  },
+  {
+    "memberUomCode": 75,
+    "memberUomEn": "Current dollars",
+    "memberUomFr": "Dollars courants"
+  },
+  {
+    "memberUomCode": 76,
+    "memberUomEn": "Customers",
+    "memberUomFr": "Clients"
+  },
+  {
+    "memberUomCode": 77,
+    "memberUomEn": "Days",
+    "memberUomFr": "Jours"
+  },
+  {
+    "memberUomCode": 78,
+    "memberUomEn": "Degrees Celsius",
+    "memberUomFr": "Degr\u00e9s Celsius"
+  },
+  {
+    "memberUomCode": 79,
+    "memberUomEn": "Discs",
+    "memberUomFr": "Disques"
+  },
+  {
+    "memberUomCode": 8,
+    "memberUomEn": "199412=100",
+    "memberUomFr": "199412=100"
+  },
+  {
+    "memberUomCode": 80,
+    "memberUomEn": "Dollar per 100 pound",
+    "memberUomFr": "Dollar par 100 livre"
+  },
+  {
+    "memberUomCode": 81,
+    "memberUomEn": "Dollars",
+    "memberUomFr": "Dollars"
+  },
+  {
+    "memberUomCode": 82,
+    "memberUomEn": "Dollars per 1.81 kilograms",
+    "memberUomFr": "Dollars par 1,81 kilogrammes"
+  },
+  {
+    "memberUomCode": 83,
+    "memberUomEn": "Dollars per 10 kilograms",
+    "memberUomFr": "Dollars par 10 kilogrammes"
+  },
+  {
+    "memberUomCode": 84,
+    "memberUomEn": "Dollars per 10 litres",
+    "memberUomFr": "Dollars par 10 litres"
+  },
+  {
+    "memberUomCode": 85,
+    "memberUomEn": "Dollars per 10 x 400 grams",
+    "memberUomFr": "Dollars par 10 x 400 grammes"
+  },
+  {
+    "memberUomCode": 86,
+    "memberUomEn": "Dollars per 10,000 feet",
+    "memberUomFr": "Dollars par 10 000 pieds"
+  },
+  {
+    "memberUomCode": 87,
+    "memberUomEn": "Dollars per 15 kilograms",
+    "memberUomFr": "Dollars par 15 kilogrammes"
+  },
+  {
+    "memberUomCode": 88,
+    "memberUomEn": "Dollars per 2 kilograms",
+    "memberUomFr": "Dollars par 2 kilogrammes"
+  },
+  {
+    "memberUomCode": 888,
+    "memberUomEn": "Null",
+    "memberUomFr": "Null"
+  },
+  {
+    "memberUomCode": 89,
+    "memberUomEn": "Dollars per 2.5 kilograms",
+    "memberUomFr": "Dollars par 2,5 kilogrammes"
+  },
+  {
+    "memberUomCode": 9,
+    "memberUomEn": "1996=100",
+    "memberUomFr": "1996=100"
+  },
+  {
+    "memberUomCode": 90,
+    "memberUomEn": "Dollars per 20 kilograms",
+    "memberUomFr": "Dollars par 20 kilogrammes"
+  },
+  {
+    "memberUomCode": 91,
+    "memberUomEn": "Dollars per 20 litres",
+    "memberUomFr": "Dollars par 20 litres"
+  },
+  {
+    "memberUomCode": 92,
+    "memberUomEn": "Dollars per 205 litres",
+    "memberUomFr": "Dollars par 205 litres"
+  },
+  {
+    "memberUomCode": 93,
+    "memberUomEn": "Dollars per 22.7 litres",
+    "memberUomFr": "Dollars par 22,7 litres"
+  },
+  {
+    "memberUomCode": 94,
+    "memberUomEn": "Dollars per 25 kilograms",
+    "memberUomFr": "Dollars par 25 kilogrammes"
+  },
+  {
+    "memberUomCode": 95,
+    "memberUomEn": "Dollars per 3 kilograms",
+    "memberUomFr": "Dollars par 3 kilogrammes"
+  },
+  {
+    "memberUomCode": 96,
+    "memberUomEn": "Dollars per 3.3 litres",
+    "memberUomFr": "Dollars par 3,3 litres"
+  },
+  {
+    "memberUomCode": 97,
+    "memberUomEn": "Dollars per 4 litres",
+    "memberUomFr": "Dollars par 4 litres"
+  },
+  {
+    "memberUomCode": 98,
+    "memberUomEn": "Dollars per 4.45 litres",
+    "memberUomFr": "Dollars par 4,45 litres"
+  },
+  {
+    "memberUomCode": 99,
+    "memberUomEn": "Dollars per 5 litres",
+    "memberUomFr": "Dollars par 5 litres"
+  }
+]

@@ -1,0 +1,39 @@
+getBulkVectorDataByRange
+For users that require accessing data according to a certain date range, this method allows access by date range and vector.
+POST URL:
+https://www150.statcan.gc.ca/t1/wds/rest/getBulkVectorDataByRange 
+POST BODY: 
+{
+  "vectorIds": ["74804","1"],
+  "startDataPointReleaseDate": "2015-12-01T08:30",
+  "endDataPointReleaseDate": "2018-03-31T19:00"
+}
+RESULT: 
+[
+  {
+    "status": "SUCCESS",
+    "object": {
+      "responseStatusCode": 0,
+      "productId": 17100009,
+      "coordinate": "1.0.0.0.0.0.0.0.0.0",
+      "vectorId": 1,
+      "vectorDataPoint": [
+        {
+          "refPer": "2017-01-01",
+          "refPer2": "",
+          "refPerRaw": "2017-01-01",
+          "refPerRaw2": "",
+          "value": 36474968,
+          "decimals": 0,
+          "scalarFactorCode": 0,
+          "symbolCode": 0,
+          "statusCode": 0,
+          "securityLevelCode": 0,
+          "releaseTime": "2018-03-22T15:05",
+          "frequencyCode": 9
+        },
+        … repeating for every datapoint
+      ]
+    }
+  },
+  … repeating for every vector requested

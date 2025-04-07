@@ -1,0 +1,6 @@
+getSeriesInfoFromCubePidCoord
+Users can also request series metadata either by CubePidCoord or Vector as seen earlier using getSeriesInfoFromVector
+POST URL:
+https://www150.statcan.gc.ca/t1/wds/rest/getSeriesInfoFromCubePidCoord 
+POST BODY:
+[{"productId": 35100003, "coordinate": "1.12.0.0.0.0.0.0.0.0"}] 

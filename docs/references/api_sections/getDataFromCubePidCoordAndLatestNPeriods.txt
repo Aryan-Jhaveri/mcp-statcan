@@ -1,0 +1,6 @@
+getDataFromCubePidCoordAndLatestNPeriods
+For those who are looking to display data going back N reporting periods from today there are the following set of endpoints (methods). Both methods will return the same results. Our example uses the last three (3) reference periods.
+POST URL:
+https://www150.statcan.gc.ca/t1/wds/rest/getDataFromCubePidCoordAndLatestNPeriods 
+POST BODY:
+[{"productId": 35100003, "coordinate": "1.12.0.0.0.0.0.0.0.0", "latestN":3}] 

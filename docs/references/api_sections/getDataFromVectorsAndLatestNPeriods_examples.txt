@@ -1,0 +1,75 @@
+	getFullTableDownloadSDMX
+Supplemental Information
+getCodeSets
+Product Change Listings
+getChangedSeriesList
+Users can choose to ask for what series have changed today. This can be invoked at any time of day and will reflect the list of series that have been updated at 8:30am EST on a given release up until midnight that same day.
+GET URL:
+https://www150.statcan.gc.ca/t1/wds/rest/getChangedSeriesList 
+"status": "SUCCESS",
+"object": {
+  "status": "SUCCESS",
+  "object": [
+    {
+      "responseStatusCode": 0,
+      "vectorId": 107028707,
+      "productId": 25100059,
+      "coordinate": "5.2.1.0.0.0.0.0.0.0",
+      "releaseTime": "2018-01-23T08:30"
+    },
+… repeating objects
+getChangedCubeList
+Users can also query what has changed at the table/cube level on a specific day by adding an ISO date to the end of the URL. This date can be any date from today into the past.
+GET URL:
+https://www150.statcan.gc.ca/t1/wds/rest/getChangedCubeList/2017-12-07 
+{
+  "status": "SUCCESS",
+  "object": [
+    [
+      {
+        "responseStatusCode": 0,
+        "productId": 34100009,
+        "releaseTime": "2017-12-07T08:30"
+      },
+… repeating objects
+--
+getDataFromVectorsAndLatestNPeriods
+POST URL:
+https://www150.statcan.gc.ca/t1/wds/rest/getDataFromVectorsAndLatestNPeriods 
+POST BODY:
+[{"vectorId":32164132, "latestN":3}] 
+Both methods return the same results.
+RESULT: 
+[
+  {
+    "status": "SUCCESS",
+    "object": {
+      "responseStatusCode": 0,
+      "productId": 34100006,
+      "coordinate": "1.2.7.0.0.0.0.0.0.0",
+      "vectorId": 42076,
+      "vectorDataPoint": [
+        {
+          "refPer": "2017-07-01",
+          "refPer2": "",
+          "refPerRaw": "2017-01-01",
+          "refPerRaw2": "",
+          "value": "18381",
+          "decimals": 0,
+          "scalarFactorCode": 0,
+          "symbolCode": 0,
+          "statusCode": 0,
+          "securityLevelCode": 0,
+          "releaseTime": "2017-12-07T08:30",
+          "frequencyCode": 6
+        },
+… repeating N times
+getBulkVectorDataByRange
+For users that require accessing data according to a certain date range, this method allows access by date range and vector.
+POST URL:
+https://www150.statcan.gc.ca/t1/wds/rest/getBulkVectorDataByRange 
+POST BODY: 
+{
+  "vectorIds": ["74804","1"],
+  "startDataPointReleaseDate": "2015-12-01T08:30",
+  "endDataPointReleaseDate": "2018-03-31T19:00"

@@ -1,0 +1,23 @@
+[
+  {
+    "symbolCode": "0",
+    "symbolRepresentationEn": null,
+    "symbolRepresentationFr": null,
+    "symbolDescEn": "none",
+    "symbolDescFr": "aucun"
+  },
+  {
+    "symbolCode": "1",
+    "symbolRepresentationEn": "p",
+    "symbolRepresentationFr": "p",
+    "symbolDescEn": "preliminary",
+    "symbolDescFr": "provisoire"
+  },
+  {
+    "symbolCode": "3",
+    "symbolRepresentationEn": "r",
+    "symbolRepresentationFr": "r",
+    "symbolDescEn": "revised",
+    "symbolDescFr": "r\u00e9vis\u00e9"
+  }
+]

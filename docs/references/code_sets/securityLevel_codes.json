@@ -1,0 +1,16 @@
+[
+  {
+    "securityLevelCode": 0,
+    "securityLevelRepresentationEn": null,
+    "securityLevelRepresentationFr": null,
+    "securityLevelDescEn": "public",
+    "securityLevelDescFr": "public"
+  },
+  {
+    "securityLevelCode": 1,
+    "securityLevelRepresentationEn": "x",
+    "securityLevelRepresentationFr": "x",
+    "securityLevelDescEn": "suppressed to meet the confidentiality requirements of the Statistics Act",
+    "securityLevelDescFr": "confidentiel en vertu des dispositions de la Loi sur la statistique"
+  }
+]

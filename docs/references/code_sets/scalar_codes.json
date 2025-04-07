@@ -1,0 +1,52 @@
+[
+  {
+    "scalarFactorCode": 0,
+    "scalarFactorDescEn": "units",
+    "scalarFactorDescFr": "unit\u00e9s"
+  },
+  {
+    "scalarFactorCode": 1,
+    "scalarFactorDescEn": "tens",
+    "scalarFactorDescFr": "dizaines"
+  },
+  {
+    "scalarFactorCode": 2,
+    "scalarFactorDescEn": "hundreds",
+    "scalarFactorDescFr": "centaines"
+  },
+  {
+    "scalarFactorCode": 3,
+    "scalarFactorDescEn": "thousands",
+    "scalarFactorDescFr": "milliers"
+  },
+  {
+    "scalarFactorCode": 4,
+    "scalarFactorDescEn": "tens of thousands",
+    "scalarFactorDescFr": "dizaines de milliers"
+  },
+  {
+    "scalarFactorCode": 5,
+    "scalarFactorDescEn": "hundreds of thousands",
+    "scalarFactorDescFr": "centaines de milliers"
+  },
+  {
+    "scalarFactorCode": 6,
+    "scalarFactorDescEn": "millions",
+    "scalarFactorDescFr": "millions"
+  },
+  {
+    "scalarFactorCode": 7,
+    "scalarFactorDescEn": "tens of millions",
+    "scalarFactorDescFr": "dizaines de millions"
+  },
+  {
+    "scalarFactorCode": 8,
+    "scalarFactorDescEn": "hundreds of millions",
+    "scalarFactorDescFr": "centaines de millions"
+  },
+  {
+    "scalarFactorCode": 9,
+    "scalarFactorDescEn": "billions",
+    "scalarFactorDescFr": "milliards"
+  }
+]

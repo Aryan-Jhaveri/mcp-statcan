@@ -1,0 +1,31 @@
+getDataFromVectorsAndLatestNPeriods
+POST URL:
+https://www150.statcan.gc.ca/t1/wds/rest/getDataFromVectorsAndLatestNPeriods 
+POST BODY:
+[{"vectorId":32164132, "latestN":3}] 
+Both methods return the same results.
+RESULT: 
+[
+  {
+    "status": "SUCCESS",
+    "object": {
+      "responseStatusCode": 0,
+      "productId": 34100006,
+      "coordinate": "1.2.7.0.0.0.0.0.0.0",
+      "vectorId": 42076,
+      "vectorDataPoint": [
+        {
+          "refPer": "2017-07-01",
+          "refPer2": "",
+          "refPerRaw": "2017-01-01",
+          "refPerRaw2": "",
+          "value": "18381",
+          "decimals": 0,
+          "scalarFactorCode": 0,
+          "symbolCode": 0,
+          "statusCode": 0,
+          "securityLevelCode": 0,
+          "releaseTime": "2017-12-07T08:30",
+          "frequencyCode": 6
+        },
+… repeating N times
