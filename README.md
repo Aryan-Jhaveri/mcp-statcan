@@ -76,71 +76,35 @@ This allows for persistent storage of retrieved data and more complex data manip
 * **`pyproject.toml` / `uv.lock`**: (Assumed) Project dependency and build configuration.
 * **`.env`**: (Assumed) Used for storing sensitive configuration like database credentials, loaded by `src/config.py`.
 
-## Setup
+## Claude Desktop Configuration
 
-1.  **Clone the repository:**
-    ```bash
-    git clone https://github.com/Aryan-Jhaveri/mcp-statcan
-    cd mcp-statcan
-    ```
-2.  **Install Dependencies:** Using [uv](https://github.com/astral-sh/uv) is recommended.
-    ```bash
-    uv venv  # Create virtual environment (optional but recommended)
-    uv pip install -r requirements.txt # Or 'uv sync' if using uv.lock
-    # Ensure pyproject.toml lists all dependencies (fastmcp, httpx, pydantic, etc.)
-    ```
-3.  **Configuration:**
-    * Create a `.env` file in the project root.
-    * Add necessary configuration variables (e.g., database connection details, `STATCAN_API_BASE_URL`) as required by `src/config.py`.
+To integrate with Claude Desktop:
 
+1. **First install the server with fastmcp** (this sets up dependencies):
+   ```bash
+   fastmcp install src/server.py --name "StatCanAPI_DB_Server" --with httpx
+   ```
 
+2. **Then manually edit the generated config** in your `claude_desktop_config.json`:
+   ```json
+   {
+     "mcpServers": {
+       "StatCanAPI_DB_Server": {
+         "command": "uv",
+         "args": [
+           "run",
+           "--with", "fastmcp",
+           "--with", "httpx", 
+           "sh",
+           "-c",
+           "cd /path/to/mcp-statcan && python -m src.server"
+         ]
+       }
+     }
+   }
+   ```
 
-## Running the Server
-
-### Direct Execution
-
-Run the server as a Python module from the project root directory. This ensures relative imports within the `src` package work correctly.
-
-```bash
-# Make sure your virtual environment is active
-python -m src.server
-```
-
-### Using fastmcp
-
-You can also install and run the server using fastmcp:
-
-```bash
-# Install with fastmcp
-fastmcp install statcan_mcp_server.py
-
-# Or run directly
-python statcan_mcp_server.py
-```
-
-### Claude Desktop Configuration
-
-To integrate with Claude Desktop, add this to your `claude_desktop_config.json` (typically in your home directory):
-
-```json
-{
-  "mcpServers": {
-    "StatCanAPI_DB_Server": {
-      "command": "uv",
-      "args": [
-        "run",
-        "--with", "fastmcp",
-        "--with", "httpx", 
-        "sh",
-        "-c",
-        "cd /path/to/mcp-statcan && python -m src.server"
-      ]
-    }
-  }
-}
-```
-
-Replace `/path/to/mcp-statcan` with the absolute path to your project directory.
+   Replace `/path/to/mcp-statcan` with the absolute path to your project directory. The manual edit is necessary to ensure the server runs with the correct working directory context for proper module resolution.
 
 ## Known Issues and Limitations
 
