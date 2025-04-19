@@ -129,19 +129,18 @@ To integrate with Claude Desktop, add this to your `claude_desktop_config.json` 
       "command": "uv",
       "args": [
         "run",
-        "--with",
-        "fastmcp",
-        "fastmcp",
-        "run",
-        "/path/to/statcan_mcp_server.py"
+        "--with", "fastmcp",
+        "--with", "httpx", 
+        "sh",
+        "-c",
+        "cd /Users/aryanjhaveri/Desktop/Projects/mcp-statcan/attempt7 && python -m src.server"
       ]
     }
   }
 }
 ```
 
-Replace `/path/to/statcan_mcp_server.py` with the absolute path to your script, for example:
-`/Users/username/Projects/mcp-statcan/statcan_mcp_server.py`
+Update the path in the `cd` command to match the location of your project directory.
 
 ## Known Issues and Limitations
 
