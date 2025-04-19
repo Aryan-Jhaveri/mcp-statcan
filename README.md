@@ -77,6 +77,43 @@ This allows for persistent storage of retrieved data and more complex data manip
 * **`pyproject.toml`**: Project dependency and build configuration.
 * **`.env`**: (Assumed) Used for storing sensitive configuration like database credentials, loaded by `src/config.py`.
 
+## Quick Setup for Beginners
+
+If you're new to Python or programming in general, follow these simple steps to get started:
+
+1. **Install Python** (version 3.10 or higher):
+   - Download from [python.org](https://www.python.org/downloads/)
+   - Make sure to check "Add Python to PATH" during installation
+
+2. **Install uv** (a fast Python package installer):
+   ```bash
+   # Open your Terminal (Mac/Linux) or Command Prompt (Windows) and run:
+   curl -fsSL https://astral.sh/uv/install.sh | bash
+   # Or on Windows:
+   # curl.exe -fsSL https://astral.sh/uv/install.ps1 -o install.ps1; powershell -ExecutionPolicy Bypass -File install.ps1
+   ```
+
+3. **Install fastmcp**:
+   ```bash
+   uv pip install fastmcp httpx pydantic
+   ```
+
+4. **Download this project**:
+   ```bash
+   git clone https://github.com/Aryan-Jhaveri/mcp-statcan.git
+   cd mcp-statcan
+   ```
+
+5. **Run the server**:
+   ```bash
+   python -m src.server
+   ```
+
+Tip: If you encounter any "module not found" errors, install the missing package with:
+```bash
+uv pip install package_name
+```
+
 ## Claude Desktop Configuration
 
 To integrate with Claude Desktop:
