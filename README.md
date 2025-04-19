@@ -1,14 +1,30 @@
 [![Statistics Canada MCP Server](assets/StatCan-Header.png)](https://www.statcan.gc.ca/en/start)
 
-# Statistics Canada API MCP Server
+# 📊 Statistics Canada API MCP Server
 
-## Description
+[![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/downloads/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![MCP](https://img.shields.io/badge/MCP-ModelContextProtocol-green.svg)](https://modelcontextprotocol.io/)
+[![GitHub](https://img.shields.io/badge/GitHub-Aryan--Jhaveri-lightgrey?logo=github)](https://github.com/Aryan-Jhaveri)
+
+## 📝 Description
 
 This project implements a [Model Context Protocol (MCP)](https://modelcontextprotocol.io/) server that provides tools for interacting with Statistics Canada (StatCan) data APIs. It allows LLMs or other MCP clients to access and retrieve Canadian statistical data in a structured way.
 
 The server is built using the [FastMCP](https://github.com/jlowin/fastmcp) library and interacts with the StatCan Web Data Service via `httpx`.
 
-## Claude Chat Examples
+## 📑 Table of Contents
+
+- [📝 Description](#-description)
+- [💬 Claude Chat Examples](#-claude-chat-examples)
+- [✨ Features](#-features)
+- [🏗️ Project Structure](#️-project-structure)
+- [📥 Installation](#-installation-guide-for-beginners)
+- [🔧 Setup](#-setting-up-claude-desktop-configuration)
+- [⚠️ Known Issues](#️-known-issues-and-limitations)
+- [🚀 Usage Examples](#-usage-examples)
+
+## 💬 Claude Chat Examples
 
 | Example | Source | Link | Query |
 |---------|------|------|-------|
@@ -28,7 +44,7 @@ To get the most accurate results from Claude when using this Statistics Canada M
 
 > **⚠️ Warning**: LLMs like Claude may occasionally create mock visualizations or fabricate data when unable to retrieve actual information. They might also generate responses with data not available in Statistics Canada to satisfy queries. Always verify results against official sources.
 
-## Features
+## ✨ Features
 
 This server exposes StatCan API functionalities as MCP tools, including:
 
@@ -64,7 +80,7 @@ This allows for persistent storage of retrieved data and more complex data manip
 
 *(Refer to the specific tool functions within `src/api/` for detailed parameters and return types.)*
 
-## Project Structure
+## 🏗️ Project Structure
 
 * **`src/`**: Contains the main source code for the MCP server.
     * **`api/`**: Defines the MCP tools wrapping the StatCan API calls (`cube_tools.py`, `vector_tools.py`, `metadata_tools.py`).
@@ -77,7 +93,7 @@ This allows for persistent storage of retrieved data and more complex data manip
 * **`pyproject.toml`**: Project dependency and build configuration.
 * **`.env`**: (Assumed) Used for storing sensitive configuration like database credentials, loaded by `src/config.py`.
 
-## Downloading Prequisites for Beginners
+## 📥 Installation Guide for Beginners
 
 If you're new to Python or programming in general, follow these simple steps to get started:
 
@@ -109,7 +125,7 @@ Tip: If you encounter any "module not found" errors, install the missing package
 uv pip install package_name
 ```
 
-## Setting Up Claude Desktop Configuration
+## 🔧 Setting Up Claude Desktop Configuration
 
 To integrate with Claude Desktop:
 
@@ -136,7 +152,7 @@ To integrate with Claude Desktop:
 
    Replace `/path/to/mcp-statcan` with the absolute path to your project directory. The manual edit is necessary to ensure the server runs with the correct working directory context for proper module resolution.
 
-## Known Issues and Limitations
+## ⚠️ Known Issues and Limitations
 
 - **SSL Verification**: Currently disabled for development. Should be enabled for production use.
 - **Claude Behavior**: May occasionally get stuck in loops or inefficiently make multiple REST calls when a bulk operation would be more efficient.
@@ -145,7 +161,7 @@ To integrate with Claude Desktop:
 - **Performance**: Some endpoints may timeout with large data requests.
 - **API Rate Limits**: The StatCan API may impose rate limits that affect usage during high-demand periods.
 
-## Usage Examples
+## 🚀 Usage Examples
 
 ### API Operations
 
@@ -177,3 +193,14 @@ tables = list_tables()
 # Get schema for a table
 schema = get_table_schema(TableSchemaInput(table_name="employment_data"))
 ```
+
+---
+
+<div align="center">
+<p>Made with ❤️ for Statistics Canada data</p>
+<p>
+<a href="https://github.com/Aryan-Jhaveri/mcp-statcan">GitHub</a> •
+<a href="https://github.com/Aryan-Jhaveri/mcp-statcan/issues">Report Bug</a> •
+<a href="https://www.statcan.gc.ca/">Statistics Canada</a>
+</p>
+</div>
