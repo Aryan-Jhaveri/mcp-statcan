@@ -72,8 +72,7 @@ This allows for persistent storage of retrieved data and more complex data manip
     * **`config.py`**: Configuration loading (e.g., database credentials, API base URL).
     * **`server.py`**: Main FastMCP server definition and tool registration.
     * **`__init__.py`**: Package initialization for `src`.
-* **`docs/`**: Contains documentation, particularly text descriptions of the wrapped StatCan API methods.
-* **`pyproject.toml` / `uv.lock`**: (Assumed) Project dependency and build configuration.
+* **`pyproject.toml`**: Project dependency and build configuration.
 * **`.env`**: (Assumed) Used for storing sensitive configuration like database credentials, loaded by `src/config.py`.
 
 ## Setup
