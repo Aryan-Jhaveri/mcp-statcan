@@ -77,7 +77,7 @@ This allows for persistent storage of retrieved data and more complex data manip
 * **`pyproject.toml`**: Project dependency and build configuration.
 * **`.env`**: (Assumed) Used for storing sensitive configuration like database credentials, loaded by `src/config.py`.
 
-## Quick Setup for Beginners
+## Downloading Prequisites for Beginners
 
 If you're new to Python or programming in general, follow these simple steps to get started:
 
@@ -104,17 +104,12 @@ If you're new to Python or programming in general, follow these simple steps to 
    cd mcp-statcan
    ```
 
-5. **Run the server**:
-   ```bash
-   python -m src.server
-   ```
-
 Tip: If you encounter any "module not found" errors, install the missing package with:
 ```bash
 uv pip install package_name
 ```
 
-## Claude Desktop Configuration
+## Setup to Claude Desktop Configuration
 
 To integrate with Claude Desktop:
 
