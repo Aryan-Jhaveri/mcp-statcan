@@ -113,12 +113,7 @@ uv pip install package_name
 
 To integrate with Claude Desktop:
 
-1. **First install the server with fastmcp** (this sets up dependencies):
-   ```bash
-   fastmcp install src/server.py --name "StatCanAPI_DB_Server" --with httpx
-   ```
-
-2. **Then manually edit the generated config** in your `claude_desktop_config.json`:
+1. **Then manually edit the generated config** in your `claude_desktop_config.json`:
    ```json
    {
      "mcpServers": {
