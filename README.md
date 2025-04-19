@@ -133,14 +133,14 @@ To integrate with Claude Desktop, add this to your `claude_desktop_config.json` 
         "--with", "httpx", 
         "sh",
         "-c",
-        "cd /Users/aryanjhaveri/Desktop/Projects/mcp-statcan/attempt7 && python -m src.server"
+        "cd /path/to/mcp-statcan && python -m src.server"
       ]
     }
   }
 }
 ```
 
-Update the path in the `cd` command to match the location of your project directory.
+Replace `/path/to/mcp-statcan` with the absolute path to your project directory.
 
 ## Known Issues and Limitations
 
