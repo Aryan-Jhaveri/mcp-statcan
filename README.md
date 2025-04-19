@@ -109,11 +109,13 @@ Tip: If you encounter any "module not found" errors, install the missing package
 uv pip install package_name
 ```
 
-## Setup to Claude Desktop Configuration
+## Setting Up Claude Desktop Configuration
 
 To integrate with Claude Desktop:
 
-1. **Manually edit the generated config** in your `claude_desktop_config.json` (Go to Claude Desktop App -> Settings (CMD + ,) -> Developer -> Edit Config):
+1. **Manually edit the generated config** in your `claude_desktop_config.json`:
+   
+   Navigate to: Claude Desktop App → Settings (⌘ + ,) → Developer → Edit Config
    ```json
    {
      "mcpServers": {
