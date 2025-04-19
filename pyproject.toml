@@ -1,0 +1,40 @@
+[build-system]
+# Specifies the build backend and its requirements (standard for modern Python packaging)
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+# Core project metadata
+name = "statcan-mcp-server"
+version = "0.1.0"
+description = "MCP Server for interacting with Statistics Canada Web Data Services API"
+readme = "README.md" 
+license = "MIT" 
+authors = [
+    { name = "Aryan Jhaveri", email = "your.email@example.com" }, 
+]
+requires-python = ">=3.10" 
+
+# Core dependencies required for the server to run
+dependencies = [
+    "fastmcp>=2.0.0", 
+    "httpx>=0.25.0",  
+    "pydantic>=2.0.0" 
+]
+
+[project.urls]
+Homepage = "https://github.com/Aryan-Jhaveri/mcp-statcan"
+Repository = "https://github.com/Aryan-Jhaveri/mcp-statcan"
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.0.0",
+    "black>=22.0.0",
+    "isort>=5.0.0",
+]
+
+# Optional: Define entry points if the package were installable as a command
+# Since it's run via `python -m src.server`, this might not be needed
+# [project.scripts]
+# statcan-mcp = "src.server:main" # Assumes a main() function in server.py
+
