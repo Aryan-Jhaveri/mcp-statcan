@@ -113,7 +113,7 @@ uv pip install package_name
 
 To integrate with Claude Desktop:
 
-1. **Then manually edit the generated config** in your `claude_desktop_config.json`:
+1. **Manually edit the generated config** in your `claude_desktop_config.json` (Go to Claude Desktop App -> Settings (CMD + ,) -> Developer -> Edit Config):
    ```json
    {
      "mcpServers": {
