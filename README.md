@@ -1,17 +1,17 @@
-[![Statistics Canada MCP Server](assets/StatCan-Header.png)](https://www.statcan.gc.ca/en/start)
+<a href="https://www.statcan.gc.ca/en/start" target="_blank"><img src="assets/StatCan-Header.png" alt="Statistics Canada MCP Server"></a>
 
 # 📊 Statistics Canada API MCP Server
 
-[![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/downloads/)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![MCP](https://img.shields.io/badge/MCP-ModelContextProtocol-green.svg)](https://modelcontextprotocol.io/)
-[![GitHub](https://img.shields.io/badge/GitHub-Aryan--Jhaveri-lightgrey?logo=github)](https://github.com/Aryan-Jhaveri)
+<a href="https://www.python.org/downloads/" target="_blank"><img src="https://img.shields.io/badge/python-3.10+-blue.svg" alt="Python 3.10+"></a>
+<a href="https://opensource.org/licenses/MIT" target="_blank"><img src="https://img.shields.io/badge/License-MIT-yellow.svg" alt="License: MIT"></a>
+<a href="https://modelcontextprotocol.io/" target="_blank"><img src="https://img.shields.io/badge/MCP-ModelContextProtocol-green.svg" alt="MCP"></a>
+<a href="https://github.com/Aryan-Jhaveri" target="_blank"><img src="https://img.shields.io/badge/GitHub-Aryan--Jhaveri-lightgrey?logo=github" alt="GitHub"></a>
 
 ## 📝 Description
 
-This project implements a [Model Context Protocol (MCP)](https://modelcontextprotocol.io/) server that provides tools for interacting with Statistics Canada (StatCan) data APIs. It allows LLMs or other MCP clients to access and retrieve Canadian statistical data in a structured way.
+This project implements a <a href="https://modelcontextprotocol.io/" target="_blank">Model Context Protocol (MCP)</a> server that provides tools for interacting with Statistics Canada (StatCan) data APIs. It allows LLMs or other MCP clients to access and retrieve Canadian statistical data in a structured way.
 
-The server is built using the [FastMCP](https://github.com/jlowin/fastmcp) library and interacts with the StatCan Web Data Service via `httpx`.
+The server is built using the <a href="https://github.com/jlowin/fastmcp" target="_blank">FastMCP</a> library and interacts with the StatCan Web Data Service via `httpx`.
 
 ## 📑 Table of Contents
 
@@ -28,9 +28,9 @@ The server is built using the [FastMCP](https://github.com/jlowin/fastmcp) libra
 
 | Dataset | Query Example | Demo | Data Source |
 |---------|--------------|------|------------|
-| **Canada's Greenhouse Gas Emissions** (2018-2022) | "Hey Claude! Can you please create a simple visualization for greenhouse emissions for Canada as a whole over the last 4 years?" | [View Demo](https://claude.ai/share/7de892a1-e1d9-410f-96f7-90cd140e5dd9) | [StatCan Table](https://www150.statcan.gc.ca/t1/tbl1/en/cv.action?pid=3810009701) |
-| **Canada's International Trade in Services** | "Hey Claude, can you create a quick analysis for international trade in services for the last 6 months. Create a visualization with key figures please!" | [View Demo](https://claude.ai/share/7de892a1-e1d9-410f-96f7-90cd140e5dd9) | [StatCan Table](https://www150.statcan.gc.ca/t1/tbl1/en/cv.action?pid=1210014401) |
-| **Ontario Building Construction Price Index** | "Hey Claude! Can you please generate a visualization for Ontario's Building Price index from Q4 2023 to Q4 2024. Thanks!" | [View Demo](https://claude.ai/share/22dee5d0-434e-4270-bb7c-08a86bbe6715) | [StatCan Table](https://www150.statcan.gc.ca/t1/tbl1/en/cv.action?pid=1810028901) |
+| **Canada's Greenhouse Gas Emissions** (2018-2022) | "Hey Claude! Can you please create a simple visualization for greenhouse emissions for Canada as a whole over the last 4 years?" | <a href="https://claude.ai/share/7de892a1-e1d9-410f-96f7-90cd140e5dd9" target="_blank">View Demo</a> | <a href="https://www150.statcan.gc.ca/t1/tbl1/en/cv.action?pid=3810009701" target="_blank">StatCan Table</a> |
+| **Canada's International Trade in Services** | "Hey Claude, can you create a quick analysis for international trade in services for the last 6 months. Create a visualization with key figures please!" | <a href="https://claude.ai/share/7de892a1-e1d9-410f-96f7-90cd140e5dd9" target="_blank">View Demo</a> | <a href="https://www150.statcan.gc.ca/t1/tbl1/en/cv.action?pid=1210014401" target="_blank">StatCan Table</a> |
+| **Ontario Building Construction Price Index** | "Hey Claude! Can you please generate a visualization for Ontario's Building Price index from Q4 2023 to Q4 2024. Thanks!" | <a href="https://claude.ai/share/22dee5d0-434e-4270-bb7c-08a86bbe6715" target="_blank">View Demo</a> | <a href="https://www150.statcan.gc.ca/t1/tbl1/en/cv.action?pid=1810028901" target="_blank">StatCan Table</a> |
 
 ### Effective Querying Tips
 
@@ -98,7 +98,7 @@ This allows for persistent storage of retrieved data and more complex data manip
 If you're new to Python or programming in general, follow these simple steps to get started:
 
 1. **Install Python** (version 3.10 or higher):
-   - Download from [python.org](https://www.python.org/downloads/)
+   - Download from <a href="https://www.python.org/downloads/" target="_blank">python.org</a>
    - Make sure to check "Add Python to PATH" during installation
 
 2. **Install uv** (a fast Python package installer):
@@ -199,8 +199,8 @@ schema = get_table_schema(TableSchemaInput(table_name="employment_data"))
 <div align="center">
 <p>Made with ❤️ for Statistics Canada data</p>
 <p>
-<a href="https://github.com/Aryan-Jhaveri/mcp-statcan">GitHub</a> •
-<a href="https://github.com/Aryan-Jhaveri/mcp-statcan/issues">Report Bug</a> •
-<a href="https://www.statcan.gc.ca/">Statistics Canada</a>
+<a href="https://github.com/Aryan-Jhaveri/mcp-statcan" target="_blank">GitHub</a> •
+<a href="https://github.com/Aryan-Jhaveri/mcp-statcan/issues" target="_blank">Report Bug</a> •
+<a href="https://www.statcan.gc.ca/" target="_blank">Statistics Canada</a>
 </p>
 </div>
