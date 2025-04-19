@@ -26,11 +26,11 @@ The server is built using the [FastMCP](https://github.com/jlowin/fastmcp) libra
 
 ## 💬 Claude Chat Examples
 
-| Example | Source | Link | Query |
-|---------|------|------|-------|
-| Canada's Greenhouse Gas Emissions (2018-2022) | [Source](https://www150.statcan.gc.ca/t1/tbl1/en/cv.action?pid=3810009701) | [View Chat](https://claude.ai/share/7de892a1-e1d9-410f-96f7-90cd140e5dd9) | "Hey Claude! Can you please create a simple Visualization for green house emissions for Canada as whole over the last 4 years?" |
-| Canada's International Trade in Services | [Source](https://www150.statcan.gc.ca/t1/tbl1/en/cv.action?pid=1210014401) | [View Chat](https://claude.ai/share/7de892a1-e1d9-410f-96f7-90cd140e5dd9) | "Hey Claude, Can you create a quick Analysis for International trade in services for the last 6 months. Create a Visualization with key figures please!" |
-| Ontario Building Construction Price Index | [Source](https://www150.statcan.gc.ca/t1/tbl1/en/cv.action?pid=1810028901) | [View Chat](https://claude.ai/share/22dee5d0-434e-4270-bb7c-08a86bbe6715) | "Hey Claude! can you please generate a visualization for Ontario's Building Price index from Q4 2023 to Q4 2024. Thanks!" |
+| Dataset | Query Example | Demo | Data Source |
+|---------|--------------|------|------------|
+| **Canada's Greenhouse Gas Emissions** (2018-2022) | "Hey Claude! Can you please create a simple visualization for greenhouse emissions for Canada as a whole over the last 4 years?" | [View Demo](https://claude.ai/share/7de892a1-e1d9-410f-96f7-90cd140e5dd9) | [StatCan Table](https://www150.statcan.gc.ca/t1/tbl1/en/cv.action?pid=3810009701) |
+| **Canada's International Trade in Services** | "Hey Claude, can you create a quick analysis for international trade in services for the last 6 months. Create a visualization with key figures please!" | [View Demo](https://claude.ai/share/7de892a1-e1d9-410f-96f7-90cd140e5dd9) | [StatCan Table](https://www150.statcan.gc.ca/t1/tbl1/en/cv.action?pid=1210014401) |
+| **Ontario Building Construction Price Index** | "Hey Claude! Can you please generate a visualization for Ontario's Building Price index from Q4 2023 to Q4 2024. Thanks!" | [View Demo](https://claude.ai/share/22dee5d0-434e-4270-bb7c-08a86bbe6715) | [StatCan Table](https://www150.statcan.gc.ca/t1/tbl1/en/cv.action?pid=1810028901) |
 
 ### Effective Querying Tips
 
