@@ -11,7 +11,7 @@ description = "MCP Server for interacting with Statistics Canada Web Data Servic
 readme = "README.md" 
 license = "MIT" 
 authors = [
-    { name = "Aryan Jhaveri", email = "your.email@example.com" }, 
+    { name = "Aryan Jhaveri" }, 
 ]
 requires-python = ">=3.10" 
 
@@ -25,6 +25,8 @@ dependencies = [
 [project.urls]
 Homepage = "https://github.com/Aryan-Jhaveri/mcp-statcan"
 Repository = "https://github.com/Aryan-Jhaveri/mcp-statcan"
+GitHub = "https://github.com/Aryan-Jhaveri"
+LinkedIn = "https://www.linkedin.com/in/aryanjhaveri/"
 
 [project.optional-dependencies]
 dev = [
