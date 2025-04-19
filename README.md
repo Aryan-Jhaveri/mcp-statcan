@@ -80,8 +80,8 @@ This allows for persistent storage of retrieved data and more complex data manip
 
 1.  **Clone the repository:**
     ```bash
-    git clone <your-repo-url>
-    cd attempt7
+    git clone https://github.com/Aryan-Jhaveri/mcp-statcan
+    cd mcp-statcan
     ```
 2.  **Install Dependencies:** Using [uv](https://github.com/astral-sh/uv) is recommended.
     ```bash
@@ -90,7 +90,7 @@ This allows for persistent storage of retrieved data and more complex data manip
     # Ensure pyproject.toml lists all dependencies (fastmcp, httpx, pydantic, etc.)
     ```
 3.  **Configuration:**
-    * Create a `.env` file in the project root (`attempt7/`).
+    * Create a `.env` file in the project root.
     * Add necessary configuration variables (e.g., database connection details, `STATCAN_API_BASE_URL`) as required by `src/config.py`.
 
 
