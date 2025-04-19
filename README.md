@@ -1,4 +1,4 @@
-![Statistics Canada MCP Server](assets/StatCan-Header.png)
+[![Statistics Canada MCP Server](assets/StatCan-Header.png)](https://www.statcan.gc.ca/en/start)
 
 # Statistics Canada API MCP Server
 
