@@ -8,11 +8,11 @@ The server is built using the [FastMCP](https://github.com/jlowin/fastmcp) libra
 
 ## Claude Chat Examples
 
-| Example | Link | Query |
-|---------|------|-------|
-| Canada's Greenhouse Gas Emissions (2018-2022) | [View Chat](https://claude.site/artifacts/a1a7e293-3a0b-4b16-9bce-c13a6322ca6b) | "Hey Claude! Can you please create a simple Visualization for green house emissions for Canada as whole over the last 4 years?" |
-| Canada's International Trade in Services | [View Chat](https://claude.site/artifacts/628d9bc2-0d73-41ae-9cff-7235ecf9f0da) | "Hey Claude, Can you create a quick Analysis for International trade in services for the last 6 months. Create a Visualization with key figures please!" |
-| Ontario Building Construction Price Index | [View Chat](https://claude.site/artifacts/efaef40c-7589-4ffd-b3c8-9e82649a2760) | "Hey Claude! can you please generate a visualization for Ontario's Building Price index from Q4 2023 to Q4 2024. Thanks!" |
+| Example | Link | Link | Query |
+|---------|------|------|-------|
+| Canada's Greenhouse Gas Emissions (2018-2022) | [Source](https://www150.statcan.gc.ca/t1/tbl1/en/cv.action?pid=3810009701) | [View Chat](https://claude.site/artifacts/a1a7e293-3a0b-4b16-9bce-c13a6322ca6b) | "Hey Claude! Can you please create a simple Visualization for green house emissions for Canada as whole over the last 4 years?" |
+| Canada's International Trade in Services | [Source](https://www150.statcan.gc.ca/t1/tbl1/en/cv.action?pid=1210014401) | [View Chat](https://claude.site/artifacts/628d9bc2-0d73-41ae-9cff-7235ecf9f0da) | "Hey Claude, Can you create a quick Analysis for International trade in services for the last 6 months. Create a Visualization with key figures please!" |
+| Ontario Building Construction Price Index | [Source](https://www150.statcan.gc.ca/t1/tbl1/en/cv.action?pid=1810028901) | [View Chat](https://claude.site/artifacts/efaef40c-7589-4ffd-b3c8-9e82649a2760) | "Hey Claude! can you please generate a visualization for Ontario's Building Price index from Q4 2023 to Q4 2024. Thanks!" |
 
 ### Effective Querying Tips
 
