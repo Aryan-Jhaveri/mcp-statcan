@@ -1,3 +1,5 @@
+![Statistics Canada MCP Server](assets/StatCan-Header.png)
+
 # Statistics Canada API MCP Server
 
 ## Description
