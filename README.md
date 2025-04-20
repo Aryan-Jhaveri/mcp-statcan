@@ -197,7 +197,7 @@ schema = get_table_schema(TableSchemaInput(table_name="employment_data"))
 ---
 
 <div align="center">
-<p>Made with ❤️ for Statistics Canada data</p>
+<p>Made with ❤️❤️❤️ for Statistics Canada</p>
 <p>
 <a href="https://github.com/Aryan-Jhaveri/mcp-statcan" target="_blank">GitHub</a> •
 <a href="https://github.com/Aryan-Jhaveri/mcp-statcan/issues" target="_blank">Report Bug</a> •
