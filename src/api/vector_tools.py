@@ -9,25 +9,6 @@ from ..models.api_models import VectorIdInput, VectorLatestNInput, VectorRangeIn
 # Import BASE_URL and timeouts from config
 from ..config import BASE_URL, TIMEOUT_MEDIUM, TIMEOUT_LARGE
 
-# --- Helper Models (Included for clarity if not imported elsewhere) ---
-# class VectorIdInput(BaseModel):
-#     vectorId: str
-
-# class VectorLatestNInput(BaseModel):
-#     vectorId: str
-#     latestN: int
-
-# class VectorRangeInput(BaseModel):
-#     vectorIds: List[str]
-#     startRefPeriod: Optional[str] = None # YYYY-MM-DD
-#     endReferencePeriod: Optional[str] = None # YYYY-MM-DD
-
-# class BulkVectorRangeInput(BaseModel):
-#     vectorIds: List[str]
-#     startDataPointReleaseDate: Optional[str] = None # YYYY-MM-DDTHH:MM
-#     endDataPointReleaseDate: Optional[str] = None # YYYY-MM-DDTHH:MM
-# --------------------------------------------------------------------
-
 def register_vector_tools(mcp: FastMCP):
     """Register all vector-related API tools with the MCP server."""
 

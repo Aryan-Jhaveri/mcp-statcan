@@ -27,6 +27,7 @@ def create_server(name="StatCanAPI_DB_Server"):
         print("--> Registering db tools...", file=sys.stderr) # DEBUG
         register_db_tools(mcp) # Includes schema tools via queries.py
         print("--> Tool registration complete.", file=sys.stderr) # DEBUG
+        
     except Exception as e:
         print(f"--> ERROR during tool registration: {e}", file=sys.stderr) # DEBUG
         # Optionally re-raise or handle differently
