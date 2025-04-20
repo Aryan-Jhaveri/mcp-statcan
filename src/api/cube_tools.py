@@ -282,8 +282,7 @@ def register_cube_tools(mcp: FastMCP):
                 raise Exception(f"Network error calling get_full_table_download_csv: {exc}")
             except ValueError as exc:
                 raise ValueError(f"Error processing response for get_full_table_download_csv: {exc}")
-    
-    # DISABLED --- Bulk Download Tools (Consider disabling/discouraging if coord/vector preferred) --- 
+    # DISABLED --- Bulk Download Tools (Consider disabling/discouraging if coord/vector preferred) ---
     #@mcp.tool()
     async def get_full_table_download_sdmx(product_input: ProductIdInput) -> str:
         """

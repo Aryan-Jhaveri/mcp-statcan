@@ -119,7 +119,6 @@ def register_db_tools(mcp: FastMCP):
         except Exception as e:
             return {"error": f"Unexpected error inserting into '{table_name}': {e}"}
 
-
     @mcp.tool()
     def list_tables() -> Dict[str, Any]:
         """
