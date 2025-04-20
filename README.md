@@ -1,20 +1,36 @@
-[![Statistics Canada MCP Server](assets/StatCan-Header.png)](https://www.statcan.gc.ca/en/start)
+<a href="https://www.statcan.gc.ca/en/start" target="_blank"><img src="assets/StatCan-Header.png" alt="Statistics Canada MCP Server"></a>
 
-# Statistics Canada API MCP Server
+# 📊 Statistics Canada API MCP Server
 
-## Description
+<a href="https://www.python.org/downloads/" target="_blank"><img src="https://img.shields.io/badge/python-3.10+-blue.svg" alt="Python 3.10+"></a>
+<a href="https://opensource.org/licenses/MIT" target="_blank"><img src="https://img.shields.io/badge/License-MIT-yellow.svg" alt="License: MIT"></a>
+<a href="https://modelcontextprotocol.io/" target="_blank"><img src="https://img.shields.io/badge/MCP-ModelContextProtocol-green.svg" alt="MCP"></a>
+<a href="https://github.com/Aryan-Jhaveri" target="_blank"><img src="https://img.shields.io/badge/GitHub-Aryan--Jhaveri-lightgrey?logo=github" alt="GitHub"></a>
 
-This project implements a [Model Context Protocol (MCP)](https://modelcontextprotocol.io/) server that provides tools for interacting with Statistics Canada (StatCan) data APIs. It allows LLMs or other MCP clients to access and retrieve Canadian statistical data in a structured way.
+## 📝 Description
 
-The server is built using the [FastMCP](https://github.com/jlowin/fastmcp) library and interacts with the StatCan Web Data Service via `httpx`.
+This project implements a <a href="https://modelcontextprotocol.io/" target="_blank">Model Context Protocol (MCP)</a> server that provides tools for interacting with Statistics Canada (StatCan) data APIs. It allows LLMs or other MCP clients to access and retrieve Canadian statistical data in a structured way.
 
-## Claude Chat Examples
+The server is built using the <a href="https://github.com/jlowin/fastmcp" target="_blank">FastMCP</a> library and interacts with the StatCan Web Data Service via `httpx`.
 
-| Example | Source | Link | Query |
-|---------|------|------|-------|
-| Canada's Greenhouse Gas Emissions (2018-2022) | [Source](https://www150.statcan.gc.ca/t1/tbl1/en/cv.action?pid=3810009701) | [View Chat](https://claude.ai/share/7de892a1-e1d9-410f-96f7-90cd140e5dd9) | "Hey Claude! Can you please create a simple Visualization for green house emissions for Canada as whole over the last 4 years?" |
-| Canada's International Trade in Services | [Source](https://www150.statcan.gc.ca/t1/tbl1/en/cv.action?pid=1210014401) | [View Chat](https://claude.ai/share/7de892a1-e1d9-410f-96f7-90cd140e5dd9) | "Hey Claude, Can you create a quick Analysis for International trade in services for the last 6 months. Create a Visualization with key figures please!" |
-| Ontario Building Construction Price Index | [Source](https://www150.statcan.gc.ca/t1/tbl1/en/cv.action?pid=1810028901) | [View Chat](https://claude.ai/share/22dee5d0-434e-4270-bb7c-08a86bbe6715) | "Hey Claude! can you please generate a visualization for Ontario's Building Price index from Q4 2023 to Q4 2024. Thanks!" |
+## 📑 Table of Contents
+
+- [📝 Description](#-description)
+- [💬 Claude Chat Examples](#-claude-chat-examples)
+- [✨ Features](#-features)
+- [🏗️ Project Structure](#️-project-structure)
+- [📥 Installation](#-installation-guide-for-beginners)
+- [🔧 Setup](#-setting-up-claude-desktop-configuration)
+- [⚠️ Known Issues](#️-known-issues-and-limitations)
+- [🚀 Usage Examples](#-usage-examples)
+
+## 💬 Claude Chat Examples
+
+| Dataset | Query Example | Demo | Data Source |
+|---------|--------------|------|------------|
+| **Canada's Greenhouse Gas Emissions** (2018-2022) | "Hey Claude! Can you please create a simple visualization for greenhouse emissions for Canada as a whole over the last 4 years?" | <a href="https://claude.ai/share/7de892a1-e1d9-410f-96f7-90cd140e5dd9" target="_blank">View Demo</a> | <a href="https://www150.statcan.gc.ca/t1/tbl1/en/cv.action?pid=3810009701" target="_blank">StatCan Table</a> |
+| **Canada's International Trade in Services** | "Hey Claude, can you create a quick analysis for international trade in services for the last 6 months. Create a visualization with key figures please!" | <a href="https://claude.ai/share/7de892a1-e1d9-410f-96f7-90cd140e5dd9" target="_blank">View Demo</a> | <a href="https://www150.statcan.gc.ca/t1/tbl1/en/cv.action?pid=1210014401" target="_blank">StatCan Table</a> |
+| **Ontario Building Construction Price Index** | "Hey Claude! Can you please generate a visualization for Ontario's Building Price index from Q4 2023 to Q4 2024. Thanks!" | <a href="https://claude.ai/share/22dee5d0-434e-4270-bb7c-08a86bbe6715" target="_blank">View Demo</a> | <a href="https://www150.statcan.gc.ca/t1/tbl1/en/cv.action?pid=1810028901" target="_blank">StatCan Table</a> |
 
 ### Effective Querying Tips
 
@@ -28,7 +44,7 @@ To get the most accurate results from Claude when using this Statistics Canada M
 
 > **⚠️ Warning**: LLMs like Claude may occasionally create mock visualizations or fabricate data when unable to retrieve actual information. They might also generate responses with data not available in Statistics Canada to satisfy queries. Always verify results against official sources.
 
-## Features
+## ✨ Features
 
 This server exposes StatCan API functionalities as MCP tools, including:
 
@@ -64,7 +80,7 @@ This allows for persistent storage of retrieved data and more complex data manip
 
 *(Refer to the specific tool functions within `src/api/` for detailed parameters and return types.)*
 
-## Project Structure
+## 🏗️ Project Structure
 
 * **`src/`**: Contains the main source code for the MCP server.
     * **`api/`**: Defines the MCP tools wrapping the StatCan API calls (`cube_tools.py`, `vector_tools.py`, `metadata_tools.py`).
@@ -77,12 +93,12 @@ This allows for persistent storage of retrieved data and more complex data manip
 * **`pyproject.toml`**: Project dependency and build configuration.
 * **`.env`**: (Assumed) Used for storing sensitive configuration like database credentials, loaded by `src/config.py`.
 
-## Downloading Prequisites for Beginners
+## 📥 Installation Guide for Beginners
 
 If you're new to Python or programming in general, follow these simple steps to get started:
 
 1. **Install Python** (version 3.10 or higher):
-   - Download from [python.org](https://www.python.org/downloads/)
+   - Download from <a href="https://www.python.org/downloads/" target="_blank">python.org</a>
    - Make sure to check "Add Python to PATH" during installation
 
 2. **Install uv** (a fast Python package installer):
@@ -109,16 +125,13 @@ Tip: If you encounter any "module not found" errors, install the missing package
 uv pip install package_name
 ```
 
-## Setup to Claude Desktop Configuration
+## 🔧 Setting Up Claude Desktop Configuration
 
 To integrate with Claude Desktop:
 
-1. **First install the server with fastmcp** (this sets up dependencies):
-   ```bash
-   fastmcp install src/server.py --name "StatCanAPI_DB_Server" --with httpx
-   ```
-
-2. **Then manually edit the generated config** in your `claude_desktop_config.json`:
+1. **Manually edit the generated config** in your `claude_desktop_config.json`:
+   
+   Navigate to: Claude Desktop App → Settings (⌘ + ,) → Developer → Edit Config
    ```json
    {
      "mcpServers": {
@@ -139,7 +152,7 @@ To integrate with Claude Desktop:
 
    Replace `/path/to/mcp-statcan` with the absolute path to your project directory. The manual edit is necessary to ensure the server runs with the correct working directory context for proper module resolution.
 
-## Known Issues and Limitations
+## ⚠️ Known Issues and Limitations
 
 - **SSL Verification**: Currently disabled for development. Should be enabled for production use.
 - **Claude Behavior**: May occasionally get stuck in loops or inefficiently make multiple REST calls when a bulk operation would be more efficient.
@@ -148,7 +161,7 @@ To integrate with Claude Desktop:
 - **Performance**: Some endpoints may timeout with large data requests.
 - **API Rate Limits**: The StatCan API may impose rate limits that affect usage during high-demand periods.
 
-## Usage Examples
+## 🚀 Usage Examples
 
 ### API Operations
 
@@ -180,3 +193,14 @@ tables = list_tables()
 # Get schema for a table
 schema = get_table_schema(TableSchemaInput(table_name="employment_data"))
 ```
+
+---
+
+<div align="center">
+<p>Made with ❤️❤️❤️ for Statistics Canada</p>
+<p>
+<a href="https://github.com/Aryan-Jhaveri/mcp-statcan" target="_blank">GitHub</a> •
+<a href="https://github.com/Aryan-Jhaveri/mcp-statcan/issues" target="_blank">Report Bug</a> •
+<a href="https://www.statcan.gc.ca/" target="_blank">Statistics Canada</a>
+</p>
+</div>
