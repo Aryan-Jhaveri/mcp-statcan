@@ -29,8 +29,8 @@ The server is built using the <a href="https://github.com/jlowin/fastmcp" target
 | Dataset | Query Example | Demo | Data Source |
 |---------|--------------|------|------------|
 | **Canada's Greenhouse Gas Emissions** (2018-2022) | "Hey Claude! Can you please create a simple visualization for greenhouse emissions for Canada as a whole over the last 4 years?" | <a href="https://claude.ai/share/7de892a1-e1d9-410f-96f7-90cd140e5dd9" target="_blank">View Demo</a> | <a href="https://www150.statcan.gc.ca/t1/tbl1/en/cv.action?pid=3810009701" target="_blank">StatCan Table</a> |
-| **Canada's International Trade in Services** | "Hey Claude, can you create a quick analysis for international trade in services for the last 6 months. Create a visualization with key figures please!" | <a href="https://claude.site/artifacts/628d9bc2-0d73-41ae-9cff-7235ecf9f0da" target="_blank">View Demo</a> | <a href="https://www150.statcan.gc.ca/t1/tbl1/en/cv.action?pid=1210014401" target="_blank">StatCan Table</a> |
-| **Ontario Building Construction Price Index** | "Hey Claude! Can you please generate a visualization for Ontario's Building Price index from Q4 2023 to Q4 2024. Thanks!" | <a href="https://claude.site/artifacts/efaef40c-7589-4ffd-b3c8-9e82649a2760" target="_blank">View Demo</a> | <a href="https://www150.statcan.gc.ca/t1/tbl1/en/cv.action?pid=1810028901" target="_blank">StatCan Table</a> |
+| **Canada's International Trade in Services** | "Hey Claude, can you create a quick analysis for international trade in services for the last 6 months. Create a visualization with key figures please!" | <a href="https://claude.ai/share/c00eba2d-4e86-4405-878a-7ea4110cb7d3" target="_blank">View Demo</a> | <a href="https://www150.statcan.gc.ca/t1/tbl1/en/cv.action?pid=1210014401" target="_blank">StatCan Table</a> |
+| **Ontario Building Construction Price Index** | "Hey Claude! Can you please generate a visualization for Ontario's Building Price index from Q4 2023 to Q4 2024. Thanks!" | <a href="https://claude.ai/share/12ce906f-5a26-4e74-86d9-10451ab5bc4b" target="_blank">View Demo</a> | <a href="https://www150.statcan.gc.ca/t1/tbl1/en/cv.action?pid=1810028901" target="_blank">StatCan Table</a> |
 
 ### Effective Querying Tips
 
@@ -51,21 +51,21 @@ This server exposes StatCan API functionalities as MCP tools, including:
 ### API Functionality
 
 * **Cube Operations:**
-    * Listing all available data cubes/tables (full and lite versions)
-    * Searching cubes by title
-    * Retrieving detailed cube metadata
-    * Getting data for the latest N periods based on ProductId and Coordinate
-    * Getting series info based on ProductId and Coordinate
-    * Getting changed series data based on ProductId and Coordinate
-    * Listing cubes changed on a specific date
-    * Providing download links for full cubes (CSV/SDMX) (Discouraged)
+* Listing all available data cubes/tables (full and lite versions)
+* Searching cubes by title
+* Retrieving detailed cube metadata
+* Getting data for the latest N periods based on ProductId and Coordinate
+* Getting series info based on ProductId and Coordinate
+* Getting changed series data based on ProductId and Coordinate
+* Listing cubes changed on a specific date
+* Providing download links for full cubes (CSV/SDMX) (Discouraged)
 * **Vector Operations:**
-    * Retrieving series metadata by Vector ID
-    * Getting data for the latest N periods by Vector ID
-    * Getting data for multiple vectors by reference period range
-    * Getting bulk data for multiple vectors by release date range
-    * Getting changed series data by Vector ID
-    * Listing series changed on a specific date
+* Retrieving series metadata by Vector ID
+* Getting data for the latest N periods by Vector ID
+* Getting data for multiple vectors by reference period range
+* Getting bulk data for multiple vectors by release date range
+* Getting changed series data by Vector ID
+* Listing series changed on a specific date
 
 ### Database Functionality
 
@@ -83,13 +83,13 @@ This allows for persistent storage of retrieved data and more complex data manip
 ## 🏗️ Project Structure
 
 * **`src/`**: Contains the main source code for the MCP server.
-    * **`api/`**: Defines the MCP tools wrapping the StatCan API calls (`cube_tools.py`, `vector_tools.py`, `metadata_tools.py`).
-    * **`db/`**: Handles database interactions, including connection, schema, and queries.
-    * **`models/`**: Contains Pydantic models for API request/response validation and database representation.
-    * **`util/`**: Utility functions (e.g., coordinate padding).
-    * **`config.py`**: Configuration loading (e.g., database credentials, API base URL).
-    * **`server.py`**: Main FastMCP server definition and tool registration.
-    * **`__init__.py`**: Package initialization for `src`.
+* **`api/`**: Defines the MCP tools wrapping the StatCan API calls (`cube_tools.py`, `vector_tools.py`, `metadata_tools.py`).
+* **`db/`**: Handles database interactions, including connection, schema, and queries.
+* **`models/`**: Contains Pydantic models for API request/response validation and database representation.
+* **`util/`**: Utility functions (e.g., coordinate padding).
+* **`config.py`**: Configuration loading (e.g., database credentials, API base URL).
+* **`server.py`**: Main FastMCP server definition and tool registration.
+* **`__init__.py`**: Package initialization for `src`.
 * **`pyproject.toml`**: Project dependency and build configuration.
 * **`.env`**: (Assumed) Used for storing sensitive configuration like database credentials, loaded by `src/config.py`.
 
@@ -98,27 +98,27 @@ This allows for persistent storage of retrieved data and more complex data manip
 If you're new to Python or programming in general, follow these simple steps to get started:
 
 1. **Install Python** (version 3.10 or higher):
-   - Download from <a href="https://www.python.org/downloads/" target="_blank">python.org</a>
-   - Make sure to check "Add Python to PATH" during installation
+- Download from <a href="https://www.python.org/downloads/" target="_blank">python.org</a>
+- Make sure to check "Add Python to PATH" during installation
 
 2. **Install uv** (a fast Python package installer):
-   ```bash
-   # Open your Terminal (Mac/Linux) or Command Prompt (Windows) and run:
-   curl -fsSL https://astral.sh/uv/install.sh | bash
-   # Or on Windows:
-   # curl.exe -fsSL https://astral.sh/uv/install.ps1 -o install.ps1; powershell -ExecutionPolicy Bypass -File install.ps1
-   ```
+```bash
+# Open your Terminal (Mac/Linux) or Command Prompt (Windows) and run:
+curl -fsSL https://astral.sh/uv/install.sh | bash
+# Or on Windows:
+# curl.exe -fsSL https://astral.sh/uv/install.ps1 -o install.ps1; powershell -ExecutionPolicy Bypass -File install.ps1
+```
 
 3. **Install fastmcp**:
-   ```bash
-   uv pip install fastmcp httpx pydantic
-   ```
+```bash
+uv pip install fastmcp httpx pydantic
+```
 
 4. **Download this project**:
-   ```bash
-   git clone https://github.com/Aryan-Jhaveri/mcp-statcan.git
-   cd mcp-statcan
-   ```
+```bash
+git clone https://github.com/Aryan-Jhaveri/mcp-statcan.git
+cd mcp-statcan
+```
 
 Tip: If you encounter any "module not found" errors, install the missing package with:
 ```bash
@@ -130,27 +130,27 @@ uv pip install package_name
 To integrate with Claude Desktop:
 
 1. **Manually edit the generated config** in your `claude_desktop_config.json`:
-   
-   Navigate to: Claude Desktop App → Settings (⌘ + ,) → Developer → Edit Config
-   ```json
-   {
-     "mcpServers": {
-       "StatCanAPI_DB_Server": {
-         "command": "uv",
-         "args": [
-           "run",
-           "--with", "fastmcp",
-           "--with", "httpx", 
-           "sh",
-           "-c",
-           "cd /path/to/mcp-statcan && python -m src.server"
-         ]
-       }
-     }
-   }
-   ```
 
-   Replace `/path/to/mcp-statcan` with the absolute path to your project directory. The manual edit is necessary to ensure the server runs with the correct working directory context for proper module resolution.
+Navigate to: Claude Desktop App → Settings (⌘ + ,) → Developer → Edit Config
+```json
+{
+"mcpServers": {
+"StatCanAPI_DB_Server": {
+"command": "uv",
+"args": [
+  "run",
+  "--with", "fastmcp",
+  "--with", "httpx", 
+  "sh",
+  "-c",
+  "cd /path/to/mcp-statcan && python -m src.server"
+]
+}
+}
+}
+```
+
+Replace `/path/to/mcp-statcan` with the absolute path to your project directory. The manual edit is necessary to ensure the server runs with the correct working directory context for proper module resolution.
 
 ## ⚠️ Known Issues and Limitations
 
@@ -174,7 +174,7 @@ data = await get_data_from_vectors_and_latest_n_periods(VectorLatestNInput(vecto
 
 # Get data for a specific range of periods
 range_data = await get_data_from_vector_by_reference_period_range(
-    VectorPeriodRangeInput(vectorId=12345, startDate="2020-01-01", endDate="2020-12-31")
+VectorPeriodRangeInput(vectorId=12345, startDate="2020-01-01", endDate="2020-12-31")
 )
 ```
 
