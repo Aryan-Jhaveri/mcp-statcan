@@ -1,66 +1,54 @@
 # Implementations List
 List of ideas for future implementations and improvements to the server
 
-## Database Architecture
+## Server Architecture & Data Flow
 
 ```mermaid
-erDiagram
-    STATCAN_API ||--o{ API_CALLS : fetches
-    API_CALLS ||--o{ DYNAMIC_TABLES : creates
+flowchart TD
+    A[Claude/MCP Client] -->|MCP Protocol| B[FastMCP Server]
     
-    STATCAN_API {
-        string base_url "https://www150.statcan.gc.ca/t1/wds/rest"
-        string endpoints "various_api_endpoints"
-        json response_format "JSON"
-    }
+    B --> C{Tool Type}
+    C -->|API Tools| D[Statistics Canada API]
+    C -->|DB Tools| E[SQLite Database]
+    C -->|Metadata Tools| F[Code Sets & Classifications]
     
-    API_CALLS {
-        string endpoint_type "cube/vector/metadata"
-        datetime timestamp "request_time"
-        json parameters "query_params"
-        json response_data "api_response"
-    }
+    D --> G[Cube Tools]
+    D --> H[Vector Tools]
+    D --> I[Metadata Tools]
     
-    DYNAMIC_TABLES {
-        string table_name "user_defined"
-        datetime created_at "table_creation"
-        json schema_info "column_definitions"
-        int row_count "data_rows"
-    }
+    G -->|get_cube_metadata<br/>search_cubes_by_title<br/>get_data_from_cube| J[StatCan WDS API<br/>statcan.gc.ca/t1/wds/rest]
+    H -->|get_series_info_from_vector<br/>get_data_from_vectors<br/>get_bulk_vector_data| J
+    I -->|get_code_sets<br/>get_changed_cube_list| J
     
-    SQLITE_DB ||--o{ DYNAMIC_TABLES : contains
-    SQLITE_DB ||--o{ METADATA_CACHE : stores
+    J -->|JSON Response| K[API Response Processing]
+    K -->|Structured Data| L[Data Transformation]
     
-    SQLITE_DB {
-        string file_path "temp_statcan_data.db"
-        string connection_type "sqlite3"
-        boolean row_factory "sqlite3.Row"
-    }
+    L --> M{Storage Decision}
+    M -->|Store Data| N[create_table_from_data]
+    M -->|Query Data| O[insert_data_into_table]
+    M -->|Analyze Data| P[query_database]
     
-    METADATA_CACHE {
-        string vector_id "PK"
-        string cube_id "product_id"
-        json metadata "series_info"
-        datetime last_updated "cache_timestamp"
-        string status "active/expired"
-    }
+    N --> E
+    O --> E
+    P --> E
     
-    MCP_TOOLS ||--|| SQLITE_DB : manages
-    MCP_TOOLS {
-        string create_table_from_data "schema_creation"
-        string insert_data_into_table "data_insertion"
-        string query_database "sql_execution"
-        string list_tables "table_discovery"
-        string get_table_schema "schema_inspection"
-    }
+    E --> Q[Dynamic Tables]
+    E --> R[Metadata Cache]
     
-    CLIENT_REQUESTS ||--o{ MCP_TOOLS : uses
-    CLIENT_REQUESTS {
-        string tool_name "mcp_function"
-        json parameters "function_args"
-        json response "function_result"
-        string status "success/error"
-    }
+    Q -->|SQL Results| S[Formatted Response]
+    R -->|Cached Metadata| S
+    
+    S -->|MCP Response| A
+    
+    F --> T[Local Code Sets<br/>- frequency_codes.json<br/>- uom_codes.json<br/>- subject_codes.json<br/>- etc.]
+    T -->|Reference Data| S
+    
+    style A fill:#e1f5fe
+    style B fill:#f3e5f5
+    style E fill:#fff3e0
+    style J fill:#e8f5e8
+    style Q fill:#fff8e1
+    style R fill:#fce4ec
 ```
 
 ## June 1, 2025
