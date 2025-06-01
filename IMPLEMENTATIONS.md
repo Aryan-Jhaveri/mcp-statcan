@@ -60,6 +60,7 @@ flowchart TD
     style A fill:#210d70
     style B fill:#70190d
     style E fill:#700d49
+    style L fill:#450d70
     style J fill:#700d1c
 ```
 
