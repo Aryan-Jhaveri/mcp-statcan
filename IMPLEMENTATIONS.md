@@ -22,7 +22,7 @@ flowchart TD
     
     B --> C{Tool Type}
     C -->|API Tools| D[Statistics Canada API]
-    C -->|DB Tools| E[SQLite Database]
+    C -->|DB Tools| M[Database Tools]
     C -->|Metadata Tools| F[Code Sets & Classifications]
     
     D --> G[Cube Tools]
