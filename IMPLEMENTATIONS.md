@@ -22,12 +22,14 @@ flowchart TD
     
     B --> C{Tool Type}
     C -->|API Tools| D[Statistics Canada API]
-    C -->|DB Tools| E[SQLite Database]
+    C -->|DB Tools| M[Database Tools]
     C -->|Metadata Tools| F[Code Sets & Classifications]
     
     D --> G[Cube Tools]
     D --> H[Vector Tools]
     D --> I[Metadata Tools]
+
+    E[SQLite Database]
     
     G -->|get_cube_metadata<br/>search_cubes_by_title<br/>get_data_from_cube| J[StatCan WDS API<br/>statcan.gc.ca/t1/wds/rest]
     H -->|get_series_info_from_vector<br/>get_data_from_vectors<br/>get_bulk_vector_data| J
