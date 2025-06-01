@@ -55,7 +55,7 @@ flowchart TD
     E --> S[Dynamic Tables]
     
     S -->|SQL Results| T[Formatted Response]
-    T -->|MCP Response| A
+    T -->|MCP Response| L
     
     F -->|get_code_sets| J
     
