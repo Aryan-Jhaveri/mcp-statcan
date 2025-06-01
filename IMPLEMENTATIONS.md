@@ -56,12 +56,12 @@ flowchart TD
     F --> T[Local Code Sets<br/>- frequency_codes.json<br/>- uom_codes.json<br/>- subject_codes.json<br/>- etc.]
     T -->|Reference Data| S
     
-    style A fill:#e1f5fe
-    style B fill:#f3e5f5
+    style A fill:#210d70
+    style B fill:#70190d
     style E fill:#fff3e0
     style J fill:#e8f5e8
-    style Q fill:#fff8e1
-    style R fill:#fce4ec
+    style Q fill:#0d706b
+    style R fill:#560d70
 ```
 
 
