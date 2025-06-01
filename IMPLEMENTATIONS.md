@@ -34,22 +34,22 @@ flowchart TD
     I -->|get_code_sets<br/>get_changed_cube_list| J
     
     J -->|JSON Response| K[API Response Processing]
-    K -->|Structured Data| L[Data Transformation]
+    K -->|Structured Data| A
     
-    L --> M{Storage Decision}
-    M -->|Store Data| N[create_table_from_data]
-    M -->|Query Data| O[insert_data_into_table]
-    M -->|Analyze Data| P[query_database]
+    E --> L[Database Tools]
+    L --> M[create_table_from_data]
+    L --> N[insert_data_into_table] 
+    L --> O[query_database]
+    L --> P[list_tables]
+    L --> Q[get_table_schema]
     
-    N --> E
-    O --> E
-    P --> E
+    M --> R[Dynamic Tables]
+    N --> R
+    O --> R
+    P --> R
+    Q --> R
     
-    E --> Q[Dynamic Tables]
-    E --> R[Metadata Cache]
-    
-    Q -->|SQL Results| S[Formatted Response]
-    R -->|Cached Metadata| S
+    R -->|SQL Results| S[Formatted Response]
     
     S -->|MCP Response| A
     
