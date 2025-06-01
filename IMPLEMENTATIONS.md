@@ -34,27 +34,28 @@ flowchart TD
     I -->|get_code_sets<br/>get_changed_cube_list| J
     
     J -->|JSON Response| K[API Response Processing]
-    K -->|Structured Data| A
+    K -->|Structured Data| L{Data Usage}
+    L -->|Return to Client| A
+    L -->|Store in DB| M[Database Tools]
     
-    E --> L[Database Tools]
-    L --> M[create_table_from_data]
-    L --> N[insert_data_into_table] 
-    L --> O[query_database]
-    L --> P[list_tables]
-    L --> Q[get_table_schema]
+    M --> N[create_table_from_data]
+    M --> O[insert_data_into_table] 
+    M --> P[query_database]
+    M --> Q[list_tables]
+    M --> R[get_table_schema]
     
-    M --> R[Dynamic Tables]
-    N --> R
-    O --> R
-    P --> R
-    Q --> R
+    N --> E
+    O --> E
+    P --> E
+    Q --> E
+    R --> E
     
-    R -->|SQL Results| S[Formatted Response]
+    E --> S[Dynamic Tables]
     
-    S -->|MCP Response| A
+    S -->|SQL Results| T[Formatted Response]
+    T -->|MCP Response| A
     
-    F --> T[Local Code Sets<br/>- frequency_codes.json<br/>- uom_codes.json<br/>- subject_codes.json<br/>- etc.]
-    T -->|Reference Data| S
+    F -->|get_code_sets| J
     
     style A fill:#210d70
     style B fill:#70190d
