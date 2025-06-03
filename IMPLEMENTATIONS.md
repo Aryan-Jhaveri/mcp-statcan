@@ -1,6 +1,9 @@
 # Implementations List
 List of ideas for future implementations and improvements to the server
 
+## June 3, 2025
+[] **Maybe** Look into A2A + MCP (https://arxiv.org/pdf/2506.01804) to create an extended Multi agent system of some sorts?
+
 ## June 1, 2025
 [] add a uv or smithery package installer, to install packages to claude or other LLM clients directly instead of having to adjust working directories
 
