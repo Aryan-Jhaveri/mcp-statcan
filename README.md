@@ -143,7 +143,7 @@ Navigate to: Claude Desktop App → Settings (⌘ + ,) → Developer → Edit Co
   "--with", "httpx", 
   "sh",
   "-c",
-  "cd /path/to/mcp-statcan && python -m src.server"
+  "cd /path/to/mcp-statcan && python3 -m src.server"
 ]
 }
 }
