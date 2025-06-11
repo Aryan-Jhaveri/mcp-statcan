@@ -4,6 +4,7 @@ from typing import List, Dict, Any
 from .connection import get_db_connection
 from ..util.sql_helpers import infer_sql_type
 from ..models.db_models import TableDataInput
+from ..util.logger import log_data_validation_warning, log_sql_debug
 
 def create_table_from_data(table_input: TableDataInput) -> Dict[str, str]:
     """
@@ -35,7 +36,7 @@ def create_table_from_data(table_input: TableDataInput) -> Dict[str, str]:
         # Basic sanitization/validation for column names
         safe_col_name = ''.join(c if c.isalnum() or c == '_' else '_' for c in col_name)
         if not safe_col_name or safe_col_name[0].isdigit() or not safe_col_name.isidentifier():
-            print(f"Warning: Skipping column with potentially invalid original name: '{col_name}' -> '{safe_col_name}'")
+            log_data_validation_warning(f"Skipping column with potentially invalid original name: '{col_name}' -> '{safe_col_name}'")
             continue
         # Ensure uniqueness after sanitization
         temp_name = safe_col_name
@@ -59,9 +60,9 @@ def create_table_from_data(table_input: TableDataInput) -> Dict[str, str]:
     try:
         with get_db_connection() as conn:
             cursor = conn.cursor()
-            print(f"Executing: {drop_sql}")
+            log_sql_debug(f"Executing: {drop_sql}")
             cursor.execute(drop_sql)
-            print(f"Executing: {create_sql}")
+            log_sql_debug(f"Executing: {create_sql}")
             cursor.execute(create_sql)
             conn.commit()
         return {"success": f"Table '{table_name}' created successfully with {len(columns_def)} columns."}

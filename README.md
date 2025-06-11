@@ -1,3 +1,5 @@
+<a href="https://www.statcan.gc.ca/en/start" target="_blank"><img src="assets/StatCan-Header.png" alt="Statistics Canada MCP Server"></a>
+
 # 📊 Statistics Canada API MCP Server
 
 <a href="https://www.python.org/downloads/" target="_blank"><img src="https://img.shields.io/badge/python-3.10+-blue.svg" alt="Python 3.10+"></a>
@@ -141,9 +143,9 @@ Navigate to: Claude Desktop App → Settings (⌘ + ,) → Developer → Edit Co
   "--with", "httpx", 
   "sh",
   "-c",
-  "cd /path/to/mcp-statcan && python3 -m src.server"
+  "cd /path/to/mcp-statcan && python -m src.server"
 ]
-}
+}q
 }
 }
 ```
