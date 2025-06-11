@@ -2,13 +2,14 @@ import httpx
 from typing import Dict, List, Any, Optional, Union
 import json
 from ..config import BASE_URL, TIMEOUT_SMALL, TIMEOUT_MEDIUM, TIMEOUT_LARGE, VERIFY_SSL
+from ..util.logger import log_ssl_warning
 
 async def make_get_request(endpoint: str, params: Optional[Dict[str, Any]] = None, 
                          timeout: float = TIMEOUT_SMALL) -> Any:
     """Make a GET request to the StatCan API."""
     async with httpx.AsyncClient(base_url=BASE_URL, timeout=timeout, verify=VERIFY_SSL) as client:
         if not VERIFY_SSL:
-            print(f"Warning: SSL verification disabled for {endpoint}.")
+            log_ssl_warning(f"SSL verification disabled for {endpoint}.")
         response = await client.get(endpoint, params=params)
         response.raise_for_status()
         return response.json()
@@ -18,7 +19,7 @@ async def make_post_request(endpoint: str, data: Union[List[Dict[str, Any]], Dic
     """Make a POST request to the StatCan API."""
     async with httpx.AsyncClient(base_url=BASE_URL, timeout=timeout, verify=VERIFY_SSL) as client:
         if not VERIFY_SSL:
-            print(f"Warning: SSL verification disabled for {endpoint}.")
+            log_ssl_warning(f"SSL verification disabled for {endpoint}.")
         response = await client.post(endpoint, json=data)
         response.raise_for_status()
         return response.json()

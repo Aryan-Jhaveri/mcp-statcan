@@ -7,6 +7,7 @@ from ..models.db_models import TableDataInput, TableNameInput, QueryInput
 from ..util.sql_helpers import convert_value_for_sql
 from ..config import MAX_QUERY_ROWS
 from .schema import create_table_from_data
+from ..util.logger import log_data_validation_warning, log_sql_debug
 
 def register_db_tools(mcp: FastMCP):
     """Register database tools with the MCP server."""
@@ -65,7 +66,7 @@ def register_db_tools(mcp: FastMCP):
                         safe_key = ''.join(c if c.isalnum() or c == '_' else '_' for c in key)
                         if not safe_key or safe_key[0].isdigit() or not safe_key.isidentifier():
                             if key not in skipped_keys:
-                                 print(f"Warning: Skipping invalid key '{key}' from input data during insert.")
+                                 log_data_validation_warning(f"Skipping invalid key '{key}' from input data during insert.")
                                  skipped_keys.add(key)
                             continue
                         # Handle duplicate sanitized keys from the *same input dict* if necessary
@@ -102,7 +103,7 @@ def register_db_tools(mcp: FastMCP):
                 quoted_columns = ", ".join([f'"{col}"' for col in table_columns])
                 insert_sql = f'INSERT INTO "{table_name}" ({quoted_columns}) VALUES ({placeholders})'
 
-                print(f"Executing INSERT for {len(rows_to_insert)} rows into {table_name}...")
+                log_sql_debug(f"Executing INSERT for {len(rows_to_insert)} rows into {table_name}...")
                 cursor.executemany(insert_sql, rows_to_insert)
                 conn.commit()
                 return {"success": f"Inserted {cursor.rowcount} rows into '{table_name}'. Processed {processed_count}/{len(data)} input items."}
@@ -206,7 +207,7 @@ def register_db_tools(mcp: FastMCP):
         try:
             with get_db_connection() as conn:
                 cursor = conn.cursor()
-                print(f"Executing query: {query}")
+                log_sql_debug(f"Executing query: {query}")
                 cursor.execute(query)
                 results = cursor.fetchall() # Fetch all rows based on conn.row_factory
 
@@ -221,7 +222,7 @@ def register_db_tools(mcp: FastMCP):
                 # Limit the number of rows returned to prevent exceeding limits
                 message = None
                 if len(rows) > MAX_QUERY_ROWS:
-                    print(f"Warning: Query returned {len(rows)} rows. Truncating to {MAX_QUERY_ROWS}.")
+                    log_data_validation_warning(f"Query returned {len(rows)} rows. Truncating to {MAX_QUERY_ROWS}.")
                     rows = rows[:MAX_QUERY_ROWS]
                     message = f"Result truncated to the first {MAX_QUERY_ROWS} rows."
 

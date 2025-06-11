@@ -16,6 +16,7 @@ from ..models.api_models import (
 from ..util.coordinate import pad_coordinate
 # Import BASE_URL and timeouts from config
 from ..config import BASE_URL, TIMEOUT_MEDIUM, TIMEOUT_LARGE
+from ..util.logger import log_ssl_warning, log_search_progress, log_data_validation_warning
 
 def register_cube_tools(mcp: FastMCP):
     """Register all cube-related API tools with the MCP server."""
@@ -30,7 +31,7 @@ def register_cube_tools(mcp: FastMCP):
         WARNING: Returns a very large list. Use database caching or search tools if possible.
         """
         async with httpx.AsyncClient(base_url=BASE_URL, timeout=TIMEOUT_LARGE, verify=False) as client:
-            print("Warning: SSL verification disabled for get_all_cubes_list.")
+            log_ssl_warning("SSL verification disabled for get_all_cubes_list.")
             try:
                 response = await client.get("/getAllCubesList")
                 response.raise_for_status()
@@ -49,7 +50,7 @@ def register_cube_tools(mcp: FastMCP):
         WARNING: Returns a very large list. Use database caching or search tools if possible.
         """
         async with httpx.AsyncClient(base_url=BASE_URL, timeout=TIMEOUT_LARGE, verify=False) as client:
-            print("Warning: SSL verification disabled for get_all_cubes_list_lite.")
+            log_ssl_warning("SSL verification disabled for get_all_cubes_list_lite.")
             try:
                 response = await client.get("/getAllCubesListLite")
                 response.raise_for_status()
@@ -77,7 +78,7 @@ def register_cube_tools(mcp: FastMCP):
             httpx.HTTPStatusError: If the underlying API call fails.
             Exception: For other network or unexpected errors during the fetch.
         """
-        print(f"Searching for cubes with title containing: '{search_term}'")
+        log_search_progress(f"Searching for cubes with title containing: '{search_term}'")
         try:
             # Call the existing lite list function
             all_cubes_lite = await get_all_cubes_list_lite()
@@ -91,11 +92,11 @@ def register_cube_tools(mcp: FastMCP):
                 if search_term_lower in title_en.lower() or search_term_lower in title_fr.lower():
                     matching_cubes.append(cube)
 
-            print(f"Found {len(matching_cubes)} cubes matching '{search_term}'.")
+            log_search_progress(f"Found {len(matching_cubes)} cubes matching '{search_term}'.")
             return matching_cubes
 
         except Exception as e:
-            print(f"Unexpected error during cube search: {e}")
+            log_data_validation_warning(f"Unexpected error during cube search: {e}")
             raise
 
     # --- Metadata Tools ---
@@ -114,7 +115,7 @@ def register_cube_tools(mcp: FastMCP):
             Exception: For other network or unexpected errors.
         """
         async with httpx.AsyncClient(base_url=BASE_URL, timeout=TIMEOUT_MEDIUM, verify=False) as client:
-            print("Warning: SSL verification disabled for get_cube_metadata.")
+            log_ssl_warning("SSL verification disabled for get_cube_metadata.")
             post_data = [{"productId": product_input.productId}] # API expects a list
             try:
                 response = await client.post("/getCubeMetadata", json=post_data)
@@ -147,7 +148,7 @@ def register_cube_tools(mcp: FastMCP):
             Exception: For other network or unexpected errors.
         """
         async with httpx.AsyncClient(base_url=BASE_URL, timeout=TIMEOUT_MEDIUM, verify=False) as client:
-            print("Warning: SSL verification disabled for get_data_from_cube_pid_coord_and_latest_n_periods.")
+            log_ssl_warning("SSL verification disabled for get_data_from_cube_pid_coord_and_latest_n_periods.")
             padded_coord = pad_coordinate(input_data.coordinate)
             # API expects a list containing one object
             post_data = [{
@@ -186,7 +187,7 @@ def register_cube_tools(mcp: FastMCP):
             Exception: For other network or unexpected errors.
         """
         async with httpx.AsyncClient(base_url=BASE_URL, timeout=TIMEOUT_MEDIUM, verify=False) as client:
-            print("Warning: SSL verification disabled for get_series_info_from_cube_pid_coord.")
+            log_ssl_warning("SSL verification disabled for get_series_info_from_cube_pid_coord.")
             padded_coord = pad_coordinate(input_data.coordinate)
             # API expects a list containing one object
             post_data = [{
@@ -224,7 +225,7 @@ def register_cube_tools(mcp: FastMCP):
             Exception: For other network or unexpected errors.
         """
         async with httpx.AsyncClient(base_url=BASE_URL, timeout=TIMEOUT_MEDIUM, verify=False) as client:
-            print("Warning: SSL verification disabled for get_changed_series_data_from_cube_pid_coord.")
+            log_ssl_warning("SSL verification disabled for get_changed_series_data_from_cube_pid_coord.")
             padded_coord = pad_coordinate(input_data.coordinate)
             # API expects a list containing one object
             post_data = [{
@@ -264,7 +265,7 @@ def register_cube_tools(mcp: FastMCP):
             raise ValueError("Invalid language code. Use 'en' or 'fr'.")
 
         async with httpx.AsyncClient(base_url=BASE_URL, timeout=TIMEOUT_MEDIUM, verify=False) as client:
-            print("Warning: SSL verification disabled for get_full_table_download_csv.")
+            log_ssl_warning("SSL verification disabled for get_full_table_download_csv.")
             try:
                 response = await client.get(f"/getFullTableDownloadCSV/{productId}/{lang}")
                 response.raise_for_status()
@@ -296,7 +297,7 @@ def register_cube_tools(mcp: FastMCP):
         """
         productId = product_input.productId
         async with httpx.AsyncClient(base_url=BASE_URL, timeout=TIMEOUT_MEDIUM, verify=False) as client:
-            print("Warning: SSL verification disabled for get_full_table_download_sdmx.")
+            log_ssl_warning("SSL verification disabled for get_full_table_download_sdmx.")
             try:
                 response = await client.get(f"/getFullTableDownloadSDMX/{productId}")
                 response.raise_for_status()
@@ -332,7 +333,7 @@ def register_cube_tools(mcp: FastMCP):
              raise ValueError(f"Invalid date format for get_changed_cube_list. Expected YYYY-MM-DD, got {date}")
 
         async with httpx.AsyncClient(base_url=BASE_URL, timeout=TIMEOUT_MEDIUM, verify=False) as client:
-            print("Warning: SSL verification disabled for get_changed_cube_list.")
+            log_ssl_warning("SSL verification disabled for get_changed_cube_list.")
             try:
                 response = await client.get(f"/getChangedCubeList/{date}")
                 response.raise_for_status()

@@ -17,3 +17,11 @@ EXPECTED_COORD_DIMENSIONS = 10
 
 # Query limits
 MAX_QUERY_ROWS = 500
+
+# Logging configuration
+# Control different types of debug/logging output via environment variables
+ENABLE_SERVER_DEBUG = os.environ.get("STATCAN_SERVER_DEBUG", "false").lower() == "true"
+ENABLE_SSL_WARNINGS = os.environ.get("STATCAN_SSL_WARNINGS", "false").lower() == "true"
+ENABLE_SQL_DEBUG = os.environ.get("STATCAN_SQL_DEBUG", "false").lower() == "true"
+ENABLE_DATA_VALIDATION_WARNINGS = os.environ.get("STATCAN_DATA_VALIDATION_WARNINGS", "false").lower() == "true"
+ENABLE_SEARCH_PROGRESS = os.environ.get("STATCAN_SEARCH_PROGRESS", "false").lower() == "true"

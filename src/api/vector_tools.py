@@ -8,6 +8,7 @@ from fastmcp import FastMCP
 from ..models.api_models import VectorIdInput, VectorLatestNInput, VectorRangeInput, BulkVectorRangeInput
 # Import BASE_URL and timeouts from config
 from ..config import BASE_URL, TIMEOUT_MEDIUM, TIMEOUT_LARGE
+from ..util.logger import log_ssl_warning, log_data_validation_warning
 
 def register_vector_tools(mcp: FastMCP):
     """Register all vector-related API tools with the MCP server."""
@@ -27,7 +28,7 @@ def register_vector_tools(mcp: FastMCP):
             Exception: For other network or unexpected errors.
         """
         async with httpx.AsyncClient(base_url=BASE_URL, timeout=TIMEOUT_MEDIUM, verify=False) as client:
-            print("Warning: SSL verification disabled for get_series_info_from_vector.")
+            log_ssl_warning("SSL verification disabled for get_series_info_from_vector.")
             # API expects a list containing one object
             post_data = [vector_input.model_dump()]
             try:
@@ -59,7 +60,7 @@ def register_vector_tools(mcp: FastMCP):
             Exception: For other network or unexpected errors.
         """
         async with httpx.AsyncClient(base_url=BASE_URL, timeout=TIMEOUT_MEDIUM, verify=False) as client:
-            print("Warning: SSL verification disabled for get_data_from_vectors_and_latest_n_periods.")
+            log_ssl_warning("SSL verification disabled for get_data_from_vectors_and_latest_n_periods.")
             # API expects a list containing one object
             post_data = [vector_latest_n_input.model_dump()]
             try:
@@ -91,7 +92,7 @@ def register_vector_tools(mcp: FastMCP):
             Exception: For other network or unexpected errors.
         """
         async with httpx.AsyncClient(base_url=BASE_URL, timeout=TIMEOUT_LARGE, verify=False) as client: # Longer timeout
-            print("Warning: SSL verification disabled for get_data_from_vector_by_reference_period_range.")
+            log_ssl_warning("SSL verification disabled for get_data_from_vector_by_reference_period_range.")
             # Parameters as defined in docs
             params = {
                 "vectorIds": ",".join(range_input.vectorIds),
@@ -114,7 +115,7 @@ def register_vector_tools(mcp: FastMCP):
                             processed_data.append(item.get("object", {}))
                         else:
                             failures.append(item)
-                            print(f"Warning: Failed to retrieve data for part of the range request: {item}")
+                            log_data_validation_warning(f"Failed to retrieve data for part of the range request: {item}")
                 else:
                      raise ValueError(f"API response was not a list for range request. Response: {result_list}")
 
@@ -141,7 +142,7 @@ def register_vector_tools(mcp: FastMCP):
             Exception: For other network or unexpected errors.
         """
         async with httpx.AsyncClient(base_url=BASE_URL, timeout=TIMEOUT_LARGE, verify=False) as client: # Longer timeout
-            print("Warning: SSL verification disabled for get_bulk_vector_data_by_range.")
+            log_ssl_warning("SSL verification disabled for get_bulk_vector_data_by_range.")
             # API expects a single JSON object
             post_data = bulk_range_input.model_dump(exclude_none=True)
             try:
@@ -157,7 +158,7 @@ def register_vector_tools(mcp: FastMCP):
                             processed_data.append(item.get("object", {}))
                         else:
                             failures.append(item)
-                            print(f"Warning: Failed to retrieve bulk data for part of the request: {item}")
+                            log_data_validation_warning(f"Failed to retrieve bulk data for part of the request: {item}")
                 else:
                      raise ValueError(f"API response was not a list for bulk request. Response: {result_list}")
 
@@ -184,7 +185,7 @@ def register_vector_tools(mcp: FastMCP):
             Exception: For other network or unexpected errors.
         """
         async with httpx.AsyncClient(base_url=BASE_URL, timeout=TIMEOUT_MEDIUM, verify=False) as client:
-            print("Warning: SSL verification disabled for get_changed_series_data_from_vector.")
+            log_ssl_warning("SSL verification disabled for get_changed_series_data_from_vector.")
             # API expects a list containing one object
             post_data = [vector_input.model_dump()]
             try:
@@ -222,7 +223,7 @@ def register_vector_tools(mcp: FastMCP):
              raise ValueError(f"Invalid date format for get_changed_series_list. Expected YYYY-MM-DD, got {date}")
 
         async with httpx.AsyncClient(base_url=BASE_URL, timeout=TIMEOUT_MEDIUM, verify=False) as client:
-            print("Warning: SSL verification disabled for get_changed_series_list.")
+            log_ssl_warning("SSL verification disabled for get_changed_series_list.")
             try:
                 response = await client.get(f"/getChangedSeriesList/{date}")
                 response.raise_for_status()
