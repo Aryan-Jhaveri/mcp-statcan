@@ -57,6 +57,79 @@
             font-size: 1.1em;
         }
         
+        /* MCP URL Copy Box */
+        .mcp-url-box {
+            background: linear-gradient(135deg, #007bff, #0056b3);
+            color: white;
+            padding: 20px;
+            margin: 20px -20px;
+            border-radius: 8px;
+            text-align: center;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+        
+        .mcp-url-title {
+            font-size: 1.2em;
+            font-weight: 600;
+            margin-bottom: 15px;
+        }
+        
+        .url-container {
+            background: rgba(255,255,255,0.15);
+            border: 1px solid rgba(255,255,255,0.3);
+            border-radius: 6px;
+            padding: 12px 16px;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        
+        .url-text {
+            font-family: 'Monaco', 'Menlo', monospace;
+            font-size: 15px;
+            color: white;
+            background: none;
+            border: none;
+            outline: none;
+            flex: 1;
+            min-width: 200px;
+        }
+        
+        .copy-btn {
+            background: rgba(255,255,255,0.2);
+            border: 1px solid rgba(255,255,255,0.3);
+            color: white;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.2s;
+            white-space: nowrap;
+        }
+        
+        .copy-btn:hover {
+            background: rgba(255,255,255,0.3);
+            transform: translateY(-1px);
+        }
+        
+        .copy-btn:active {
+            transform: translateY(0px);
+        }
+        
+        .copy-success {
+            background: #28a745 !important;
+            border-color: #28a745 !important;
+        }
+        
+        .instructions {
+            font-size: 0.9em;
+            opacity: 0.9;
+            margin-top: 10px;
+        }
+        
         /* Badge styling */
         .markdown-body img[alt*="badge"] {
             margin: 2px;
@@ -122,6 +195,17 @@
             <p>Model Context Protocol for Canadian Statistical Data</p>
         </div>
         
+        <div class="mcp-url-box">
+            <div class="mcp-url-title">🔗 Connect Claude to this MCP Server:</div>
+            <div class="url-container">
+                <input type="text" class="url-text" value="https://mcp-statcan.onrender.com/mcp/" readonly id="mcpUrl">
+                <button class="copy-btn" onclick="copyMcpUrl()">📋 Copy URL</button>
+            </div>
+            <div class="instructions">
+                Copy this URL and paste it into Claude's MCP connector to access all Statistics Canada data tools.
+            </div>
+        </div>
+        
         <article class="markdown-body">
             <div class="loading" id="loading">Loading documentation</div>
             <div id="content" style="display: none;"></div>
@@ -175,6 +259,43 @@
                 console.error('Error loading README:', error);
                 document.getElementById('loading').innerHTML = 'Failed to load documentation. Please refresh the page.';
             });
+        
+        // Copy MCP URL function
+        function copyMcpUrl() {
+            const urlInput = document.getElementById('mcpUrl');
+            const copyBtn = document.querySelector('.copy-btn');
+            
+            // Select and copy the text
+            urlInput.select();
+            urlInput.setSelectionRange(0, 99999); // For mobile devices
+            
+            navigator.clipboard.writeText(urlInput.value).then(function() {
+                // Success feedback
+                const originalText = copyBtn.innerHTML;
+                copyBtn.innerHTML = '✅ Copied!';
+                copyBtn.classList.add('copy-success');
+                
+                setTimeout(() => {
+                    copyBtn.innerHTML = originalText;
+                    copyBtn.classList.remove('copy-success');
+                }, 2000);
+            }).catch(function(err) {
+                // Fallback for older browsers
+                try {
+                    document.execCommand('copy');
+                    const originalText = copyBtn.innerHTML;
+                    copyBtn.innerHTML = '✅ Copied!';
+                    copyBtn.classList.add('copy-success');
+                    
+                    setTimeout(() => {
+                        copyBtn.innerHTML = originalText;
+                        copyBtn.classList.remove('copy-success');
+                    }, 2000);
+                } catch (e) {
+                    console.error('Could not copy text: ', err);
+                }
+            });
+        }
     </script>
 </body>
 </html>
