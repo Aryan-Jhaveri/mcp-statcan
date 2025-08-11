@@ -25,18 +25,6 @@ def create_server(name="StatCanAPI_DB_Server"):
     if OAUTH_PROVIDER == "google":
         oauth = GoogleOAuth.from_env()
         app = oauth.install(mcp)
-        
-        # Configure static file serving for landing page
-        from fastapi.staticfiles import StaticFiles
-        
-        # Get the public directory path (relative to project root)
-        public_dir = Path(__file__).parent.parent / "public"
-        if public_dir.exists():
-            log_server_debug(f"Mounting static files from: {public_dir}")
-            # Mount static files at root, MCP API will be at /mcp
-            app.mount("/", StaticFiles(directory=str(public_dir), html=True), name="static")
-        else:
-            log_server_debug(f"Public directory not found at: {public_dir}")
 
     # Register all tools by module
     try:
