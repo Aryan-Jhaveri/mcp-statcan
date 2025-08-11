@@ -18,6 +18,10 @@ EXPECTED_COORD_DIMENSIONS = 10
 # Query limits
 MAX_QUERY_ROWS = 500
 
+# Server configuration
+HOST = os.environ.get("HOST", "0.0.0.0")
+PORT = int(os.environ.get("PORT", "8000"))
+
 # Logging configuration
 # Control different types of debug/logging output via environment variables
 ENABLE_SERVER_DEBUG = os.environ.get("STATCAN_SERVER_DEBUG", "false").lower() == "true"

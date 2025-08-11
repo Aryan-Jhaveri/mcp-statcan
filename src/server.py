@@ -3,7 +3,7 @@ import os
 import sys # Import sys to print to stderr
 
 # Use relative imports within the src package
-from .config import DB_FILE
+from .config import DB_FILE, HOST, PORT
 from .api.cube_tools import register_cube_tools
 from .api.vector_tools import register_vector_tools
 from .api.metadata_tools import register_metadata_tools
@@ -55,7 +55,7 @@ if __name__ == "__main__":
 
         log_server_debug("Calling mcp.run()...")
         # This should block and handle the communication loop
-        mcp.run()
+        mcp.run(transport="http", host=HOST, port=PORT)
         # If the script reaches here, mcp.run() finished (unexpectedly?)
         log_server_debug("mcp.run() exited.")
 
