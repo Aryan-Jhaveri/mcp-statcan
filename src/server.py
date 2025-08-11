@@ -1,21 +1,29 @@
 from fastmcp import FastMCP
+from fastmcp_oauth import GoogleOAuth, require_auth
 import os
 import sys # Import sys to print to stderr
 
 # Use relative imports within the src package
-from .config import DB_FILE, HOST, PORT
+from .config import DB_FILE, HOST, PORT, OAUTH_PROVIDER
 from .api.cube_tools import register_cube_tools
 from .api.vector_tools import register_vector_tools
 from .api.metadata_tools import register_metadata_tools
 from .db.queries import register_db_tools
 from .util.logger import log_server_debug 
 
+
+ 
 def create_server(name="StatCanAPI_DB_Server"):
     """Create and configure the MCP server with all tools registered."""
     log_server_debug("Inside create_server function.")
     log_server_debug("Instantiating FastMCP...")
     mcp = FastMCP(name=name)
     log_server_debug("FastMCP instance created.")
+
+    # Add Google OAuth
+    if OAUTH_PROVIDER == "google":
+        oauth = GoogleOAuth.from_env()
+        app = oauth.install(mcp)
 
     # Register all tools by module
     try:

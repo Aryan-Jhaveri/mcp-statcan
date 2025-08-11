@@ -16,10 +16,11 @@ authors = [
 requires-python = ">=3.10" 
 
 # Core dependencies required for the server to run
-dependencies = [
-    "fastmcp>=2.0.0", 
-    "httpx>=0.25.0",  
-    "pydantic>=2.0.0" 
+ dependencies = [
+      "fastmcp>=2.0.0",
+      "httpx>=0.25.0",
+      "pydantic>=2.0.0",
+      "fastmcp-oauth @ git+https://github.com/peterlarnholt/fastmcp-oauth.git"
 ]
 
 [project.urls]

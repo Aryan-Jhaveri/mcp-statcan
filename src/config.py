@@ -29,3 +29,11 @@ ENABLE_SSL_WARNINGS = os.environ.get("STATCAN_SSL_WARNINGS", "false").lower() ==
 ENABLE_SQL_DEBUG = os.environ.get("STATCAN_SQL_DEBUG", "false").lower() == "true"
 ENABLE_DATA_VALIDATION_WARNINGS = os.environ.get("STATCAN_DATA_VALIDATION_WARNINGS", "false").lower() == "true"
 ENABLE_SEARCH_PROGRESS = os.environ.get("STATCAN_SEARCH_PROGRESS", "false").lower() == "true"
+
+# OAuth configuration  
+OAUTH_PROVIDER = os.environ.get("OAUTH_PROVIDER", "google")
+SECRET_KEY = os.environ.get("SECRET_KEY")
+
+# Google OAuth
+GOOGLE_CLIENT_ID = os.environ.get("GOOGLE_CLIENT_ID")
+GOOGLE_CLIENT_SECRET = os.environ.get("GOOGLE_CLIENT_SECRET")
