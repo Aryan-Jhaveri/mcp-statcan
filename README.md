@@ -145,7 +145,7 @@ Navigate to: Claude Desktop App → Settings (⌘ + ,) → Developer → Edit Co
   "-c",
   "cd /path/to/mcp-statcan && python -m src.server"
 ]
-}q
+}
 }
 }
 ```
