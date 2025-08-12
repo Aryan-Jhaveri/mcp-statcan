@@ -5,8 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Statistics Canada MCP Server</title>
     
-    <!-- GitHub Markdown CSS -->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/github-markdown-css@5/github-markdown-light.css">
+    <!-- GitHub Markdown CSS with Dark Mode Support -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/github-markdown-css@5/github-markdown.css">
     
     <!-- Custom StatCan Styling -->
     <style>
@@ -16,6 +16,7 @@
             margin: 0;
             padding: 0;
             background-color: #f8f9fa;
+            transition: background-color 0.3s ease;
         }
         
         .container {
@@ -25,6 +26,20 @@
             background-color: white;
             box-shadow: 0 0 10px rgba(0,0,0,0.1);
             min-height: 100vh;
+            transition: background-color 0.3s ease, box-shadow 0.3s ease;
+        }
+        
+        /* Dark mode styles */
+        @media (prefers-color-scheme: dark) {
+            body {
+                background-color: #0d1117;
+                color: #f0f6fc;
+            }
+            
+            .container {
+                background-color: #161b22;
+                box-shadow: 0 0 10px rgba(0,0,0,0.3);
+            }
         }
         
         .markdown-body {
@@ -66,6 +81,14 @@
             border-radius: 8px;
             text-align: center;
             box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            transition: background 0.3s ease, box-shadow 0.3s ease;
+        }
+        
+        @media (prefers-color-scheme: dark) {
+            .mcp-url-box {
+                background: linear-gradient(135deg, #1f6feb, #0969da);
+                box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+            }
         }
         
         .mcp-url-title {
@@ -124,6 +147,17 @@
             border-color: #28a745 !important;
         }
         
+        @media (prefers-color-scheme: dark) {
+            .copy-btn {
+                background: rgba(255,255,255,0.1);
+                border: 1px solid rgba(255,255,255,0.2);
+            }
+            
+            .copy-btn:hover {
+                background: rgba(255,255,255,0.2);
+            }
+        }
+        
         .instructions {
             font-size: 0.9em;
             opacity: 0.9;
@@ -152,6 +186,65 @@
             border-radius: 6px;
         }
         
+        @media (prefers-color-scheme: dark) {
+            .markdown-body pre {
+                background-color: #161b22;
+                border: 1px solid #30363d;
+            }
+            
+            .markdown-body pre code {
+                color: #f0f6fc;
+            }
+            
+            .markdown-body code {
+                background-color: #161b22;
+                color: #f0f6fc;
+                border: 1px solid #30363d;
+                padding: 0.2em 0.4em;
+                border-radius: 3px;
+            }
+            
+            .markdown-body h1,
+            .markdown-body h2,
+            .markdown-body h3,
+            .markdown-body h4,
+            .markdown-body h5,
+            .markdown-body h6 {
+                color: #f0f6fc;
+                border-bottom-color: #30363d;
+            }
+            
+            .markdown-body blockquote {
+                color: #8b949e;
+                border-left-color: #30363d;
+            }
+            
+            .markdown-body hr {
+                background-color: #30363d;
+                border: none;
+                height: 1px;
+            }
+            
+            .markdown-body table th {
+                background-color: #161b22;
+                border-color: #30363d;
+                color: #f0f6fc;
+            }
+            
+            .markdown-body table td {
+                border-color: #30363d;
+                color: #f0f6fc;
+            }
+            
+            .markdown-body strong {
+                color: #f0f6fc;
+            }
+            
+            .markdown-body em {
+                color: #f0f6fc;
+            }
+        }
+        
         /* Loading indicator */
         .loading {
             text-align: center;
@@ -170,6 +263,19 @@
             40% { color: #666; text-shadow: .25em 0 0 rgba(0,0,0,0), .5em 0 0 rgba(0,0,0,0); }
             60% { text-shadow: .25em 0 0 #666, .5em 0 0 rgba(0,0,0,0); }
             80%, 100% { text-shadow: .25em 0 0 #666, .5em 0 0 #666; }
+        }
+        
+        @media (prefers-color-scheme: dark) {
+            .loading {
+                color: #8b949e;
+            }
+            
+            @keyframes dots {
+                0%, 20% { color: rgba(139,148,158,0); text-shadow: .25em 0 0 rgba(139,148,158,0), .5em 0 0 rgba(139,148,158,0); }
+                40% { color: #8b949e; text-shadow: .25em 0 0 rgba(139,148,158,0), .5em 0 0 rgba(139,148,158,0); }
+                60% { text-shadow: .25em 0 0 #8b949e, .5em 0 0 rgba(139,148,158,0); }
+                80%, 100% { text-shadow: .25em 0 0 #8b949e, .5em 0 0 #8b949e; }
+            }
         }
         
         /* Mobile responsive */
