@@ -1,6 +1,9 @@
-from fastmcp import FastMCP
+from mcp.server import Server
+from mcp.server.stdio import stdio_server
+from mcp.types import Tool, TextContent, ImageContent, EmbeddedResource
+import asyncio
 import os
-import sys # Import sys to print to stderr
+import sys
 
 # Use relative imports within the src package
 from .config import DB_FILE
@@ -9,64 +12,79 @@ from .api.vector_tools import register_vector_tools
 from .api.metadata_tools import register_metadata_tools
 from .db.queries import register_db_tools
 from .util.logger import log_server_debug 
+from .util.registry import registry
 
-def create_server(name="StatCanAPI_DB_Server"):
+def create_server():
     """Create and configure the MCP server with all tools registered."""
     log_server_debug("Inside create_server function.")
-    log_server_debug("Instantiating FastMCP...")
-    mcp = FastMCP(name=name)
-    log_server_debug("FastMCP instance created.")
+    
+    # Initialize standard MCP Server
+    server = Server("StatCanAPI_DB_Server")
+    log_server_debug("MCP Server instance created.")
 
-    # Register all tools by module
+    # Register all tools by module to the global registry
     try:
         log_server_debug("Registering metadata tools...")
-        register_metadata_tools(mcp)
+        register_metadata_tools(registry)
         log_server_debug("Registering cube tools...")
-        register_cube_tools(mcp)
+        register_cube_tools(registry)
         log_server_debug("Registering vector tools...")
-        register_vector_tools(mcp)
+        register_vector_tools(registry)
         log_server_debug("Registering db tools...")
-        register_db_tools(mcp) # Includes schema tools via queries.py
+        register_db_tools(registry)
         log_server_debug("Tool registration complete.")
         
     except Exception as e:
         log_server_debug(f"ERROR during tool registration: {e}")
-        # Optionally re-raise or handle differently
         raise
 
-    log_server_debug("Returning mcp instance from create_server.")
-    return mcp
+    # Register handlers with the server instance
+    @server.list_tools()
+    async def list_tools() -> list[Tool]:
+        return registry.get_tools()
 
-# --- Main Execution ---
+    @server.call_tool()
+    async def call_tool(name: str, arguments: dict) -> list[TextContent | ImageContent | EmbeddedResource]:
+        try:
+            result = await registry.call_tool(name, arguments)
+            
+            # Format result to MCP Content list
+            if isinstance(result, list) or isinstance(result, dict):
+                import json
+                return [TextContent(type="text", text=json.dumps(result, indent=2))]
+            elif result is None:
+                 return [TextContent(type="text", text="Tool executed successfully with no output.")]
+            else:
+                return [TextContent(type="text", text=str(result))]
+                
+        except Exception as e:
+            log_server_debug(f"Error calling tool {name}: {e}")
+            return [TextContent(type="text", text=f"Error: {str(e)}")]
 
-# This part runs when the script is executed as `python -m src.server`
-if __name__ == "__main__":
+    log_server_debug("Returning server instance from create_server.")
+    return server
+
+async def main():
     log_server_debug("Executing src/server.py as main module...")
     try:
         log_server_debug(f"Database file location: {os.path.abspath(DB_FILE)}")
         log_server_debug("Calling create_server...")
-        # Default server instance
-        mcp = create_server()
-        log_server_debug("Server instance created successfully.")
-
-        log_server_debug("Starting StatCan API + DB MCP Server message...")
-        # This print goes to stdout, as intended by the original script
-        print("Starting StatCan API + DB MCP Server...")
-
-        log_server_debug("Calling mcp.run()...")
-        # This should block and handle the communication loop
-        mcp.run()
-        # If the script reaches here, mcp.run() finished (unexpectedly?)
-        log_server_debug("mcp.run() exited.")
-
+        
+        server = create_server()
+        
+        log_server_debug("Starting StatCan API + DB MCP Server on stdio...")
+        # Run using stdio transport
+        async with stdio_server() as (read_stream, write_stream):
+            await server.run(
+                read_stream,
+                write_stream,
+                server.create_initialization_options()
+            )
+            
     except Exception as e:
-        # Catch any unexpected exceptions during setup or run
         log_server_debug(f"UNEXPECTED ERROR in main block: {e}")
-        # Optionally print traceback
         import traceback
         traceback.print_exc(file=sys.stderr)
 
-    finally:
-        # This will run even if mcp.run() is interrupted
-        log_server_debug("Main execution block finished.")
-
+if __name__ == "__main__":
+    asyncio.run(main())

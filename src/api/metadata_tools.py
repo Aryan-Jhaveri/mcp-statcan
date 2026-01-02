@@ -1,11 +1,11 @@
-from fastmcp import FastMCP
+from ..util.registry import ToolRegistry
 from typing import Dict, Any
 from .client import make_get_request, extract_success_object
 
-def register_metadata_tools(mcp: FastMCP):
+def register_metadata_tools(registry: ToolRegistry):
     """Register metadata-related API tools with the MCP server."""
     
-    @mcp.tool()
+    @registry.tool()
     async def get_code_sets() -> Dict[str, Any]:
         """
         Retrieves definitions for various code sets used by the API (e.g., frequency, units of measure).

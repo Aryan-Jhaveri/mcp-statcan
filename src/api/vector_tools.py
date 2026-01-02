@@ -3,17 +3,17 @@ import datetime
 from typing import List, Dict, Any, Optional
 from pydantic import BaseModel # Assuming models might still be needed
 
-from fastmcp import FastMCP
+from ..util.registry import ToolRegistry
 # Assuming models are defined in api_models.py
 from ..models.api_models import VectorIdInput, VectorLatestNInput, VectorRangeInput, BulkVectorRangeInput
 # Import BASE_URL and timeouts from config
 from ..config import BASE_URL, TIMEOUT_MEDIUM, TIMEOUT_LARGE
 from ..util.logger import log_ssl_warning, log_data_validation_warning
 
-def register_vector_tools(mcp: FastMCP):
+def register_vector_tools(registry: ToolRegistry):
     """Register all vector-related API tools with the MCP server."""
 
-    @mcp.tool()
+    @registry.tool()
     async def get_series_info_from_vector(vector_input: VectorIdInput) -> Dict[str, Any]:
         """
         Request series metadata (productId, coordinate, titles, frequency, etc.)
@@ -45,7 +45,7 @@ def register_vector_tools(mcp: FastMCP):
             except ValueError as exc: # Catch JSON decoding errors or our own ValueErrors
                 raise ValueError(f"Error processing response for get_series_info_from_vector: {exc}")
 
-    @mcp.tool()
+    @registry.tool()
     async def get_data_from_vectors_and_latest_n_periods(vector_latest_n_input: VectorLatestNInput) -> Dict[str, Any]:
         """
         Get data for the N most recent reporting periods for a specific data series
@@ -77,7 +77,7 @@ def register_vector_tools(mcp: FastMCP):
             except ValueError as exc:
                 raise ValueError(f"Error processing response for get_data_from_vectors_and_latest_n_periods: {exc}")
 
-    @mcp.tool()
+    @registry.tool()
     async def get_data_from_vector_by_reference_period_range(range_input: VectorRangeInput) -> List[Dict[str, Any]]:
         """
         Access data for one or more specific vectors within a given reference period range (YYYY-MM-DD).
@@ -127,7 +127,7 @@ def register_vector_tools(mcp: FastMCP):
             except ValueError as exc:
                 raise ValueError(f"Error processing response for get_data_from_vector_by_reference_period_range: {exc}")
 
-    @mcp.tool()
+    @registry.tool()
     async def get_bulk_vector_data_by_range(bulk_range_input: BulkVectorRangeInput) -> List[Dict[str, Any]]:
         """
         Access bulk data for multiple vectors based on a data point *release date* range (YYYY-MM-DDTHH:MM).
@@ -170,7 +170,7 @@ def register_vector_tools(mcp: FastMCP):
             except ValueError as exc:
                 raise ValueError(f"Error processing response for get_bulk_vector_data_by_range: {exc}")
 
-    @mcp.tool()
+    @registry.tool()
     async def get_changed_series_data_from_vector(vector_input: VectorIdInput) -> Dict[str, Any]:
         """
         Get changed series data (data points that have changed) for a series
@@ -202,7 +202,7 @@ def register_vector_tools(mcp: FastMCP):
             except ValueError as exc:
                 raise ValueError(f"Error processing response for get_changed_series_data_from_vector: {exc}")
 
-    @mcp.tool()
+    @registry.tool()
     async def get_changed_series_list(date: str) -> List[Dict[str, Any]]:
         """
         Get the list of series (vectorId, productId, coordinate, releaseTime)
