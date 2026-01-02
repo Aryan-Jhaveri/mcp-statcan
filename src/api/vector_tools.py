@@ -26,6 +26,9 @@ def register_vector_tools(registry: ToolRegistry):
             httpx.HTTPStatusError: If the API returns an error status code.
             ValueError: If the API response format is unexpected or status is not SUCCESS.
             Exception: For other network or unexpected errors.
+
+        IMPORTANT: In your final response to the user, you MUST cite the source of your data. 
+        For series info, this means including the VectorId, ProductId (pid), and Coordinate.
         """
         async with httpx.AsyncClient(base_url=BASE_URL, timeout=TIMEOUT_MEDIUM, verify=False) as client:
             log_ssl_warning("SSL verification disabled for get_series_info_from_vector.")
@@ -58,6 +61,9 @@ def register_vector_tools(registry: ToolRegistry):
             httpx.HTTPStatusError: If the API returns an error status code.
             ValueError: If the API response format is unexpected or status is not SUCCESS.
             Exception: For other network or unexpected errors.
+
+        IMPORTANT: In your final response to the user, you MUST cite the source of your data. 
+        For vector data, this means including the VectorId and Reference Period.
         """
         async with httpx.AsyncClient(base_url=BASE_URL, timeout=TIMEOUT_MEDIUM, verify=False) as client:
             log_ssl_warning("SSL verification disabled for get_data_from_vectors_and_latest_n_periods.")
@@ -90,6 +96,9 @@ def register_vector_tools(registry: ToolRegistry):
             httpx.HTTPStatusError: If the API returns an error status code.
             ValueError: If the API response format is unexpected or no vectors return SUCCESS.
             Exception: For other network or unexpected errors.
+
+        IMPORTANT: In your final response to the user, you MUST cite the source of your data. 
+        For vector data, this means including the VectorId and Reference Period.
         """
         async with httpx.AsyncClient(base_url=BASE_URL, timeout=TIMEOUT_LARGE, verify=False) as client: # Longer timeout
             log_ssl_warning("SSL verification disabled for get_data_from_vector_by_reference_period_range.")
@@ -140,6 +149,9 @@ def register_vector_tools(registry: ToolRegistry):
             httpx.HTTPStatusError: If the API returns an error status code.
             ValueError: If the API response format is unexpected or no vectors return SUCCESS.
             Exception: For other network or unexpected errors.
+
+        IMPORTANT: In your final response to the user, you MUST cite the source of your data. 
+        For vector data, this means including the VectorId and Release Time.
         """
         async with httpx.AsyncClient(base_url=BASE_URL, timeout=TIMEOUT_LARGE, verify=False) as client: # Longer timeout
             log_ssl_warning("SSL verification disabled for get_bulk_vector_data_by_range.")
@@ -155,7 +167,22 @@ def register_vector_tools(registry: ToolRegistry):
                 if isinstance(result_list, list):
                     for item in result_list:
                         if isinstance(item, dict) and item.get("status") == "SUCCESS":
-                            processed_data.append(item.get("object", {}))
+                            # Extract the object which contains vectorId and vectorDataPoint list
+                            object_data = item.get("object", {})
+                            vector_id = object_data.get("vectorId")
+                            vector_points = object_data.get("vectorDataPoint", [])
+                            
+                            # Flattening logic: Inject vectorId into each data point and add to main list
+                            if vector_id is not None and isinstance(vector_points, list):
+                                for point in vector_points:
+                                    if isinstance(point, dict):
+                                        point["vectorId"] = vector_id
+                                        processed_data.append(point)
+                            else:
+                                 # Fallback: if structure is unexpected, just log it. 
+                                 # We don't want to break the whole batch for one weird item, 
+                                 # but we also can't insert it without a vectorId/points list.
+                                 log_data_validation_warning(f"Unexpected structure for successful vector item: {item}")
                         else:
                             failures.append(item)
                             log_data_validation_warning(f"Failed to retrieve bulk data for part of the request: {item}")
@@ -183,6 +210,9 @@ def register_vector_tools(registry: ToolRegistry):
             httpx.HTTPStatusError: If the API returns an error status code.
             ValueError: If the API response format is unexpected or status is not SUCCESS.
             Exception: For other network or unexpected errors.
+
+        IMPORTANT: In your final response to the user, you MUST cite the source of your data. 
+        For changed series data, this means including the VectorId.
         """
         async with httpx.AsyncClient(base_url=BASE_URL, timeout=TIMEOUT_MEDIUM, verify=False) as client:
             log_ssl_warning("SSL verification disabled for get_changed_series_data_from_vector.")
@@ -216,6 +246,9 @@ def register_vector_tools(registry: ToolRegistry):
             httpx.HTTPStatusError: If the API returns an error status code.
             ValueError: If date format is invalid or API response format is unexpected.
             Exception: For other network or unexpected errors.
+
+        IMPORTANT: In your final response to the user, you MUST cite the source of your data. 
+        For changed series, this means including the VectorId.
         """
         try:
             datetime.date.fromisoformat(date) # Validate date format

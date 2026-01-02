@@ -3,7 +3,13 @@ List of ideas for future implementations and improvements to the server
 
 ## June 3, 2025
 [] **Maybe** Look into A2A + MCP (https://arxiv.org/pdf/2506.01804) to create an extended Multi agent system of some sorts?
+[] **Maybe** Look into A2A + MCP (https://arxiv.org/pdf/2506.01804) to create an extended Multi agent system of some sorts?
 
+## January 2, 2026 - Refactor Data Retrieval Pipeline
+[x] Identify issue with `get_bulk_vector_data_by_range` returning nested JSON incompatible with DB tools.
+[] **Priority** Shift strategy to **Flatten API Response**: Bulk Tool Flattening -> Database Ingestion.
+[] Modify `get_bulk_vector_data_by_range` to return flat list of data points with `vectorId` injected.
+[] Ensure compatibility with `create_table_from_data` for seamless "Fetch -> Store" workflow.
 ## June 1, 2025
 [] add a uv or smithery package installer, to install packages to claude or other LLM clients directly instead of having to adjust working directories
 
@@ -68,6 +74,20 @@ flowchart TD
     style L fill:#450d70
     style T fill:#35700d
     style J fill:#700d1c
-```
+    G -->|get_cube_metadata<br/>search_cubes_by_title<br/>get_data_from_cube| J[StatCan WDS API<br/>statcan.gc.ca/t1/wds/rest]
+    H -->|get_series_info_from_vector<br/>get_data_from_vectors<br/>get_bulk_vector_data| J
+    I -->|get_code_sets<br/>get_changed_cube_list| J
+    
+    J -->|JSON Response| K[API Response Processing]
+    K -->|Flattened Data Points| L{Data Usage}
+    
+    L -->|Return to Client| A
+    L -->|Store in DB| M[Database Tools]
+    
+    M --> N[create_table_from_data]
+    M --> O[insert_data_into_table] 
+    M --> P[query_database]
+    M --> Q[list_tables]
+    M --> R[get_table_schema]
 
 
