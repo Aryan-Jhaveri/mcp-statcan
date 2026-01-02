@@ -1,9 +1,10 @@
 import httpx
 import datetime
+import time
 from typing import List, Dict, Any, Optional
 from pydantic import BaseModel
 
-from fastmcp import FastMCP
+from ..util.registry import ToolRegistry
 # Import necessary models
 from ..models.api_models import (
     ProductIdInput,
@@ -16,13 +17,14 @@ from ..models.api_models import (
 from ..util.coordinate import pad_coordinate
 # Import BASE_URL and timeouts from config
 from ..config import BASE_URL, TIMEOUT_MEDIUM, TIMEOUT_LARGE
-from ..util.logger import log_ssl_warning, log_search_progress, log_data_validation_warning
+from ..util.logger import log_ssl_warning, log_search_progress, log_data_validation_warning, log_server_debug
+from ..util.cache import get_cached_cubes_list_lite, get_cache_stats
 
-def register_cube_tools(mcp: FastMCP):
+def register_cube_tools(registry: ToolRegistry):
     """Register all cube-related API tools with the MCP server."""
 
     # --- List and Search Tools ---
-    @mcp.tool()
+    @registry.tool()
     async def get_all_cubes_list() -> List[Dict[str, Any]]:
         """
         Provides a complete inventory of data tables available via the API,
@@ -41,7 +43,7 @@ def register_cube_tools(mcp: FastMCP):
             except ValueError as exc:
                 raise ValueError(f"Error processing response for get_all_cubes_list: {exc}")
 
-    @mcp.tool()
+    @registry.tool()
     async def get_all_cubes_list_lite() -> List[Dict[str, Any]]:
         """
         Provides a complete inventory of data tables available via the API,
@@ -60,7 +62,7 @@ def register_cube_tools(mcp: FastMCP):
             except ValueError as exc:
                 raise ValueError(f"Error processing response for get_all_cubes_list_lite: {exc}")
 
-    @mcp.tool()
+    @registry.tool()
     async def search_cubes_by_title(search_term: str) -> List[Dict[str, Any]]:
         """
         Searches for data cubes/tables where the English or French title contains
@@ -70,6 +72,8 @@ def register_cube_tools(mcp: FastMCP):
 
         Args:
             search_term: The text to search for within the cube titles.
+                         TIP: Use simple, single keywords like "employment" or "CPI" 
+                         rather than complex phrases for better results.
 
         Returns:
             List[Dict[str, Any]]: A list of matching cube dictionaries (lite format),
@@ -78,10 +82,12 @@ def register_cube_tools(mcp: FastMCP):
             httpx.HTTPStatusError: If the underlying API call fails.
             Exception: For other network or unexpected errors during the fetch.
         """
+        start_time = time.time()
         log_search_progress(f"Searching for cubes with title containing: '{search_term}'")
+        
         try:
-            # Call the existing lite list function
-            all_cubes_lite = await get_all_cubes_list_lite()
+            # Use cached cube list instead of fetching fresh each time
+            all_cubes_lite = await get_cached_cubes_list_lite(get_all_cubes_list_lite)
 
             # Filter the results
             search_term_lower = search_term.lower()
@@ -92,7 +98,8 @@ def register_cube_tools(mcp: FastMCP):
                 if search_term_lower in title_en.lower() or search_term_lower in title_fr.lower():
                     matching_cubes.append(cube)
 
-            log_search_progress(f"Found {len(matching_cubes)} cubes matching '{search_term}'.")
+            elapsed = time.time() - start_time
+            log_search_progress(f"Found {len(matching_cubes)} cubes matching '{search_term}' in {elapsed:.2f}s")
             return matching_cubes
 
         except Exception as e:
@@ -100,7 +107,7 @@ def register_cube_tools(mcp: FastMCP):
             raise
 
     # --- Metadata Tools ---
-    @mcp.tool()
+    @registry.tool()
     async def get_cube_metadata(product_input: ProductIdInput) -> Dict[str, Any]:
         """
         Retrieves detailed metadata for a specific data table/cube using its ProductId.
@@ -132,7 +139,7 @@ def register_cube_tools(mcp: FastMCP):
                 raise ValueError(f"Error processing response for get_cube_metadata: {exc}")
 
     # --- Coordinate-Based Data/Info Tools ---
-    @mcp.tool()
+    @registry.tool()
     async def get_data_from_cube_pid_coord_and_latest_n_periods(input_data: CubeCoordLatestNInput) -> Dict[str, Any]:
         """
         Retrieves data for the N most recent reporting periods for a specific series
@@ -171,7 +178,7 @@ def register_cube_tools(mcp: FastMCP):
             except ValueError as exc:
                 raise ValueError(f"Error processing response for get_data_from_cube_pid_coord_and_latest_n_periods: {exc}")
 
-    @mcp.tool()
+    @registry.tool()
     async def get_series_info_from_cube_pid_coord(input_data: CubeCoordInput) -> Dict[str, Any]:
         """
         Retrieves series metadata (vectorId, titles, frequency etc.) using Cube ProductId
@@ -209,7 +216,7 @@ def register_cube_tools(mcp: FastMCP):
             except ValueError as exc:
                 raise ValueError(f"Error processing response for get_series_info_from_cube_pid_coord: {exc}")
 
-    @mcp.tool()
+    @registry.tool()
     async def get_changed_series_data_from_cube_pid_coord(input_data: CubeCoordInput) -> Dict[str, Any]:
         """
         Retrieves changed series data (data points that have changed) using Cube ProductId
@@ -317,7 +324,7 @@ def register_cube_tools(mcp: FastMCP):
                 raise ValueError(f"Error processing response for get_full_table_download_sdmx: {exc}")
 
     # --- Change List Tools ---
-    @mcp.tool()
+    @registry.tool()
     async def get_changed_cube_list(date: str) -> List[Dict[str, Any]]:
         """
         Get the list of data tables/cubes that were updated on a specific date (YYYY-MM-DD).

@@ -1,7 +1,7 @@
 import sqlite3
 import json
 from typing import List, Dict, Any
-from fastmcp import FastMCP
+from ..util.registry import ToolRegistry
 from .connection import get_db_connection
 from ..models.db_models import TableDataInput, TableNameInput, QueryInput
 from ..util.sql_helpers import convert_value_for_sql
@@ -9,13 +9,13 @@ from ..config import MAX_QUERY_ROWS
 from .schema import create_table_from_data
 from ..util.logger import log_data_validation_warning, log_sql_debug
 
-def register_db_tools(mcp: FastMCP):
+def register_db_tools(registry: ToolRegistry):
     """Register database tools with the MCP server."""
 
     # Add create_table_from_data from schema module
-    mcp.tool()(create_table_from_data)
+    registry.tool()(create_table_from_data)
 
-    @mcp.tool()
+    @registry.tool()
     def insert_data_into_table(table_input: TableDataInput) -> Dict[str, str]:
         """
         Inserts data (list of dictionaries) into an existing SQLite table.
@@ -120,7 +120,7 @@ def register_db_tools(mcp: FastMCP):
         except Exception as e:
             return {"error": f"Unexpected error inserting into '{table_name}': {e}"}
 
-    @mcp.tool()
+    @registry.tool()
     def list_tables() -> Dict[str, Any]:
         """
         Lists all user-created tables in the SQLite database.
@@ -141,7 +141,7 @@ def register_db_tools(mcp: FastMCP):
         except Exception as e:
             return {"error": f"Unexpected error listing tables: {e}"}
 
-    @mcp.tool()
+    @registry.tool()
     def get_table_schema(table_name_input: TableNameInput) -> Dict[str, Any]:
         """
         Retrieves the schema (column names and types) for a specific table.
@@ -180,7 +180,7 @@ def register_db_tools(mcp: FastMCP):
         except Exception as e:
             return {"error": f"Unexpected error getting schema for '{table_name}': {e}"}
 
-    @mcp.tool()
+    @registry.tool()
     def query_database(query_input: QueryInput) -> Dict[str, Any]:
         """
         Executes a read-only SQL query (SELECT or PRAGMA) against the database and returns the results.
