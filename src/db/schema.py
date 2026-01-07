@@ -17,6 +17,10 @@ def create_table_from_data(table_input: TableDataInput) -> Dict[str, str]:
 
     Returns:
         Dict[str, str]: A dictionary indicating success or failure.
+
+    IMPORTANT: The database is persistent and does NOT clean itself automatically. 
+    You should clean the database (e.g., list_tables() then DROP TABLE via query_database or rely on this tool overwriting same-named tables) 
+    at the beginning or end of your workflow to ensure a fresh state. This tool overwrites the table if it exists.
     """
     table_name = table_input.table_name
     data = table_input.data

@@ -31,6 +31,9 @@ def register_cube_tools(registry: ToolRegistry):
         including dimension-level details. Disables SSL Verification.
         Corresponds to: GET /getAllCubesList
         WARNING: Returns a very large list. Use database caching or search tools if possible.
+
+        IMPORTANT: In your final response to the user, you MUST cite the source of your data. 
+        For cubes, this means including the ProductId (pid) and the Title.
         """
         async with httpx.AsyncClient(base_url=BASE_URL, timeout=TIMEOUT_LARGE, verify=False) as client:
             log_ssl_warning("SSL verification disabled for get_all_cubes_list.")
@@ -50,6 +53,9 @@ def register_cube_tools(registry: ToolRegistry):
         excluding dimension or footnote information (lighter version). Disables SSL Verification.
         Corresponds to: GET /getAllCubesListLite
         WARNING: Returns a very large list. Use database caching or search tools if possible.
+
+        IMPORTANT: In your final response to the user, you MUST cite the source of your data. 
+        For cubes, this means including the ProductId (pid) and the Title.
         """
         async with httpx.AsyncClient(base_url=BASE_URL, timeout=TIMEOUT_LARGE, verify=False) as client:
             log_ssl_warning("SSL verification disabled for get_all_cubes_list_lite.")
@@ -72,12 +78,17 @@ def register_cube_tools(registry: ToolRegistry):
 
         Args:
             search_term: The text to search for within the cube titles.
-                         TIP: Use simple, single keywords like "employment" or "CPI" 
-                         rather than complex phrases for better results.
+                         TIP: You can use multiple keywords (e.g., "tobacco smoking age").
+                         The search finds cubes containing ALL provided keywords (case-insensitive).
+                         String searches multiple words will be matched based on both of their inclusions, single word searches would work best.
 
         Returns:
             List[Dict[str, Any]]: A list of matching cube dictionaries (lite format),
                                   or an empty list if no matches are found.
+
+        IMPORTANT: In your final response to the user, you MUST cite the source of your data. 
+        For cubes, this means including the ProductId (pid) and the Title.
+        
         Raises:
             httpx.HTTPStatusError: If the underlying API call fails.
             Exception: For other network or unexpected errors during the fetch.
@@ -89,17 +100,26 @@ def register_cube_tools(registry: ToolRegistry):
             # Use cached cube list instead of fetching fresh each time
             all_cubes_lite = await get_cached_cubes_list_lite(get_all_cubes_list_lite)
 
-            # Filter the results
-            search_term_lower = search_term.lower()
+            # Filter the results - Improved "Smart Search" (AND logic on keywords)
+            search_terms = search_term.lower().split()
             matching_cubes = []
             for cube in all_cubes_lite:
-                title_en = cube.get("cubeTitleEn", "") or "" # Handle None or empty string
-                title_fr = cube.get("cubeTitleFr", "") or "" # Handle None or empty string
-                if search_term_lower in title_en.lower() or search_term_lower in title_fr.lower():
+                title_en = (cube.get("cubeTitleEn", "") or "").lower()
+                title_fr = (cube.get("cubeTitleFr", "") or "").lower()
+                
+                # Check if ALL keywords exist in either English OR French title
+                # (We check En and Fr separately to avoid cross-language matches that might be weird, 
+                # but checking if terms exist in (title_en + title_fr) is also an option. 
+                # Let's stick to checking if the *set* of terms is satisfied by *one* of the titles for better relevance.)
+                
+                match_en = all(term in title_en for term in search_terms)
+                match_fr = all(term in title_fr for term in search_terms)
+                
+                if match_en or match_fr:
                     matching_cubes.append(cube)
 
             elapsed = time.time() - start_time
-            log_search_progress(f"Found {len(matching_cubes)} cubes matching '{search_term}' in {elapsed:.2f}s")
+            log_search_progress(f"Found {len(matching_cubes)} cubes matching keywords '{search_terms}' in {elapsed:.2f}s")
             return matching_cubes
 
         except Exception as e:
@@ -120,6 +140,9 @@ def register_cube_tools(registry: ToolRegistry):
             httpx.HTTPStatusError: If the API returns an error status code.
             ValueError: If the API response format is unexpected or status is not SUCCESS.
             Exception: For other network or unexpected errors.
+
+        IMPORTANT: In your final response to the user, you MUST cite the source of your data. 
+        For cubes, this means including the ProductId (pid) and the Title.
         """
         async with httpx.AsyncClient(base_url=BASE_URL, timeout=TIMEOUT_MEDIUM, verify=False) as client:
             log_ssl_warning("SSL verification disabled for get_cube_metadata.")
@@ -153,6 +176,9 @@ def register_cube_tools(registry: ToolRegistry):
             httpx.HTTPStatusError: If the API returns an error status code.
             ValueError: If the API response format is unexpected or status is not SUCCESS.
             Exception: For other network or unexpected errors.
+
+        IMPORTANT: In your final response to the user, you MUST cite the source of your data. 
+        For cube data, this means including the ProductId (pid), Coordinate, and Reference Period.
         """
         async with httpx.AsyncClient(base_url=BASE_URL, timeout=TIMEOUT_MEDIUM, verify=False) as client:
             log_ssl_warning("SSL verification disabled for get_data_from_cube_pid_coord_and_latest_n_periods.")
@@ -192,6 +218,9 @@ def register_cube_tools(registry: ToolRegistry):
             httpx.HTTPStatusError: If the API returns an error status code.
             ValueError: If the API response format is unexpected or status is not SUCCESS.
             Exception: For other network or unexpected errors.
+
+        IMPORTANT: In your final response to the user, you MUST cite the source of your data. 
+        For series info, this means including the ProductId (pid) and Coordinate.
         """
         async with httpx.AsyncClient(base_url=BASE_URL, timeout=TIMEOUT_MEDIUM, verify=False) as client:
             log_ssl_warning("SSL verification disabled for get_series_info_from_cube_pid_coord.")
@@ -230,6 +259,9 @@ def register_cube_tools(registry: ToolRegistry):
             httpx.HTTPStatusError: If the API returns an error status code.
             ValueError: If the API response format is unexpected or status is not SUCCESS.
             Exception: For other network or unexpected errors.
+
+        IMPORTANT: In your final response to the user, you MUST cite the source of your data. 
+        For changed series data, this means including the VectorId, ProductId (pid), and Coordinate.
         """
         async with httpx.AsyncClient(base_url=BASE_URL, timeout=TIMEOUT_MEDIUM, verify=False) as client:
             log_ssl_warning("SSL verification disabled for get_changed_series_data_from_cube_pid_coord.")
@@ -265,6 +297,9 @@ def register_cube_tools(registry: ToolRegistry):
 
         Returns:
             str: The download URL for the CSV file.
+        
+        IMPORTANT: In your final response to the user, you MUST cite the source of your data. 
+        For full table downloads, this means including the ProductId (pid).
         """
         productId = download_input.productId
         lang = download_input.lang
@@ -301,6 +336,9 @@ def register_cube_tools(registry: ToolRegistry):
 
         Returns:
             str: The download URL for the SDMX file.
+
+        IMPORTANT: In your final response to the user, you MUST cite the source of your data. 
+        For full table downloads, this means including the ProductId (pid).
         """
         productId = product_input.productId
         async with httpx.AsyncClient(base_url=BASE_URL, timeout=TIMEOUT_MEDIUM, verify=False) as client:
@@ -333,6 +371,9 @@ def register_cube_tools(registry: ToolRegistry):
 
         Returns:
             List[Dict[str, Any]]: A list of dictionaries describing changed cube objects.
+
+        IMPORTANT: In your final response to the user, you MUST cite the source of your data. 
+        For changed cubes, this means including the ProductId (pid) and Title.
         """
         try:
             datetime.date.fromisoformat(date) # Validate date format

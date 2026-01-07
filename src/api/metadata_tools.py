@@ -17,6 +17,9 @@ def register_metadata_tools(registry: ToolRegistry):
             httpx.HTTPStatusError: If the API returns an error status code.
             ValueError: If the API response format is unexpected.
             Exception: For other network or unexpected errors.
+
+        IMPORTANT: In your final response to the user, you MUST cite the source of your data. 
+        For code sets, this means specifying which code set table or definition is being used.
         """
         result = await make_get_request("/getCodeSets")
         if result.get("status") == "SUCCESS":

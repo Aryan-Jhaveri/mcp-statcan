@@ -155,10 +155,14 @@ def register_vector_tools(registry: ToolRegistry):
         """
         async with httpx.AsyncClient(base_url=BASE_URL, timeout=TIMEOUT_LARGE, verify=False) as client: # Longer timeout
             log_ssl_warning("SSL verification disabled for get_bulk_vector_data_by_range.")
+            
+            # Explicitly set Accept header to avoid 406 errors
+            headers = {"Accept": "application/json"}
+            
             # API expects a single JSON object
             post_data = bulk_range_input.model_dump(exclude_none=True)
             try:
-                response = await client.post("/getBulkVectorDataByRange", json=post_data)
+                response = await client.post("/getBulkVectorDataByRange", json=post_data, headers=headers)
                 response.raise_for_status()
                 result_list = response.json() # API returns a list of status/object wrappers
 
@@ -169,14 +173,22 @@ def register_vector_tools(registry: ToolRegistry):
                         if isinstance(item, dict) and item.get("status") == "SUCCESS":
                             # Extract the object which contains vectorId and vectorDataPoint list
                             object_data = item.get("object", {})
+                            
                             vector_id = object_data.get("vectorId")
+                            product_id = object_data.get("productId")
+                            coordinate = object_data.get("coordinate")
+                            
                             vector_points = object_data.get("vectorDataPoint", [])
                             
-                            # Flattening logic: Inject vectorId into each data point and add to main list
+                            # Flattening logic: Inject vectorId and metadata into each data point
                             if vector_id is not None and isinstance(vector_points, list):
                                 for point in vector_points:
                                     if isinstance(point, dict):
                                         point["vectorId"] = vector_id
+                                        if product_id:
+                                            point["productId"] = product_id
+                                        if coordinate:
+                                            point["coordinate"] = coordinate
                                         processed_data.append(point)
                             else:
                                  # Fallback: if structure is unexpected, just log it. 
