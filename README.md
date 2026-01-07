@@ -11,6 +11,8 @@
 
 This project implements a <a href="https://modelcontextprotocol.io/" target="_blank">Model Context Protocol (MCP)</a> server that provides tools for interacting with Statistics Canada (StatCan) data APIs. It allows LLMs or other MCP clients to access and retrieve Canadian statistical data in a structured way.
 
+-- Please note LLM's may fabricate data, current MCP integration is limited to basic data discovery, and data exploration using a SQLite database, always verify original tables and keep track of changes you let LLM's (download, update, delete, checking your pc memory) -- 
+
 The server is built using the <a href="https://github.com/jlowin/fastmcp" target="_blank">FastMCP</a> library and interacts with the StatCan Web Data Service via `httpx`.
 
 ## 📑 Table of Contents
@@ -50,7 +52,7 @@ This server exposes StatCan API functionalities as MCP tools, including:
 
 ### API Functionality
 
-* **Cube Operations:**
+**Cube Operations:**
 * Listing all available data cubes/tables (full and lite versions)
 * Searching cubes by title
 * Retrieving detailed cube metadata
@@ -59,7 +61,8 @@ This server exposes StatCan API functionalities as MCP tools, including:
 * Getting changed series data based on ProductId and Coordinate
 * Listing cubes changed on a specific date
 * Providing download links for full cubes (CSV/SDMX) (Discouraged)
-* **Vector Operations:**
+
+**Vector Operations:**
 * Retrieving series metadata by Vector ID
 * Getting data for the latest N periods by Vector ID
 * Getting data for multiple vectors by reference period range
