@@ -28,6 +28,9 @@ def register_db_tools(registry: ToolRegistry):
 
         Returns:
             Dict[str, str]: A dictionary indicating success (with row count) or failure.
+
+        IMPORTANT: In your final response to the user, you MUST cite the source of the data you are inserting 
+        if it comes from an API call (e.g., "Data from Product ID 123456").
         """
         table_name = table_input.table_name
         data = table_input.data
@@ -127,6 +130,8 @@ def register_db_tools(registry: ToolRegistry):
 
         Returns:
             Dict[str, Any]: Dictionary containing a list of table names or an error message.
+
+        IMPORTANT: The database is persistent. Use this to check for old tables that might need cleaning.
         """
         try:
             with get_db_connection() as conn:
@@ -193,6 +198,8 @@ def register_db_tools(registry: ToolRegistry):
 
         Returns:
             Dict[str, Any]: Dictionary with 'columns', 'rows' (list of dicts), and optionally a 'message', or an error message.
+
+        IMPORTANT: In your final response to the user, you MUST cite the source of your data (e.g., "Query results from table 'my_analysis'").
         """
         query = query_input.sql_query.strip()
         # Basic check to prevent obviously harmful commands (can be bypassed)

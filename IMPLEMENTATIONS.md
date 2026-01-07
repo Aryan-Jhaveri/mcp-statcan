@@ -1,3 +1,17 @@
+# Jan 1 2026
+Issues - > 
+
+[] get_bulk_vector gives truncated output, exceeding LLM context. Need to find a better implmentation for LLMs either just read heads of fetched data, or simply always use db tools
+
+[] Create data from table doesnt fill up DB with data, LLM needs to make an additional tool call to manually insert data - causes errors and model runs out of context tokens
+
+[] **Maybe** look into SDMX implementation to allow Claude to create files or exact uris for vector and meta data fetching so a mix of REST and SDMX tools are availbale
+
+
+[x] Adjust and make more detailed tool prompts to prevent the LLM from making separate calls for finding data and then inputting to database.
+
+[x] Need to add db specific math tools [I am concerned if there is enough relevant math tools available for the database], add additional graph tools if needed.
+
 # Implementations List
 List of ideas for future implementations and improvements to the server
 
@@ -6,18 +20,16 @@ List of ideas for future implementations and improvements to the server
 [] **Maybe** Look into A2A + MCP (https://arxiv.org/pdf/2506.01804) to create an extended Multi agent system of some sorts?
 
 ## January 2, 2026 - Refactor Data Retrieval Pipeline
+
 [x] Identify issue with `get_bulk_vector_data_by_range` returning nested JSON incompatible with DB tools.
-[] **Priority** Shift strategy to **Flatten API Response**: Bulk Tool Flattening -> Database Ingestion.
-[] Modify `get_bulk_vector_data_by_range` to return flat list of data points with `vectorId` injected.
-[] Ensure compatibility with `create_table_from_data` for seamless "Fetch -> Store" workflow.
+
+[x] **Priority** Shift strategy to **Flatten API Response**: Bulk Tool Flattening -> Database Ingestion.
+[x] Modify `get_bulk_vector_data_by_range` to return flat list of data points with `vectorId` injected.
+[x] Ensure compatibility with `create_table_from_data` for seamless "Fetch -> Store" workflow.
 ## June 1, 2025
 [] add a uv or smithery package installer, to install packages to claude or other LLM clients directly instead of having to adjust working directories
 
 [] Create a setup installation guides for windows.
-
-[] Adjust and make more detailed tool prompts to prevent the LLM from making separate calls for finding data and then inputting to database.
-
-[] Need to add db specific math tools [I am concerned if there is enough relevant math tools available for the database], add additional graph tools if needed.
 
 
 ## Notes 
