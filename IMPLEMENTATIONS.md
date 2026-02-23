@@ -35,8 +35,9 @@
 
 - [ ] Fix `get_bulk_vector` truncated output exceeding LLM context — better implementation: read heads of fetched data, or always route through db tools *(carried from Jan 7, 2026)*
 
-
 - [ ] Fix `create_table_from_data` not filling DB — LLM needs additional tool call to manually insert data, causes errors and context token exhaustion *(carried from Jan 7, 2026)*
+
+- [ ] **Fix LLM defaulting to one-by-one `get_data_from_cube_pid_coord` instead of bulk vector tools + DB pipeline** — Observed in testing (Feb 23, 2026): when asked to fetch data for multiple provinces, the LLM made 5 separate `get_data_from_cube_pid_coord_and_latest_n_periods` calls (one per province) instead of a single `get_data_from_vector_by_reference_period_range` call with an array of vector IDs. It also skipped the DB tools entirely, pasting raw API numbers directly into the visualization. This pattern is slow, wasteful on API calls, and increases fabrication risk (the LLM may hallucinate numbers rather than wait for each individual fetch). **Root cause**: The coord-based tool has a simpler interface (one PID + one coord string) so the LLM gravitates to it. **Potential fixes**: (1) Improve tool descriptions to steer the LLM toward the bulk vector → DB → query workflow, (2) Add an MCP Prompt template for the correct "bulk fetch → store → query → visualize" pipeline, (3) Consider deprecating or gating the coord-based tool behind a "single lookup only" description. *(added Feb 23, 2026)*
 
 ## Tier 4: Differentiation (Month-Long Effort)
 
