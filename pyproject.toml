@@ -38,8 +38,6 @@ dev = [
     "isort>=5.0.0",
 ]
 
-# Optional: Define entry points if the package were installable as a command
-# Since it's run via `python -m src.server`, this might not be needed
-# [project.scripts]
-# statcan-mcp = "src.server:main" # Assumes a main() function in server.py
+[project.scripts]
+statcan-mcp-server = "src.server:main"
 

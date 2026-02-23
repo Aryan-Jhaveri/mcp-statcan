@@ -64,14 +64,14 @@ def create_server():
     log_server_debug("Returning server instance from create_server.")
     return server
 
-async def main():
+async def _async_main():
     log_server_debug("Executing src/server.py as main module...")
     try:
         log_server_debug(f"Database file location: {os.path.abspath(DB_FILE)}")
         log_server_debug("Calling create_server...")
-        
+
         server = create_server()
-        
+
         log_server_debug("Starting StatCan API + DB MCP Server on stdio...")
         # Run using stdio transport
         async with stdio_server() as (read_stream, write_stream):
@@ -80,11 +80,15 @@ async def main():
                 write_stream,
                 server.create_initialization_options()
             )
-            
+
     except Exception as e:
         log_server_debug(f"UNEXPECTED ERROR in main block: {e}")
         import traceback
         traceback.print_exc(file=sys.stderr)
 
+def main():
+    """Sync entry point for the console script."""
+    asyncio.run(_async_main())
+
 if __name__ == "__main__":
-    asyncio.run(main())
+    main()
