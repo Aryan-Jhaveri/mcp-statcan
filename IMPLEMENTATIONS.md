@@ -5,17 +5,18 @@
 
 ## Tier 1: Foundational Fixes (Weekend Project)
 
-- [ ] **Create `pyproject.toml`** — Replace `requirements.txt` + manual `uv pip install` with proper Python packaging. Define project name, version (semver), description, dependencies (`fastmcp`, `httpx`, `pydantic`), Python ≥3.10, entry point for the server, and metadata (author, homepage, repo URL, keywords: `mcp`, `statistics-canada`, `statcan`, `open-data`). This enables PyPI publishing and is required for registry listing.
+- [x] **Create `pyproject.toml`** — Proper Python packaging with hatchling build backend, project metadata, dependencies, and console entry point (`statcan-mcp-server`). *(Completed)*
 - [ ] **Enable SSL verification** — SSL is currently disabled for development. Fix httpx SSL settings and document any proxy/corporate certificate workarounds.
 - [ ] **Harden SQL input validation** — Database tools accept raw SQL with "basic" validation. Implement: whitelist of allowed SQL operations (SELECT only), parameterized queries to prevent injection, and query size/timeout limits.
 - [ ] **Add a uv or smithery package installer** — Install packages to Claude or other LLM clients directly instead of having to adjust working directories *(carried from June 1, 2025)*
 
 ## Tier 2: Ecosystem Integration (One-Week Sprint)
 
-- [ ] **Publish to PyPI** — With `pyproject.toml` in place, build and upload. Enables `pip install mcp-statcan` and `uvx mcp-statcan`. Update README with simplified installation.
-- [ ] **Register on Official MCP Registry** — Use `mcp-publisher` CLI, generate `server.json` with reverse-DNS naming (`io.github.aryan-jhaveri/mcp-statcan`), reference PyPI package, publish. Currently missing from: Official Registry, Smithery, PulseMCP, Docker Catalog.
+- [x] **Publish to PyPI** — Automated via GitHub Actions on tag push. Package: `statcan-mcp-server`. Install: `pip install statcan-mcp-server` / `uvx statcan-mcp-server`. Uses Trusted Publishing (OIDC). *(Completed Feb 23, 2026)*
+- [x] **Register on Official MCP Registry** — `server.json` created and validated against schema. Registered as `io.github.aryan-jhaveri/mcp-statcan`. Automated publishing via `mcp-publisher` CLI with GitHub OIDC auth on tag push. *(Completed Feb 23, 2026)*
 - [ ] **Submit to remaining directories** — PR to `punkpeye/awesome-mcp-servers` (syncs to Glama), register on Smithery.ai, submit to PulseMCP (`pulsemcp.com/submit`), consider Docker MCP Catalog.
-- [ ] **Add GitHub Actions CI/CD** — Linting (ruff), type checking (mypy), tests on every push/PR. Release workflow publishes to PyPI on tagged releases. Registry publishing step using `mcp-publisher` with GitHub OIDC auth. (DONT DO THIS YET - Because I need to polish up on CI/CD)
+- [x] **Add GitHub Actions CI/CD (release workflow)** — Publishes to PyPI and MCP Registry on tagged releases via `.github/workflows/publish-mcp-registry.yml`. Uses GitHub OIDC for both PyPI Trusted Publishing and MCP Registry auth. *(Completed Feb 23, 2026)*
+- [ ] **Expand CI/CD with linting and type checking** — Add ruff, mypy, and tests on every push/PR. (DONT DO THIS YET - Because I need to polish up on CI/CD)
 - [ ] **Create a Dockerfile** — Slim Python base image for sandboxed deployment. Enables Docker MCP Catalog listing. (DONT DO THIS YET - Because I need to polish up on Docker)
 - [ ] **Create setup/installation guides for Windows** *(carried from June 1, 2025)* (DONT DO THIS YET - Because I need to test on windows virtual machine)
 
@@ -66,6 +67,22 @@
 ---
 
 # 📓 Development Log
+
+## February 23, 2026 — PyPI & MCP Registry Publishing
+
+[x] Created `server.json` validated against MCP Registry JSON schema (`io.github.aryan-jhaveri/mcp-statcan`).
+
+[x] Added GitHub Actions workflow (`.github/workflows/publish-mcp-registry.yml`) for automated PyPI + MCP Registry publishing on `v*` tag push.
+
+[x] Configured PyPI Trusted Publishing (OIDC) — no API tokens needed.
+
+[x] Added `mcp-name` ownership verification marker to README.md.
+
+[x] Enabled console script entry point (`statcan-mcp-server`) in `pyproject.toml`.
+
+[x] Added sync `main()` wrapper in `server.py` for entry point compatibility (async logic preserved in `_async_main()`).
+
+[x] Tagged `v0.1.1` and pushed to trigger first automated release pipeline.
 
 ## Jan 7, 2026
 
