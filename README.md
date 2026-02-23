@@ -160,7 +160,8 @@ Replace `/path/to/mcp-statcan` with the absolute path to your project directory.
 ## ⚠️ Known Issues and Limitations
 
 - **SSL Verification**: Currently disabled for development. Should be enabled for production use.
-- **Claude Behavior**: May occasionally get stuck in loops or inefficiently make multiple REST calls when a bulk operation would be more efficient.
+- **LLM Defaults to One-by-One Fetching**: LLMs tend to default to `get_data_from_cube_pid_coord_and_latest_n_periods` in a loop (one API call per data point) instead of using bulk vector tools like `get_data_from_vector_by_reference_period_range` which accept arrays of vector IDs. This is slower, wastes API calls, and increases the risk of the LLM fabricating numbers when it loses patience mid-loop. **Best practice**: Use bulk vector fetch → DB storage → SQL query.
+- **`create_table_from_data` Does Not Insert Data**: This tool only scaffolds the SQLite schema — it does **not** populate rows. You must follow up with a separate `insert_data_into_table` call. LLMs frequently assume the table is populated after creation, leading to empty query results and confusion.
 - **Data Validation**: Always cross-check your data with official Statistics Canada sources.
 - **Security Concerns**: Query validation is basic; avoid using with untrusted input.
 - **Performance**: Some endpoints may timeout with large data requests.
