@@ -7,7 +7,7 @@
 <a href="https://modelcontextprotocol.io/" target="_blank"><img src="https://img.shields.io/badge/MCP-ModelContextProtocol-green.svg" alt="MCP"></a>
 <a href="https://github.com/Aryan-Jhaveri" target="_blank"><img src="https://img.shields.io/badge/GitHub-Aryan--Jhaveri-lightgrey?logo=github" alt="GitHub"></a>
 
-<!-- mcp-name: io.github.aryan-jhaveri/mcp-statcan -->
+<!-- mcp-name: io.github.Aryan-Jhaveri/mcp-statcan -->
 
 ## 📝 Description
 
