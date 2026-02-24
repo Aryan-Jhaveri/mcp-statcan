@@ -16,11 +16,9 @@ Users can `pip install` / `uvx` the package, but still hit friction wiring it in
 
 | # | Item | Effort | Status |
 |---|------|--------|--------|
-| A1 | **Add `claude mcp add` one-liner to README** — `claude mcp add statcan -- uvx statcan-mcp-server` auto-wires Claude Code with zero manual JSON editing. Also add ready-to-paste JSON for Claude Desktop: `{"mcpServers":{"statcan":{"command":"uvx","args":["statcan-mcp-server"]}}}` | ~30 min | [ ] |
+| A3 | **Bump `mcp>=1.3.0` in `pyproject.toml`** — Server currently responds with protocol version `2025-06-18` while Claude sends `2025-11-25`. Bumping the SDK fixes the mismatch and enables newer MCP features (e.g., the `io.modelcontextprotocol/ui` extension for MCP APPS). | ~5 min | [ ] |
 
-| A2 | **Bump `mcp>=1.3.0` in `pyproject.toml`** — Server currently responds with protocol version `2025-06-18` while Claude sends `2025-11-25`. Bumping the SDK fixes the mismatch and enables newer MCP features (e.g., the `io.modelcontextprotocol/ui` extension the client advertised). | ~5 min | [ ] |
-
-| A3 | **Register on Smithery.ai** — Smithery provides a "one-click install" button and handles config generation for users. Submit at smithery.ai. | ~30 min | [ ] |
+| A4 | **Register on Smithery.ai** — Smithery provides a "one-click install" button and handles config generation for users. Submit at smithery.ai. | ~30 min | [ ] |
 
 
 ### Low priority
