@@ -17,33 +17,49 @@ Users can `pip install` / `uvx` the package, but still hit friction wiring it in
 | # | Item | Effort | Status |
 |---|------|--------|--------|
 | A1 | **Add `claude mcp add` one-liner to README** — `claude mcp add statcan -- uvx statcan-mcp-server` auto-wires Claude Code with zero manual JSON editing. Also add ready-to-paste JSON for Claude Desktop: `{"mcpServers":{"statcan":{"command":"uvx","args":["statcan-mcp-server"]}}}` | ~30 min | [ ] |
-| A2 | **Add multi-client config snippets** — Copy-paste JSON blocks for Claude Desktop, Claude Code, Cursor, VS Code Copilot, and Windsurf in the README. Each client has a different config format/location; document all of them. | ~1 hr | [ ] |
+
+| A2 | **Bump `mcp>=1.3.0` in `pyproject.toml`** — Server currently responds with protocol version `2025-06-18` while Claude sends `2025-11-25`. Bumping the SDK fixes the mismatch and enables newer MCP features (e.g., the `io.modelcontextprotocol/ui` extension the client advertised). | ~5 min | [ ] |
+
 | A3 | **Register on Smithery.ai** — Smithery provides a "one-click install" button and handles config generation for users. Submit at smithery.ai. | ~30 min | [ ] |
-| A4 | **Bump `mcp>=1.3.0` in `pyproject.toml`** — Server currently responds with protocol version `2025-06-18` while Claude sends `2025-11-25`. Bumping the SDK fixes the mismatch and enables newer MCP features (e.g., the `io.modelcontextprotocol/ui` extension the client advertised). | ~5 min | [ ] |
-| A5 | **Submit to remaining directories** — PR to `punkpeye/awesome-mcp-servers` (syncs to Glama), submit to PulseMCP (`pulsemcp.com/submit`), consider Docker MCP Catalog. | ~1 hr | [ ] |
+
+
+### Low priority
+
+**Add multi-client config snippets** — Copy-paste JSON blocks for Claude Desktop, Claude Code, Cursor, VS Code Copilot, and Windsurf in the README. Each client has a different config format/location; document all of them. | ~1 hr | [ ] |
+
+**Submit to remaining directories** — PR to `punkpeye/awesome-mcp-servers` (syncs to Glama), submit to PulseMCP (`pulsemcp.com/submit`), consider Docker MCP Catalog. | ~1 hr | [ ] |
 
 ### Focus B: Fix LLM Data-Fetching Behavior
 
 Three interrelated bugs all stem from the same root cause: **the tools aren't designed around how LLMs actually choose and chain tool calls.**
 
 **The problems:**
+
 - **B-Problem 1**: LLM fetches data one-by-one with `get_data_from_cube_pid_coord` instead of using bulk vector tools (observed Feb 23 — 5 separate calls for 5 provinces instead of 1 bulk call)
+
 - **B-Problem 2**: `create_table_from_data` only creates the schema; LLM must make a second `insert_data_into_table` call. It often forgets, pasting raw numbers into its response instead.
-- **B-Problem 3**: `get_bulk_vector_data_by_range` can return hundreds of data points, overflowing the LLM's working context.
+
+- **B-Problem 3**: 
+`get_bulk_vector_data_by_range` can return hundreds of data points, overflowing the LLM's working context.
 
 **Root causes:**
 - The coord-based tool has a simpler interface (one PID + one coord string) so the LLM gravitates to it over the bulk vector tools that require assembling an array of vector IDs.
+
 - The two-step create+insert flow is invisible to the LLM as a required sequence — it treats each tool as independent.
 - Tool descriptions are API-doc-style, not workflow-aware. They don't tell the LLM *when* to use each tool or *what to do next*.
 
 | # | Fix | Solves | Effort | Status |
 |---|-----|--------|--------|--------|
 | B1 | **Merge `create_table_from_data` + `insert_data_into_table` into one step** — After `CREATE TABLE`, immediately insert the data that was passed in. Return `"Table 'x' created with N columns and M rows inserted."` Keep `insert_data_into_table` available for appending, but make the common "fetch then store" path a single tool call. *(changes in `src/db/schema.py`)* | B-Problem 2 | ~1 hr | [ ] |
+
 | B2 | **Rewrite tool descriptions with workflow hints** — Current descriptions are API-doc-style. Add explicit steering. On `get_data_from_cube_pid_coord_and_latest_n_periods`: *"For fetching data across MULTIPLE provinces/categories, do NOT call this tool repeatedly. Instead: (1) get_cube_metadata to find vector IDs, (2) get_data_from_vector_by_reference_period_range with array of vectorIds, (3) create_table_from_data, (4) query_database."* On bulk tools: *"PREFERRED for multi-series fetches. Output is pre-flattened and ready for create_table_from_data."* | B-Problem 1 | ~1 hr | [ ] |
-| B3 | **Add `fetch_vectors_to_database` composite tool** — New high-level tool that takes `vectorIds[]`, `table_name`, optional date range. Internally calls the vector range API, creates the table, inserts all data, and returns a summary (row count, columns, table name). Eliminates multi-step planning entirely — LLM just needs vector IDs and a table name. | B-Problem 1, 2 | ~2 hrs | [ ] |
-| B4 | **Auto-store large responses and return summary** — When `get_bulk_vector_data_by_range` returns >50 rows, auto-store into a temp SQLite table and return `{"stored_in_table": "auto_bulk_xyz", "total_rows": 340, "columns": [...], "sample": [first 5 rows], "message": "Use query_database to analyze."}` instead of dumping all 340 rows into the LLM context. | B-Problem 3 | ~2 hrs | [ ] |
 
 
+
+### Potential Solution
+**Add `fetch_vectors_to_database` composite tool** — New high-level tool that takes `vectorIds[]`, `table_name`, optional date range. Internally calls the vector range API, creates the table, inserts all data, and returns a summary (row count, columns, table name). Eliminates multi-step planning entirely — LLM just needs vector IDs and a table name. | B-Problem 1, 2 | ~2 hrs | [ ] |
+
+**Auto-store large responses and return summary** — When `get_bulk_vector_data_by_range` returns >50 rows, auto-store into a temp SQLite table and return `{"stored_in_table": "auto_bulk_xyz", "total_rows": 340, "columns": [...], "sample": [first 5 rows], "message": "Use query_database to analyze."}` instead of dumping all 340 rows into the LLM context. | B-Problem 3 | ~2 hrs | [ ] |
 ---
 
 ## Tier 1: Foundational Fixes (Weekend Project)
