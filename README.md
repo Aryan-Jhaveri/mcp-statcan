@@ -100,7 +100,7 @@ This allows for persistent storage of retrieved data and more complex data manip
 
 ## 📥 Installation
 
-The only requirement is **`uv`** — no Python install, no cloning the repo.
+The only requirement is **`uv`**
 
 **macOS/Linux:**
 ```bash
