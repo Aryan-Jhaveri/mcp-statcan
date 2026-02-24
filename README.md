@@ -23,7 +23,7 @@ The server is built using the <a href="https://github.com/jlowin/fastmcp" target
 - [💬 Claude Chat Examples](#-claude-chat-examples)
 - [✨ Features](#-features)
 - [🏗️ Project Structure](#️-project-structure)
-- [📥 Installation](#-installation-guide-for-beginners)
+- [📥 Installation](#-installation)
 - [🔧 Setup](#-setting-up-claude-desktop-configuration)
 - [⚠️ Known Issues](#️-known-issues-and-limitations)
 - [🚀 Usage Examples](#-usage-examples)
@@ -98,64 +98,44 @@ This allows for persistent storage of retrieved data and more complex data manip
 * **`pyproject.toml`**: Project dependency and build configuration.
 * **`.env`**: (Assumed) Used for storing sensitive configuration like database credentials, loaded by `src/config.py`.
 
-## 📥 Installation Guide for Beginners
+## 📥 Installation
 
-If you're new to Python or programming in general, follow these simple steps to get started:
+The only requirement is **`uv`** — no Python install, no cloning the repo.
 
-1. **Install Python** (version 3.10 or higher):
-- Download from <a href="https://www.python.org/downloads/" target="_blank">python.org</a>
-- Make sure to check "Add Python to PATH" during installation
-
-2. **Install uv** (a fast Python package installer):
+**macOS/Linux:**
 ```bash
-# Open your Terminal (Mac/Linux) or Command Prompt (Windows) and run:
-curl -fsSL https://astral.sh/uv/install.sh | bash
-# Or on Windows:
-# curl.exe -fsSL https://astral.sh/uv/install.ps1 -o install.ps1; powershell -ExecutionPolicy Bypass -File install.ps1
+curl -LsSf https://astral.sh/uv/install.sh | sh
 ```
 
-3. **Install fastmcp**:
-```bash
-uv pip install fastmcp httpx pydantic
+**Windows:**
+```powershell
+powershell -ExecutionPolicy ByPass -c "irm https://astral.sh/uv/install.ps1 | iex"
 ```
 
-4. **Download this project**:
-```bash
-git clone https://github.com/Aryan-Jhaveri/mcp-statcan.git
-cd mcp-statcan
-```
-
-Tip: If you encounter any "module not found" errors, install the missing package with:
-```bash
-uv pip install package_name
-```
+`uvx` is bundled with `uv` and will automatically download and run `statcan-mcp-server` from PyPI on first use.
 
 ## 🔧 Setting Up Claude Desktop Configuration
 
-To integrate with Claude Desktop:
-
-1. **Manually edit the generated config** in your `claude_desktop_config.json`:
-
 Navigate to: Claude Desktop App → Settings (⌘ + ,) → Developer → Edit Config
+
 ```json
 {
-"mcpServers": {
-"StatCanAPI_DB_Server": {
-"command": "uv",
-"args": [
-  "run",
-  "--with", "fastmcp",
-  "--with", "httpx", 
-  "sh",
-  "-c",
-  "cd /path/to/mcp-statcan && python -m src.server"
-]
-}
-}
+  "mcpServers": {
+    "statcan": {
+      "command": "uvx",
+      "args": ["statcan-mcp-server"]
+    }
+  }
 }
 ```
 
-Replace `/path/to/mcp-statcan` with the absolute path to your project directory. The manual edit is necessary to ensure the server runs with the correct working directory context for proper module resolution.
+Restart the Claude Desktop app after saving.
+
+### Claude Code
+
+```bash
+claude mcp add statcan --scope global -- uvx statcan-mcp-server
+```
 
 ## ⚠️ Known Issues and Limitations
 
