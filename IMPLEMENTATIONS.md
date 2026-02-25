@@ -3,18 +3,6 @@
 
 ---
 
-## Open Problems & Next Steps
-
-### E. SQL safety in `query_database`
-
-**Problem:** The `startswith("select")` check is the only guard. A crafted query can bypass it.
-
-**Fix:**
-1. Add `PRAGMA query_only = ON` before executing — SQLite will reject writes at the engine level.
-2. Verify `.strip().lower()` normalization is applied before the prefix check.
-
----
-
 ## Up Next
 
 ### 1. Stateless Mode for Remote/HTTP Deployment
@@ -39,7 +27,6 @@ Return interactive HTML charts/dashboards in-chat. Blocked on: no Python SDK sup
 ## Quality
 
 - [ ] **Enable SSL verification** — `VERIFY_SSL = False` is a security risk
-- [ ] **SQL validation** — add `PRAGMA query_only = ON`; whitelist operations
 - [ ] **CI/CD linting** — ruff + mypy on push/PR
 - [ ] **Expand tests** — mock StatCan API responses; per-tool coverage
 
@@ -89,11 +76,13 @@ Return interactive HTML charts/dashboards in-chat. Blocked on: no Python SDK sup
 ### Distribution & Publishing *(Feb 23, 2026)*
 - [x] PyPI — `pip install statcan-mcp-server` / `uvx statcan-mcp-server`; Trusted Publishing via GitHub OIDC
 - [x] MCP Registry — `io.github.Aryan-Jhaveri/mcp-statcan`
-- [x] GitHub Actions CI/CD — auto-publishes on `v*` tag push
+- [x] GitHub Actions CI/CD — auto-publishes on push to `main`
 - [x] Flatten `get_bulk_vector_data_by_range` — flat list with `vectorId` injected per data point
 - [x] Full StatCan WDS API coverage (~15 tools)
 - [x] In-memory TTL cache for `search_cubes_by_title`
-- [x] SQLite database layer — create, insert, query, list, schema tools
+- [x] SQLite database layer — create, insert, query, list, schema, drop tools
+- [x] `drop_table` MCP tool — LLMs can permanently delete tables to free DB space
+- [x] `query_database` hardened — `PRAGMA query_only = ON` enforces read-only at SQLite engine level
 
 ---
 
@@ -114,7 +103,7 @@ flowchart TD
     G -->|store if needed| E
     G -->|preview + guidance| A
 
-    E --> I[create_table_from_data\ninsert_data_into_table\nquery_database\nlist_tables\nget_table_schema]
+    E --> I[create_table_from_data\ninsert_data_into_table\nquery_database\nlist_tables\nget_table_schema\ndrop_table]
     I -->|SQL Results| A
 
     style A fill:#210d70
