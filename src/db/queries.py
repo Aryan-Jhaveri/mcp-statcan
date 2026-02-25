@@ -18,10 +18,16 @@ def register_db_tools(registry: ToolRegistry):
     @registry.tool()
     def insert_data_into_table(table_input: TableDataInput) -> Dict[str, str]:
         """
-        Inserts data (list of dictionaries) into an existing SQLite table.
-        It dynamically determines columns from the table schema and inserts corresponding
-        values from the dictionaries, handling missing keys gracefully. It attempts to
-        match sanitized dictionary keys to table columns.
+        Appends rows (list of dicts) into an ALREADY EXISTING SQLite table.
+        Use this only to add more data to a table that was previously created.
+
+        For the common "fetch API data then store" workflow, use create_table_from_data
+        or fetch_vectors_to_database instead — both create the table AND insert data
+        in a single call, so you do NOT need to call this tool after them.
+
+        This tool is useful when:
+        - You want to merge data from multiple API calls into one table
+        - You're appending new time periods to an existing dataset
 
         Args:
             table_input: Object containing table_name and data (list of dicts).
@@ -29,7 +35,7 @@ def register_db_tools(registry: ToolRegistry):
         Returns:
             Dict[str, str]: A dictionary indicating success (with row count) or failure.
 
-        IMPORTANT: In your final response to the user, you MUST cite the source of the data you are inserting 
+        IMPORTANT: In your final response to the user, you MUST cite the source of the data you are inserting
         if it comes from an API call (e.g., "Data from Product ID 123456").
         """
         table_name = table_input.table_name

@@ -3,7 +3,14 @@
 import os
 
 # Database configuration
-DB_FILE = os.environ.get("STATCAN_DB_FILE", "temp_statcan_data.db")
+# Use an explicit absolute path so the DB works regardless of the MCP server's
+# working directory (which varies by client — Claude Desktop, Cursor, etc.).
+_default_db_dir = os.path.join(os.path.expanduser("~"), ".statcan-mcp")
+_default_db_path = os.path.join(_default_db_dir, "statcan_data.db")
+DB_FILE = os.environ.get("STATCAN_DB_FILE", _default_db_path)
+
+# Ensure the directory exists at import time
+os.makedirs(os.path.dirname(DB_FILE), exist_ok=True)
 
 # API configuration
 BASE_URL = "https://www150.statcan.gc.ca/t1/wds/rest"

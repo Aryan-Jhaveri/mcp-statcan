@@ -165,10 +165,26 @@ def register_cube_tools(registry: ToolRegistry):
     @registry.tool()
     async def get_data_from_cube_pid_coord_and_latest_n_periods(input_data: CubeCoordLatestNInput) -> Dict[str, Any]:
         """
-        Retrieves data for the N most recent reporting periods for a specific series
-        within a cube, identified by ProductId and Coordinate string.
-        Coordinates are automatically padded to 10 dimensions. Disables SSL Verification.
+        Retrieves data for the N most recent reporting periods for ONE specific series
+        identified by ProductId and a single Coordinate string.
+        Coordinates are automatically padded to 10 dimensions.
         Corresponds to: POST /getDataFromCubePidCoordAndLatestNPeriods
+
+        *** WORKFLOW WARNING ***
+        This tool fetches ONE series at a time. If you need data for MULTIPLE
+        provinces, age groups, industries, or any other breakdown categories,
+        do NOT call this tool repeatedly in a loop. That approach makes N separate
+        HTTP requests and is slow.
+
+        PREFERRED multi-series workflow:
+          1. get_cube_metadata → find the vectorIds for each series you need
+          2. fetch_vectors_to_database(vectorIds=[...], table_name="my_table",
+             startRefPeriod="YYYY-MM-DD", endRefPeriod="YYYY-MM-DD")
+             → fetches all series in ONE request and stores them in SQLite
+          3. query_database → analyze with SQL
+
+        Only use THIS tool when you genuinely need a single series or when you
+        do not have vectorIds yet and cannot run the multi-series workflow.
 
         Returns:
             Dict[str, Any]: A dictionary containing the vector data points and series info object.
@@ -177,7 +193,7 @@ def register_cube_tools(registry: ToolRegistry):
             ValueError: If the API response format is unexpected or status is not SUCCESS.
             Exception: For other network or unexpected errors.
 
-        IMPORTANT: In your final response to the user, you MUST cite the source of your data. 
+        IMPORTANT: In your final response to the user, you MUST cite the source of your data.
         For cube data, this means including the ProductId (pid), Coordinate, and Reference Period.
         """
         async with httpx.AsyncClient(base_url=BASE_URL, timeout=TIMEOUT_MEDIUM, verify=False) as client:
