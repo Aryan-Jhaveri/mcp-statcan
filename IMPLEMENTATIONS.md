@@ -5,44 +5,6 @@
 
 ## Open Problems & Next Steps
 
-### A. `get_cube_metadata` — summary/truncation mode
-
-**Problem:** Full metadata responses blow up context. CPI-type cubes have hundreds of dimension members and sub-members. Claude Desktop throws a "tool result too large" error.
-
-**Fix (modify existing tool, no new tool):**
-1. Add a `summary: bool = True` field to a new `CubeMetadataInput` model (replaces bare `ProductIdInput`).
-2. When `summary=True` (default), post-process the response before returning:
-   - Keep dimension IDs, names, and member **counts**.
-   - Truncate each dimension's `member` list to the first 20 entries.
-   - Append `"... and N more members not shown. Call again with summary=False to get all."` to the response.
-3. When `summary=False`, return the raw API object unchanged (for when the LLM needs every vectorId).
-4. The docstring should tell the LLM: "Start with `summary=True`. Only set `summary=False` if you need specific vectorIds not visible in the summary."
-
----
-
-### B. `get_all_cubes_list` — pagination; retire `_lite` as a registered tool
-
-**Problem:** Both `get_all_cubes_list` and `get_all_cubes_list_lite` return the full list of thousands of cubes with no size control. `search_cubes_by_title` can also return hundreds of matches.
-
-**Fix (modify existing tools):**
-1. **Extract `_truncate_response`** from `vector_tools.py` into `src/util/truncation.py` so it can be shared by cube and vector tools without circular imports.
-2. **Add `offset: int = 0` and `limit: int = 100` params** to `get_all_cubes_list`. Apply `_truncate_response` before returning. Same pagination message pattern as vector tools.
-3. **Unregister `get_all_cubes_list_lite`** as an MCP tool — keep the function internally (the cache uses it) but remove the `@registry.tool()` decorator. `get_all_cubes_list` with truncation replaces its use case.
-4. **Add `max_results: int = 25`** to `search_cubes_by_title`. Slice `matching_cubes[:max_results]` and append a count message if more were found. Prevents worst-case context overflow without changing the search logic.
-
----
-
-### C. `get_series_info_from_cube_pid_coord_bulk` — pair with truncation + LLM guidance
-
-**Problem:** The bulk coord tool exists and works (`get_series_info_from_cube_pid_coord_bulk`), but its return value is a raw list of series metadata objects. LLMs don't know what fields like `scalar`, `frequencyCode`, `unitNameEn` mean, so they can't reason about the data correctly without a separate `get_code_sets()` call.
-
-**Fix (modify existing tool response and docstring):**
-1. **Truncate the output** when the list exceeds a threshold (e.g. 30 series). Reuse `_truncate_response` after extracting it to the shared util.
-2. **Inject a `_guidance` key** into the response dict (alongside the data) that says: "Fields like `scalar`, `frequencyCode`, and `unitNameEn` use StatCan code values. Call `get_code_sets()` to resolve them to human-readable labels."
-3. **Update the docstring** to explicitly name the fields LLMs get confused by and note that `get_code_sets()` is the lookup table for them.
-
----
-
 ### D. `create_table_from_data` / chaining — already fixed, clean up docs
 
 **Problem (was):** `create_table_from_data` only created the schema but didn't insert rows. LLMs had to follow up with `insert_data_into_table`. **This is fixed** — `schema.py` now does both in one call.

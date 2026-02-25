@@ -7,6 +7,10 @@ DEFAULT_TRUNCATION_LIMIT = 50
 class ProductIdInput(BaseModel):
     productId: int
 
+class CubeMetadataInput(BaseModel):
+    productId: int
+    summary: bool = Field(True, description="When True (default), truncates dimension member lists to 20 entries and shows counts. Set to False only if you need specific vectorIds not visible in the summary.")
+
 class VectorIdInput(BaseModel):
     vectorId: int
 
@@ -42,6 +46,16 @@ class BulkCubeCoordInput(BaseModel):
     items: List[CubeCoordInput] = Field(
         ..., description="List of {productId, coordinate} pairs to fetch series info for in a single batch call."
     )
+    offset: Optional[int] = Field(0, description="Number of results to skip (for pagination). Default 0.")
+    limit: Optional[int] = Field(None, description=f"Max results to return. Default {DEFAULT_TRUNCATION_LIMIT}.")
+
+class CubeListInput(BaseModel):
+    offset: int = Field(0, description="Number of cubes to skip (for pagination). Default 0.")
+    limit: int = Field(100, description="Max cubes to return. Default 100.")
+
+class CubeSearchInput(BaseModel):
+    search_term: str = Field(..., description="Text to search for in cube titles. Multiple keywords use AND logic.")
+    max_results: int = Field(25, description="Max matching cubes to return. Default 25.")
 
 class FullTableDownloadCSVInput(BaseModel):
     productId: int
