@@ -11,11 +11,10 @@
 
 ## 📝 Description
 
-This project implements a <a href="https://modelcontextprotocol.io/" target="_blank">Model Context Protocol (MCP)</a> server that provides tools for interacting with Statistics Canada (StatCan) data APIs. It allows LLMs or other MCP clients to access and retrieve Canadian statistical data in a structured way.
+This project implements a <a href="https://modelcontextprotocol.io/" target="_blank">Model Context Protocol (MCP)</a> server that provides tools for interacting with Statistics Canada (StatCan) data APIs. 
 
--- Please note LLM's may fabricate data, current MCP integration is limited to basic data discovery, and data exploration using a SQLite database, always verify original tables and keep track of changes you let LLM's (download, update, delete, checking your pc memory) -- 
+It allows LLMs or other MCP clients to access and retrieve Canadian statistical data in a structured way.
 
-The server is built using the <a href="https://github.com/jlowin/fastmcp" target="_blank">FastMCP</a> library and interacts with the StatCan Web Data Service via `httpx`.
 
 ## 📑 Table of Contents
 
@@ -35,6 +34,12 @@ The server is built using the <a href="https://github.com/jlowin/fastmcp" target
 | **Canada's Greenhouse Gas Emissions** (2018-2022) | "Hey Claude! Can you please create a simple visualization for greenhouse emissions for Canada as a whole over the last 4 years?" | <a href="https://claude.ai/share/7de892a1-e1d9-410f-96f7-90cd140e5dd9" target="_blank">View Demo</a> | <a href="https://www150.statcan.gc.ca/t1/tbl1/en/cv.action?pid=3810009701" target="_blank">StatCan Table</a> |
 | **Canada's International Trade in Services** | "Hey Claude, can you create a quick analysis for international trade in services for the last 6 months. Create a visualization with key figures please!" | <a href="https://claude.ai/share/c00eba2d-4e86-4405-878a-7ea4110cb7d3" target="_blank">View Demo</a> | <a href="https://www150.statcan.gc.ca/t1/tbl1/en/cv.action?pid=1210014401" target="_blank">StatCan Table</a> |
 | **Ontario Building Construction Price Index** | "Hey Claude! Can you please generate a visualization for Ontario's Building Price index from Q4 2023 to Q4 2024. Thanks!" | <a href="https://claude.ai/share/12ce906f-5a26-4e74-86d9-10451ab5bc4b" target="_blank">View Demo</a> | <a href="https://www150.statcan.gc.ca/t1/tbl1/en/cv.action?pid=1810028901" target="_blank">StatCan Table</a> |
+
+
+## 📊 Claude Dashboard Example 
+| Dataset | Link | Data Source |
+|---------|------|------------|
+| Labour force characteristics by province, territory and economic region, annual | <a href ="https://claude.ai/public/artifacts/298dfc5f-8e1b-4b73-a4d0-9a68b30cdb54" target="_blank"> Dashbord Link </a> | <a href ="https://www150.statcan.gc.ca/t1/tbl1/en/tv.action?pid=1410046401&pickMembers%5B0%5D=2.8&cubeTimeFrame.startYear=2011&cubeTimeFrame.endYear=2025&referencePeriods=20110101%2C20250101" target="_blank"> Data Source </a> |
 
 ### Effective Querying Tips
 
@@ -68,16 +73,19 @@ This server exposes StatCan API functionalities as MCP tools, including:
 * Retrieving series metadata by Vector ID
 * Getting data for the latest N periods by Vector ID
 * Getting data for multiple vectors by reference period range
-* Getting bulk data for multiple vectors by release date range
+* Getting bulk data for multiple vectors by release date range (auto-stores to DB when >50 rows)
 * Getting changed series data by Vector ID
 * Listing series changed on a specific date
 
+**Composite Operations:**
+* `fetch_vectors_to_database` — fetches multiple vectors and stores them in SQLite in a single call (preferred workflow for multi-series analysis)
+
 ### Database Functionality
 
-The server automatically creates a SQLite database (`temp_statcan_data.db`) for:
+The server uses a persistent SQLite database at `~/.statcan-mcp/statcan_data.db` (configurable via `--db-path` flag or `STATCAN_DB_FILE` env var) for:
 
-* Creating tables from API data
-* Inserting data into tables
+* Creating tables from API data and inserting rows in one step (`create_table_from_data`)
+* Appending additional rows to existing tables (`insert_data_into_table`)
 * Querying the database with SQL
 * Viewing table schemas and listing available tables
 
@@ -88,7 +96,7 @@ This allows for persistent storage of retrieved data and more complex data manip
 ## 🏗️ Project Structure
 
 * **`src/`**: Contains the main source code for the MCP server.
-* **`api/`**: Defines the MCP tools wrapping the StatCan API calls (`cube_tools.py`, `vector_tools.py`, `metadata_tools.py`).
+* **`api/`**: Defines the MCP tools wrapping the StatCan API calls (`cube_tools.py`, `vector_tools.py`, `composite_tools.py`, `metadata_tools.py`).
 * **`db/`**: Handles database interactions, including connection, schema, and queries.
 * **`models/`**: Contains Pydantic models for API request/response validation and database representation.
 * **`util/`**: Utility functions (e.g., coordinate padding).
@@ -140,47 +148,11 @@ claude mcp add statcan --scope global -- uvx statcan-mcp-server
 ## ⚠️ Known Issues and Limitations
 
 - **SSL Verification**: Currently disabled for development. Should be enabled for production use.
-- **LLM Defaults to One-by-One Fetching**: LLMs tend to default to `get_data_from_cube_pid_coord_and_latest_n_periods` in a loop (one API call per data point) instead of using bulk vector tools like `get_data_from_vector_by_reference_period_range` which accept arrays of vector IDs. This is slower, wastes API calls, and increases the risk of the LLM fabricating numbers when it loses patience mid-loop. **Best practice**: Use bulk vector fetch → DB storage → SQL query.
-- **`create_table_from_data` Does Not Insert Data**: This tool only scaffolds the SQLite schema — it does **not** populate rows. You must follow up with a separate `insert_data_into_table` call. LLMs frequently assume the table is populated after creation, leading to empty query results and confusion.
 - **Data Validation**: Always cross-check your data with official Statistics Canada sources.
 - **Security Concerns**: Query validation is basic; avoid using with untrusted input.
 - **Performance**: Some endpoints may timeout with large data requests.
 - **API Rate Limits**: The StatCan API may impose rate limits that affect usage during high-demand periods.
 
-## 🚀 Usage Examples
-
-### API Operations
-
-```python
-# Search for data tables about employment
-tables = await search_cubes_by_title("employment")
-
-# Get recent data points for a specific vector ID
-data = await get_data_from_vectors_and_latest_n_periods(VectorLatestNInput(vectorId=12345, latestN=5))
-
-# Get data for a specific range of periods
-range_data = await get_data_from_vector_by_reference_period_range(
-VectorPeriodRangeInput(vectorId=12345, startDate="2020-01-01", endDate="2020-12-31")
-)
-```
-
-### Database Operations
-
-```python
-# Store API results in SQLite database
-create_table_from_data(TableDataInput(table_name="employment_data", data=data))
-
-# Query the database
-result = query_database(QueryInput(sql_query="SELECT * FROM employment_data LIMIT 10"))
-
-# List available tables
-tables = list_tables()
-
-# Get schema for a table
-schema = get_table_schema(TableSchemaInput(table_name="employment_data"))
-```
-
----
 
 <div align="center">
 <p>Made with ❤️❤️❤️ for Statistics Canada</p>
