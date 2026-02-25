@@ -1,234 +1,203 @@
-# IMPLEMENTATIONS.MD
-
-# 🗺️ Roadmap & Ecosystem Alignment
-*Updated Feb 24, 2026 — informed by MCP Apps, Registry, ecosystem best practices research, and LLM data-fetching behavior analysis*
+# Roadmap & Implementation Status
+*Updated Feb 25, 2026*
 
 ---
 
-## Priority Focus: Installation & LLM Data-Fetching Fixes
+## The Story So Far
 
-> These are the two highest-impact areas identified on Feb 24, 2026.
-> Items below are ordered by priority within each focus area.
+The server works. LLMs can search cubes, fetch vector data, and store results in SQLite. But real-world usage exposed problems:
 
-### Focus A: Make Installation Easier
+**Problem 1: Large responses blow up context.** A bulk vector fetch can return hundreds of rows. Dumping all of that into the LLM's context window wastes tokens and degrades reasoning. We added an "auto-store" that writes >50 rows to SQLite and returns a summary — but the LLM still has to know to call `query_database` afterward. It's not seamless.
 
-Users can `pip install` / `uvx` the package, but still hit friction wiring it into their LLM client. The error logs from Feb 23 showed a misconfigured launch command with duplicate `-m src.server -m src.server` — exactly the kind of mistake manual config causes.
+**Problem 2: LLMs loop single-series calls.** When an LLM needs data for 10 different items, it often calls `get_series_info_from_cube_pid_coord` 10 times instead of using the bulk vector workflow. The docstrings try to steer it, but LLMs don't always read them carefully.
 
-| # | Item | Effort | Status |
-|---|------|--------|--------|
-| A3 | **Bump `mcp>=1.3.0` in `pyproject.toml`** — Server currently responds with protocol version `2025-06-18` while Claude sends `2025-11-25`. Bumping the SDK fixes the mismatch and enables newer MCP features (e.g., the `io.modelcontextprotocol/ui` extension for MCP APPS). | ~5 min | [ ] |
-
-| A4 | **Register on Smithery.ai** — Smithery provides a "one-click install" button and handles config generation for users. Submit at smithery.ai. | ~30 min | [ ] |
-
-
-### Low priority
-
-**Add multi-client config snippets** — Copy-paste JSON blocks for Claude Desktop, Claude Code, Cursor, VS Code Copilot, and Windsurf in the README. Each client has a different config format/location; document all of them. | ~1 hr | [ ] |
-
-**Submit to remaining directories** — PR to `punkpeye/awesome-mcp-servers` (syncs to Glama), submit to PulseMCP (`pulsemcp.com/submit`), consider Docker MCP Catalog. | ~1 hr | [ ] |
-
-### Focus B: Fix LLM Data-Fetching Behavior
-
-Three interrelated bugs all stem from the same root cause: **the tools aren't designed around how LLMs actually choose and chain tool calls.**
-
-**The problems:**
-
-- **B-Problem 1**: LLM fetches data one-by-one with `get_data_from_cube_pid_coord` instead of using bulk vector tools (observed Feb 23 — 5 separate calls for 5 provinces instead of 1 bulk call)
-
-- **B-Problem 2**: `create_table_from_data` only creates the schema; LLM must make a second `insert_data_into_table` call. It often forgets, pasting raw numbers into its response instead.
-
-- **B-Problem 3**: 
-`get_bulk_vector_data_by_range` can return hundreds of data points, overflowing the LLM's working context.
-
-**Root causes:**
-- The coord-based tool has a simpler interface (one PID + one coord string) so the LLM gravitates to it over the bulk vector tools that require assembling an array of vector IDs.
-
-- The two-step create+insert flow is invisible to the LLM as a required sequence — it treats each tool as independent.
-- Tool descriptions are API-doc-style, not workflow-aware. They don't tell the LLM *when* to use each tool or *what to do next*.
-
-| # | Fix | Solves | Effort | Status |
-|---|-----|--------|--------|--------|
-| B1 | **Merge `create_table_from_data` + `insert_data_into_table` into one step** — After `CREATE TABLE`, immediately insert the data that was passed in. Return `"Table 'x' created with N columns and M rows inserted."` Keep `insert_data_into_table` available for appending, but make the common "fetch then store" path a single tool call. *(changes in `src/db/schema.py`)* | B-Problem 2 | ~1 hr | [ ] |
-
-| B2 | **Rewrite tool descriptions with workflow hints** — Current descriptions are API-doc-style. Add explicit steering. On `get_data_from_cube_pid_coord_and_latest_n_periods`: *"For fetching data across MULTIPLE provinces/categories, do NOT call this tool repeatedly. Instead: (1) get_cube_metadata to find vector IDs, (2) get_data_from_vector_by_reference_period_range with array of vectorIds, (3) create_table_from_data, (4) query_database."* On bulk tools: *"PREFERRED for multi-series fetches. Output is pre-flattened and ready for create_table_from_data."* | B-Problem 1 | ~1 hr | [ ] |
-
-
-
-### Potential Solution
-**Add `fetch_vectors_to_database` composite tool** — New high-level tool that takes `vectorIds[]`, `table_name`, optional date range. Internally calls the vector range API, creates the table, inserts all data, and returns a summary (row count, columns, table name). Eliminates multi-step planning entirely — LLM just needs vector IDs and a table name. | B-Problem 1, 2 | ~2 hrs | [ ] |
-
-**Auto-store large responses and return summary** — When `get_bulk_vector_data_by_range` returns >50 rows, auto-store into a temp SQLite table and return `{"stored_in_table": "auto_bulk_xyz", "total_rows": 340, "columns": [...], "sample": [first 5 rows], "message": "Use query_database to analyze."}` instead of dumping all 340 rows into the LLM context. | B-Problem 3 | ~2 hrs | [ ] |
----
-
-## Tier 1: Foundational Fixes (Weekend Project)
-
-- [x] **Create `pyproject.toml`** — Proper Python packaging with hatchling build backend, project metadata, dependencies, and console entry point (`statcan-mcp-server`). *(Completed)*
-- [ ] **Enable SSL verification** — SSL is currently disabled for development. Fix httpx SSL settings and document any proxy/corporate certificate workarounds.
-- [ ] **Harden SQL input validation** — Database tools accept raw SQL with "basic" validation. Implement: whitelist of allowed SQL operations (SELECT only), parameterized queries to prevent injection, and query size/timeout limits.
-- [x] ~~**Add a uv or smithery package installer**~~ — Superseded by Focus A items above (A1 `claude mcp add`, A2 multi-client configs, A3 Smithery). *(carried from June 1, 2025; restructured Feb 24, 2026)*
-
-## Tier 2: Ecosystem Integration (One-Week Sprint)
-
-- [x] **Publish to PyPI** — Automated via GitHub Actions on tag push. Package: `statcan-mcp-server`. Install: `pip install statcan-mcp-server` / `uvx statcan-mcp-server`. Uses Trusted Publishing (OIDC). *(Completed Feb 23, 2026)*
-- [x] **Register on Official MCP Registry** — `server.json` created and validated against schema. Registered as `io.github.aryan-jhaveri/mcp-statcan`. Automated publishing via `mcp-publisher` CLI with GitHub OIDC auth on tag push. *(Completed Feb 23, 2026)*
-- [x] ~~**Submit to remaining directories**~~ — Moved to Focus A item A5 above. *(restructured Feb 24, 2026)*
-- [x] **Add GitHub Actions CI/CD (release workflow)** — Publishes to PyPI and MCP Registry on tagged releases via `.github/workflows/publish-mcp-registry.yml`. Uses GitHub OIDC for both PyPI Trusted Publishing and MCP Registry auth. *(Completed Feb 23, 2026)*
-- [ ] **Expand CI/CD with linting and type checking** — Add ruff, mypy, and tests on every push/PR. (DONT DO THIS YET - Because I need to polish up on CI/CD)
-- [ ] **Create a Dockerfile** — Slim Python base image for sandboxed deployment. Enables Docker MCP Catalog listing. (DONT DO THIS YET - Because I need to polish up on Docker)
-- [ ] **Create setup/installation guides for Windows** *(carried from June 1, 2025)* (DONT DO THIS YET - Because I need to test on windows virtual machine)
-
-## Tier 3: Quality & Completeness (Two-Week Sprint)
-
-- [ ] **Write tests** — Unit tests per tool function (pytest), mock StatCan API responses. Integration tests via FastMCP in-memory client. Test edge cases: empty results, API timeouts, malformed responses, pagination boundaries. Measure **tool hit rate** (LLM correctly picks right tool for 20 natural-language queries). (Need to research and plan)
-
-- [ ] **Complete StatCan WDS API coverage** — The Web Data Service provides **15 methods**; implement all of them. Missing ones likely include `getAllCubesListLite`, `getCubeMetadata`, `getBulkVectorDataByRange`, `getChangedCubeList`, `getChangedSeriesDataFromVector`, etc. Each tool needs clear name, detailed description (explain StatCan "cubes" and "vectors" for LLMs), and well-defined input schema.
-(There's trade offs between wds and sdmx tools, currently the LLM are fetching and readon one data point at a time maybe )
-
-- [x] ~~**Add MCP Resources & Prompts**~~ — Moved to Focus B item B5 above for prompt templates. Resources remain here as a separate item below. *(restructured Feb 24, 2026)*
-
-- [ ] **Add MCP Resources** — Expose **resources** for: available StatCan subject categories, StatCan data model explainer (cubes, vectors, coordinates, reference periods), API rate limits/constraints.
-(Need subject matter experts to review)
-
-- [ ] **Implement cursor-based pagination** — For tools returning large result sets, implement the MCP spec's pagination pattern with opaque cursor tokens and server-determined page sizes. Prevents timeouts on large queries.
-(Need to research and plan and understand pagination and cursor tokens)
-
-- [x] ~~Fix `get_bulk_vector` truncated output exceeding LLM context~~ — Superseded by Focus B item B4 (auto-store large responses). *(carried from Jan 7, 2026; restructured Feb 24, 2026)*
-
-- [x] ~~Fix `create_table_from_data` not filling DB~~ — Superseded by Focus B item B1 (merge create+insert). *(carried from Jan 7, 2026; restructured Feb 24, 2026)*
-
-- [x] ~~**Fix LLM defaulting to one-by-one `get_data_from_cube_pid_coord`**~~ — Superseded by Focus B items B2 (rewrite descriptions) + B3 (composite tool) + B5 (prompt templates). *(added Feb 23, 2026; restructured Feb 24, 2026)*
-
-## Tier 4: Differentiation (Month-Long Effort)
-
-- [ ] **Add MCP Apps support for data visualization** — Declare `ui://` resources that render interactive charts/tables. Time series → interactive Chart.js/Plotly chart in sandboxed iframe. Data tables → sortable/filterable HTML table. Use `ext-apps` SDK (`add-app-to-server` agent skill). Text fallback for non-supporting clients. Would make mcp-statcan one of the few data MCP servers with visual output.
-
-- [ ] **Support Streamable HTTP transport** — Add HTTP server mode alongside stdio for remote deployment. Unlocks hosting on Cloudflare Workers, Render, Railway. Consider deploying a free public instance for zero-setup access.
-
-- [ ] **Add structured output schemas** — Define typed output schemas for each tool's response, enabling downstream tools and MCP Apps UIs to parse results programmatically.
-- [ ] **Implement caching** — StatCan data updates at 8:30 AM ET on business days. Cache API responses with time-based invalidation aligned to this schedule. Reduces StatCan API load, improves response times.
-
-- [ ] **Look into SDMX implementation** — Allow Claude to create files or exact URIs for vector and metadata fetching; mix of REST and SDMX tools available *(carried from Jan 7, 2026)*
-
-- [ ] **Maybe: Look into A2A + MCP** — (https://arxiv.org/pdf/2506.01804) to create an extended multi-agent system *(carried from June 3, 2025, only for curiosity)*
-
-## Documentation Improvements
-
-- [ ] **Badges section** — PyPI version, CI status, license, MCP registry link
-- [ ] **Tool reference table** — Every tool with parameters, return types, example usage
-- [ ] **CONTRIBUTING.md** with contribution guidelines
-- [ ] **CHANGELOG.md** tracking versions
-- [x] ~~**Multi-client config examples**~~ — Moved to Focus A item A2 above. *(restructured Feb 24, 2026)*
-- [ ] **StatCan explainer section** — What StatCan data is and why it's useful, for international users
+**Problem 3: Remote hosting breaks the storage model.** Right now everything runs locally via stdio with a single-user SQLite file. If we host the server on Render for mobile/remote users, SQLite on the server creates data isolation, persistence, and concurrency problems. The cleaner answer: **make the server stateless and let the client handle storage** — many MCP clients (Claude Desktop, Claude Code, Cursor) already have their own SQLite tools.
 
 ---
 
-# 📓 Development Log
+## Up Next
 
-## February 24, 2026 — Installation & LLM Data-Fetching Analysis
+### 1. Smart Truncation for Large Results (High Priority)
 
-Analyzed two focus areas and created actionable fix plan with 10 prioritized items (Focus A: 5 installation items, Focus B: 5 data-fetching items).
+**The problem:** When a tool returns 500+ rows, either the context overflows or we silently dump data into SQLite and hope the LLM figures out what happened.
 
-**Installation findings:**
-- Users hit friction wiring the package into LLM clients despite `uvx` working. Manual JSON editing leads to misconfigs (e.g., duplicate `-m src.server` in launch command).
-- `claude mcp add statcan -- uvx statcan-mcp-server` is the highest-leverage fix — zero-config for Claude Code.
-- MCP SDK is behind (`2025-06-18` vs client's `2025-11-25`); bump `mcp>=1.3.0` to fix protocol mismatch.
+**The fix:** Instead of auto-storing, return a useful preview:
 
-**LLM data-fetching findings:**
-- Root cause of one-by-one fetching: coord-based tool has simpler interface (1 PID + 1 coord) vs bulk tools (requires assembling vector ID arrays). LLMs pick the path of least resistance.
-- Root cause of skipped DB insertion: `create_table_from_data` only creates schema — LLM must call `insert_data_into_table` separately. It often forgets.
-- Root cause of context overflow: `get_bulk_vector_data_by_range` dumps all data points into the LLM context instead of routing through DB.
-- **Fix strategy**: (B1) merge create+insert, (B2) rewrite tool descriptions with workflow hints, (B3) add composite `fetch_vectors_to_database` tool, (B4) auto-store large responses, (B5) add MCP prompt templates.
+- Show the **first 50 rows** as data
+- Append a clear message: *"Showing 50 of 3,200 rows. Call again with `offset` and `limit` to get more."*
+- Add `offset` and `limit` parameters to bulk tools (`get_bulk_vector_data_by_range`, `get_data_from_vector_by_reference_period_range`, `fetch_vectors_to_database`)
+- In the truncation message, **guide the LLM** toward next steps:
+  - *"To understand what this data means, call `get_code_sets()` for unit/scalar definitions"*
+  - *"To get series metadata (titles, frequency, coordinates), call `get_series_info_from_vector` or the bulk version"*
 
-Restructured roadmap: moved carried-over items from Tiers 1/3 into new "Priority Focus" section with concrete implementation details.
+This gives LLMs a head of data to reason about, a way to get more if needed, and a nudge toward metadata context. No silent side effects, no hidden SQLite tables.
 
-## February 23, 2026 — PyPI & MCP Registry Publishing
+**What this replaces:** The current auto-store behavior in `get_bulk_vector_data_by_range` (the `BULK_AUTO_STORE_THRESHOLD = 50` code path). That code creates a random `bulk_<uuid>` table that the LLM has to discover. Truncation with guidance is more predictable.
 
-[x] Created `server.json` validated against MCP Registry JSON schema (`io.github.aryan-jhaveri/mcp-statcan`).
+**Impact on DB tools:** The SQLite tools (`create_table_from_data`, `query_database`, etc.) stay in the server for local/stdio users who want them. The composite `fetch_vectors_to_database` tool also stays — it's still useful when users explicitly want to store data. But truncation becomes the default for raw fetch tools instead of auto-store.
 
-[x] Added GitHub Actions workflow (`.github/workflows/publish-mcp-registry.yml`) for automated PyPI + MCP Registry publishing on `v*` tag push.
+### 2. Bulk `get_series_info_from_cube_pid_coord` (High Priority)
 
-[x] Configured PyPI Trusted Publishing (OIDC) — no API tokens needed.
+**The problem:** `get_series_info_from_cube_pid_coord` takes one coordinate at a time. When an LLM needs metadata for 10 series, it makes 10 sequential HTTP calls. This is slow and burns through tool call budgets.
 
-[x] Added `mcp-name` ownership verification marker to README.md.
+**The fix:** Accept an array of `{productId, coordinate}` pairs and batch them into a single API call (or parallel calls under the hood). Return all results at once.
 
-[x] Enabled console script entry point (`statcan-mcp-server`) in `pyproject.toml`.
+This pairs with the truncation work above — when the LLM sees 50 rows of data with vector IDs but no context about what they mean, it should bulk-fetch the series info to understand the dimensions, units, and frequencies.
 
-[x] Added sync `main()` wrapper in `server.py` for entry point compatibility (async logic preserved in `_async_main()`).
+### 3. Bump `mcp>=1.3.0` (High Priority)
 
-[x] Tagged `v0.1.1` and pushed to trigger first automated release pipeline.
+**The problem:** The current `mcp>=1.0.0` pin responds with protocol version `2025-06-18` while newer clients send `2025-11-25`. This causes a version mismatch warning.
 
-## Jan 7, 2026
+**The fix:** Change one line in `pyproject.toml` to `mcp>=1.3.0,<2`. No code changes needed — our low-level `Server` class usage still works in all 1.x releases.
 
-[x] Adjust and make more detailed tool prompts to prevent the LLM from making separate calls for finding data and then inputting to database.
+**What this unlocks:**
+- **Concurrent request handling** — multiple tool calls can run in parallel (matters for async StatCan API calls)
+- **Lifespan API** — initialize DB connections at startup instead of per-call
+- **Server `instructions` field** — a place to tell clients about the StatCan data model without embedding it in every docstring
+- Opens the door to **FastMCP migration** later (replaces our custom `ToolRegistry` with `@mcp.tool()` decorators), but that's optional — the registry works fine as-is
 
-[x] Need to add db specific math tools. Add additional graph tools if needed.
+**Pin an upper bound.** v2 of the MCP SDK is in development and will have breaking changes. Use `<2` to stay safe.
 
-## January 2, 2026 — Refactor Data Retrieval Pipeline
+### 4. Stateless Mode for Remote/HTTP Deployment (Medium Priority)
 
-[x] Identify issue with `get_bulk_vector_data_by_range` returning nested JSON incompatible with DB tools.
+**The context:** The `http` branch has Streamable HTTP transport + Google OAuth. But it's behind `main` on data-handling fixes. Before adding features there, it needs to catch up with `main`.
 
-[x] **Priority** Shift strategy to **Flatten API Response**: Bulk Tool Flattening → Database Ingestion.
+**The architecture question:** When someone connects from their phone to a Render-hosted server, where does the data go?
 
-[x] Modify `get_bulk_vector_data_by_range` to return flat list of data points with `vectorId` injected.
+- SQLite on the server means shared state between all users, ephemeral filesystem on Render's free tier, and write contention
+- Per-user SQLite with OAuth identity scoping is possible but adds complexity
+- **Simplest answer: don't store anything server-side.** Many MCP clients already have local SQLite (Claude Desktop via sqlite MCP server, Claude Code via bash, Cursor, etc.). The server just fetches StatCan data and returns it. The client decides whether to store it locally.
 
-[x] Ensure compatibility with `create_table_from_data` for seamless "Fetch → Store" workflow.
+**What this means for the `http` branch:**
+- DB tools become optional or are excluded from the remote deployment
+- `fetch_vectors_to_database` either becomes `fetch_vectors` (no DB step) or stays as a convenience for local/stdio mode
+- The smart truncation from item #1 becomes the primary way to handle large results — no server-side storage fallback needed
 
-## Notes
-- Potential use case: Create scheduled calls for the LLM to create weekly reports for specific data sets.
+### 5. MCP Resources (Medium Priority)
+
+Requires `mcp>=1.3.0` (item #3 above).
+
+MCP Resources let the server expose static reference content that clients can browse without calling tools. Good candidates:
+
+- **StatCan data model explainer** — what cubes, vectors, coordinates, and reference periods mean
+- **Subject categories** — the StatCan subject taxonomy so LLMs know what data exists
+- **Code sets reference** — unit/scalar/frequency definitions (currently a tool call, could be a static resource). Ideally tool to make sure we're updated on whats on the API.
+
+This would reduce tool calls for context-gathering. Instead of the LLM calling `get_code_sets()` every time, the client can pre-load the resource.
+
+### 6. MCP Apps — Data Visualization (Future)
+
+MCP Apps let tools return interactive HTML UIs rendered in the chat (charts, tables, dashboards). High value for a data server — imagine asking "show me CPI over time" and getting an interactive chart.
+
+**Blockers:**
+- No Python SDK support — all tooling is TypeScript only. Would need manual protocol implementation.
+- Requires HTTP transport (not stdio) — the host needs to fetch `ui://` resources.
+- Host support is limited — Claude web, Claude Desktop, VS Code Copilot, a few others.
+
+**Sequence:** Only makes sense after HTTP transport is stable and the server is stateless. This is a post-v1.0 feature.
 
 ---
 
-# 🏗️ Server Architecture & Data Flow
-*June 1, 2025*
+## Quality
+
+- [ ] **Enable SSL verification** — `VERIFY_SSL = False` is a security risk
+- [ ] **SQL validation** — currently `startswith("select")` only; should whitelist operations and add query size limits
+- [ ] **CI/CD linting** — ruff + mypy on push/PR
+- [ ] **Write tests** — pytest unit tests per tool, mock StatCan API responses
+
+---
+
+## Distribution
+
+- [ ] **Register on Smithery.ai** — one-click install button
+- [ ] **Submit to directories** — `punkpeye/awesome-mcp-servers`, PulseMCP
+- [ ] **Multi-client config snippets** — Cursor, VS Code Copilot, Windsurf in README
+- [ ] **Windows setup guide** — needs testing on Windows VM first
+- [ ] **Dockerfile** — for Docker MCP Catalog listing
+
+---
+
+## Future / Exploratory
+
+- [ ] **SDMX implementation** — REST + SDMX tools for richer data access. An SDMX Skills collection could be an alternative implementation, with agents using their own SQLite within the chat and results displayed via MCP Apps.
+- [ ] **A2A + MCP** — multi-agent system exploration
+- [ ] **Scheduled reports** — periodic LLM calls for weekly dataset summaries
+- [ ] **Caching** — time-based invalidation aligned to StatCan's 8:30 AM ET update schedule
+
+---
+
+## Completed
+
+### Core LLM Data-Fetching Fixes *(Feb 25, 2026)*
+- [x] `create_table_from_data` now inserts rows — creates schema + inserts all data in one call
+- [x] Rewrote tool descriptions with workflow hints — steering LLMs toward bulk vector workflow
+- [x] Added `fetch_vectors_to_database` composite tool — single call: fetch + store in SQLite
+- [x] Auto-store large bulk responses — `get_bulk_vector_data_by_range` stores to SQLite when >50 rows *(to be replaced by smart truncation)*
+- [x] Stable DB path — `~/.statcan-mcp/statcan_data.db`; `--db-path` flag and `STATCAN_DB_FILE` env var
+
+### Distribution & Publishing *(Feb 23, 2026)*
+- [x] PyPI — `pip install statcan-mcp-server` / `uvx statcan-mcp-server`; Trusted Publishing via GitHub OIDC
+- [x] MCP Registry — registered as `io.github.Aryan-Jhaveri/mcp-statcan`
+- [x] GitHub Actions CI/CD — auto-publishes to PyPI + MCP Registry on `v*` tag push
+- [x] Console entry point — `statcan-mcp-server` command
+- [x] Flatten `get_bulk_vector_data_by_range` response — flat list with `vectorId` injected
+- [x] Full StatCan WDS API coverage — cube, vector, metadata tools (~15 total)
+- [x] In-memory TTL cache for `search_cubes_by_title`
+- [x] SQLite database layer — create, insert, query, list, schema tools
+
+---
+
+## Development Log
+
+### Feb 25, 2026 — LLM Data-Fetching Overhaul
+- Fixed three root-cause bugs in how LLMs interact with the server:
+  - Merged `create_table_from_data` create+insert into one step
+  - Added `fetch_vectors_to_database` composite tool
+  - Auto-store large bulk responses to prevent context overflow
+- Rewrote tool docstrings to steer LLMs toward bulk vector workflow
+- Fixed DB path to be absolute (`~/.statcan-mcp/`) so it's consistent regardless of working directory
+- Added `--db-path` CLI flag
+
+### Feb 23, 2026 — PyPI & MCP Registry Publishing
+- Created `server.json`, validated against MCP Registry schema
+- GitHub Actions workflow for automated PyPI + MCP Registry publishing on `v*` tags
+- PyPI Trusted Publishing (OIDC) — no API tokens needed
+- Tagged `v0.1.1` for first automated release
+
+### Jan 7, 2026
+- More detailed tool prompts to reduce separate fetch/insert calls
+
+### Jan 2, 2026 — Flatten Bulk Response
+- Identified `get_bulk_vector_data_by_range` returning nested JSON incompatible with DB tools
+- Flattened to list of data points with `vectorId` injected at top level
+
+---
+
+## Architecture & Data Flow
 
 ```mermaid
 flowchart TD
-    A[Claude/MCP Client] -->|MCP Protocol| B[FastMCP Server]
-    
-    B --> C{Tool Type}
-    C -->|API Tools| D[Statistics Canada API]
-    C -->|DB Tools| M[Database Tools]
-    C -->|Metadata Tools| F[Code Sets & Classifications]
-    
-    D --> G[Cube Tools]
-    D --> H[Vector Tools]
-    D --> I[Metadata Tools]
+    A[Claude/MCP Client] -->|MCP Protocol| B[MCP Server]
 
-    E[SQLite Database]
-    
-    G -->|get_cube_metadata<br/>search_cubes_by_title<br/>get_data_from_cube| J[StatCan WDS API<br/>statcan.gc.ca/t1/wds/rest]
-    H -->|get_series_info_from_vector<br/>get_data_from_vectors<br/>get_bulk_vector_data| J
-    I -->|get_code_sets<br/>get_changed_cube_list| J
-    
-    J -->|JSON Response| K[API Response Processing]
-    K -->|Flattened Data Points| L{Data Usage}
-    
-    L -->|Return to Client| A
-    L -->|Store in DB| M[Database Tools]
-    
-    M --> N[create_table_from_data]
-    M --> O[insert_data_into_table] 
-    M --> P[query_database]
-    M --> Q[list_tables]
-    M --> R[get_table_schema]
-    
-    N --> E
-    O --> E
-    P --> E
-    Q --> E
-    R --> E
-    
-    E --> S[Dynamic Tables]
-    
-    S -->|SQL Results| T[Formatted Response]
-    T -->|MCP Response| A
-    
-    F -->|get_code_sets| J
-    
+    B --> C{Tool Type}
+    C -->|Cube/Vector/Composite| D[StatCan WDS API]
+    C -->|DB Tools| E[SQLite ~/.statcan-mcp/]
+
+    D -->|fetch_vectors_to_database| F[Composite: fetch + store in one call]
+    F --> E
+
+    D -->|get_data_from_vector_by_reference_period_range| G[Vector Range API]
+    G -->|flat rows| E
+
+    D -->|get_bulk_vector_data_by_range| H[Bulk Vector API]
+    H -->|auto-store if >50 rows| E
+    H -->|raw if ≤50 rows| A
+
+    E --> I[create_table_from_data<br/>insert_data_into_table<br/>query_database<br/>list_tables<br/>get_table_schema]
+    I -->|SQL Results| A
+
     style A fill:#210d70
     style B fill:#70190d
     style E fill:#700d49
-    style L fill:#450d70
-    style T fill:#35700d
-    style J fill:#700d1c
+    style F fill:#0d5c70
 ```
