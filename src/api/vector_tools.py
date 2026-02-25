@@ -7,30 +7,8 @@ from ..util.registry import ToolRegistry
 from ..models.api_models import VectorIdInput, VectorLatestNInput, VectorRangeInput, BulkVectorRangeInput, DEFAULT_TRUNCATION_LIMIT
 from ..config import BASE_URL, TIMEOUT_MEDIUM, TIMEOUT_LARGE, VERIFY_SSL
 from ..util.logger import log_ssl_warning, log_data_validation_warning
+from ..util.truncation import truncate_response
 
-
-def _truncate_response(rows: List[Dict[str, Any]], offset: int, limit: int) -> Union[List[Dict[str, Any]], Dict[str, Any]]:
-    """Apply offset/limit truncation and return guidance if there are more rows."""
-    total = len(rows)
-    sliced = rows[offset:offset + limit]
-
-    if total <= limit and offset == 0:
-        return sliced
-
-    has_more = (offset + limit) < total
-    return {
-        "data": sliced,
-        "total_rows": total,
-        "offset": offset,
-        "limit": limit,
-        "has_more": has_more,
-        "message": (
-            f"Showing {len(sliced)} of {total} rows (offset={offset})."
-            + (f" Call again with offset={offset + limit} to get more." if has_more else "")
-            + " To understand this data, call get_code_sets() for unit/scalar definitions,"
-            " or get_series_info_from_vector / get_series_info_from_cube_pid_coord_bulk for series metadata."
-        ),
-    }
 
 def register_vector_tools(registry: ToolRegistry):
     """Register all vector-related API tools with the MCP server."""
@@ -170,7 +148,7 @@ def register_vector_tools(registry: ToolRegistry):
                 # Smart truncation: return a preview with pagination guidance
                 offset = range_input.offset or 0
                 limit = range_input.limit or DEFAULT_TRUNCATION_LIMIT
-                return _truncate_response(processed_data, offset, limit)
+                return truncate_response(processed_data, offset, limit)
             except httpx.RequestError as exc:
                 raise Exception(f"Network error calling get_data_from_vector_by_reference_period_range: {exc}")
             except ValueError as exc:
@@ -266,7 +244,7 @@ def register_vector_tools(registry: ToolRegistry):
                 # Smart truncation: return a preview with pagination guidance
                 offset = bulk_range_input.offset or 0
                 limit = bulk_range_input.limit or DEFAULT_TRUNCATION_LIMIT
-                return _truncate_response(processed_data, offset, limit)
+                return truncate_response(processed_data, offset, limit)
             except httpx.RequestError as exc:
                 raise Exception(f"Network error calling get_bulk_vector_data_by_range: {exc}")
             except ValueError as exc:
