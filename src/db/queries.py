@@ -192,6 +192,43 @@ def register_db_tools(registry: ToolRegistry):
             return {"error": f"Unexpected error getting schema for '{table_name}': {e}"}
 
     @registry.tool()
+    def drop_table(table_name_input: TableNameInput) -> Dict[str, Any]:
+        """
+        Permanently deletes (drops) a table from the SQLite database.
+
+        Use this to free up space or remove tables that are no longer needed.
+        This action is irreversible — all data in the table will be lost.
+
+        Args:
+            table_name_input: Object containing the table_name to drop.
+
+        Returns:
+            Dict[str, Any]: A dictionary indicating success or an error message.
+        """
+        table_name = table_name_input.table_name
+        if not table_name.isidentifier():
+            return {"error": f"Invalid table name: '{table_name}'. Use alphanumeric characters and underscores."}
+
+        try:
+            with get_db_connection() as conn:
+                cursor = conn.cursor()
+                # Verify the table exists before dropping
+                cursor.execute(
+                    "SELECT name FROM sqlite_master WHERE type='table' AND name=?",
+                    (table_name,),
+                )
+                if not cursor.fetchone():
+                    return {"error": f"Table '{table_name}' not found."}
+
+                cursor.execute(f'DROP TABLE "{table_name}"')
+                conn.commit()
+                return {"success": f"Table '{table_name}' has been permanently deleted."}
+        except sqlite3.Error as e:
+            return {"error": f"SQLite error dropping table '{table_name}': {e}"}
+        except Exception as e:
+            return {"error": f"Unexpected error dropping table '{table_name}': {e}"}
+
+    @registry.tool()
     def query_database(query_input: QueryInput) -> Dict[str, Any]:
         """
         Executes a read-only SQL query (SELECT or PRAGMA) against the database and returns the results.
@@ -208,17 +245,17 @@ def register_db_tools(registry: ToolRegistry):
         IMPORTANT: In your final response to the user, you MUST cite the source of your data (e.g., "Query results from table 'my_analysis'").
         """
         query = query_input.sql_query.strip()
-        # Basic check to prevent obviously harmful commands (can be bypassed)
-        # Allow PRAGMA for schema inspection etc.
-        if not query.lower().startswith("select") and not query.lower().startswith("pragma"):
-             return {"error": "Only SELECT or PRAGMA queries are allowed for safety."}
-        # Add a simple check for multiple statements which might indicate injection attempts
-        if ';' in query[:-1]: # Check for semicolons anywhere except potentially the very end
+        normalized = query.lower()
+        if not normalized.startswith("select") and not normalized.startswith("pragma"):
+            return {"error": "Only SELECT or PRAGMA queries are allowed for safety."}
+        if ';' in query[:-1]:
             return {"error": "Multiple SQL statements are not allowed in a single query."}
-
 
         try:
             with get_db_connection() as conn:
+                # Engine-level read-only enforcement — rejects any write operation
+                # regardless of how the query string is crafted.
+                conn.execute("PRAGMA query_only = ON")
                 cursor = conn.cursor()
                 log_sql_debug(f"Executing query: {query}")
                 cursor.execute(query)
