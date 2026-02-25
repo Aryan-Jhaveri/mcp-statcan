@@ -10,8 +10,9 @@ from ..models.api_models import (
     ProductIdInput,
     FullTableDownloadCSVInput,
     FullTableDownloadSDMXInput,
-    CubeCoordInput, # Needed for new tools
-    CubeCoordLatestNInput # Needed for new tools
+    CubeCoordInput,
+    CubeCoordLatestNInput,
+    BulkCubeCoordInput,
 )
 # Import coordinate padding utility
 from ..util.coordinate import pad_coordinate
@@ -376,6 +377,61 @@ def register_cube_tools(registry: ToolRegistry):
                 raise Exception(f"Network error calling get_full_table_download_sdmx: {exc}")
             except ValueError as exc:
                 raise ValueError(f"Error processing response for get_full_table_download_sdmx: {exc}")
+
+    # --- Bulk Coordinate Tools ---
+    @registry.tool()
+    async def get_series_info_from_cube_pid_coord_bulk(input_data: BulkCubeCoordInput) -> List[Dict[str, Any]]:
+        """
+        Batch-fetch series metadata for MULTIPLE {productId, coordinate} pairs in a
+        single API call. Returns vectorId, titles, frequency, etc. for each series.
+
+        Use this instead of calling get_series_info_from_cube_pid_coord in a loop.
+        Coordinates are automatically padded to 10 dimensions.
+        Corresponds to: POST /getSeriesInfoFromCubePidCoord (accepts array)
+
+        Returns:
+            List[Dict[str, Any]]: A list of series metadata objects, one per input pair.
+        Raises:
+            httpx.HTTPStatusError: If the API returns an error status code.
+            ValueError: If no items return SUCCESS.
+            Exception: For other network or unexpected errors.
+
+        IMPORTANT: In your final response cite the ProductId and Coordinate for each series.
+        """
+        if not input_data.items:
+            raise ValueError("items list cannot be empty.")
+
+        async with httpx.AsyncClient(base_url=BASE_URL, timeout=TIMEOUT_MEDIUM, verify=False) as client:
+            log_ssl_warning("SSL verification disabled for get_series_info_from_cube_pid_coord_bulk.")
+            post_data = [
+                {"productId": item.productId, "coordinate": pad_coordinate(item.coordinate)}
+                for item in input_data.items
+            ]
+            try:
+                response = await client.post("/getSeriesInfoFromCubePidCoord", json=post_data)
+                response.raise_for_status()
+                result_list = response.json()
+
+                results = []
+                failures = []
+                if isinstance(result_list, list):
+                    for item in result_list:
+                        if isinstance(item, dict) and item.get("status") == "SUCCESS":
+                            results.append(item.get("object", {}))
+                        else:
+                            failures.append(item)
+                            log_data_validation_warning(f"Bulk series info partial failure: {item}")
+                else:
+                    raise ValueError(f"API response was not a list. Response: {result_list}")
+
+                if not results and failures:
+                    raise ValueError(f"API did not return SUCCESS for any item. Failures: {failures}")
+
+                return results
+            except httpx.RequestError as exc:
+                raise Exception(f"Network error calling get_series_info_from_cube_pid_coord_bulk: {exc}")
+            except ValueError as exc:
+                raise ValueError(f"Error processing response for get_series_info_from_cube_pid_coord_bulk: {exc}")
 
     # --- Change List Tools ---
     @registry.tool()

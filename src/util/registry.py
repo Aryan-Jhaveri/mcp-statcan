@@ -22,7 +22,8 @@ class ToolRegistry:
             
             schema_properties = {}
             schema_required = []
-            
+            schema_defs = None
+
             # If the function takes a single Pydantic model as argument (common pattern in this codebase)
             params = list(sig.parameters.values())
             
@@ -32,6 +33,9 @@ class ToolRegistry:
                 json_schema = model_class.model_json_schema()
                 schema_properties = json_schema.get("properties", {})
                 schema_required = json_schema.get("required", [])
+                # Preserve $defs for nested model references
+                if "$defs" in json_schema:
+                    schema_defs = json_schema["$defs"]
             else:
                 # Simple arguments case
                 for param in params:
@@ -61,14 +65,18 @@ class ToolRegistry:
                     if param.default == inspect.Parameter.empty:
                         schema_required.append(param.name)
 
+            input_schema = {
+                "type": "object",
+                "properties": schema_properties,
+                "required": schema_required
+            }
+            if schema_defs:
+                input_schema["$defs"] = schema_defs
+
             tool_def = Tool(
                 name=tool_name,
                 description=tool_doc,
-                inputSchema={
-                    "type": "object",
-                    "properties": schema_properties,
-                    "required": schema_required
-                }
+                inputSchema=input_schema
             )
             
             self._tools.append(tool_def)

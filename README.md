@@ -131,11 +131,16 @@ Navigate to: Claude Desktop App → Settings (⌘ + ,) → Developer → Edit Co
   "mcpServers": {
     "statcan": {
       "command": "uvx",
-      "args": ["statcan-mcp-server"]
+      "args": ["statcan-mcp-server"],
+      "env": {
+        "STATCAN_DB_FILE": "/Users/<your-username>/.statcan-mcp/statcan_data.db"
+      }
     }
   }
 }
 ```
+
+> **⚠️ Important:** The `STATCAN_DB_FILE` env var is required. Claude Desktop alters the subprocess `HOME` environment variable, which causes the server's default database path resolution (`~/.statcan-mcp/`) to fail with "unable to open database file". Setting an explicit absolute path bypasses this issue. Replace `<your-username>` with your actual macOS username.
 
 Restart the Claude Desktop app after saving.
 
@@ -147,6 +152,7 @@ claude mcp add statcan --scope global -- uvx statcan-mcp-server
 
 ## ⚠️ Known Issues and Limitations
 
+- **"Unable to open database file" on Claude Desktop**: If database tools fail with this error, add the `STATCAN_DB_FILE` env var to your config with an explicit path (see [Setup](#-setting-up-claude-desktop-configuration)). This happens because Claude Desktop changes how the server resolves your home directory.
 - **SSL Verification**: Currently disabled for development. Should be enabled for production use.
 - **Data Validation**: Always cross-check your data with official Statistics Canada sources.
 - **Security Concerns**: Query validation is basic; avoid using with untrusted input.
