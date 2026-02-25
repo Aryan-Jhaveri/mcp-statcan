@@ -1,14 +1,17 @@
 import httpx
 import datetime
-from typing import List, Dict, Any, Optional
+import uuid
+from typing import List, Dict, Any, Optional, Union
 from pydantic import BaseModel # Assuming models might still be needed
 
 from ..util.registry import ToolRegistry
 # Assuming models are defined in api_models.py
 from ..models.api_models import VectorIdInput, VectorLatestNInput, VectorRangeInput, BulkVectorRangeInput
 # Import BASE_URL and timeouts from config
-from ..config import BASE_URL, TIMEOUT_MEDIUM, TIMEOUT_LARGE
+from ..config import BASE_URL, TIMEOUT_MEDIUM, TIMEOUT_LARGE, VERIFY_SSL
 from ..util.logger import log_ssl_warning, log_data_validation_warning
+
+BULK_AUTO_STORE_THRESHOLD = 50  # rows above this → auto-store instead of returning raw
 
 def register_vector_tools(registry: ToolRegistry):
     """Register all vector-related API tools with the MCP server."""
@@ -86,18 +89,32 @@ def register_vector_tools(registry: ToolRegistry):
     @registry.tool()
     async def get_data_from_vector_by_reference_period_range(range_input: VectorRangeInput) -> List[Dict[str, Any]]:
         """
-        Access data for one or more specific vectors within a given reference period range (YYYY-MM-DD).
+        PREFERRED tool for fetching data across multiple series by reference period date range (YYYY-MM-DD).
+        Accepts an array of vectorIds and retrieves all of them in a single API call.
         Disables SSL Verification.
         Corresponds to: GET /getDataFromVectorByReferencePeriodRange
 
+        *** PREFERRED MULTI-SERIES WORKFLOW ***
+        For most analysis tasks, use the higher-level composite tool instead:
+          fetch_vectors_to_database(vectorIds=[...], table_name="...",
+            startRefPeriod="YYYY-MM-DD", endRefPeriod="YYYY-MM-DD")
+        That tool calls this endpoint AND stores results in SQLite in one step.
+
+        Use this tool directly only if you need the raw response without storing it,
+        or if you want to inspect the data before deciding whether to store it.
+
+        To get vectorIds: call get_cube_metadata and read the vectorId field from
+        each dimension member in the cube's dimension list.
+
         Returns:
-            List[Dict[str, Any]]: A list of dictionaries, each containing a vector data object for successful requests.
+            List[Dict[str, Any]]: A list of vector data objects (one per vectorId), ready
+            to pass directly to create_table_from_data or fetch_vectors_to_database.
         Raises:
             httpx.HTTPStatusError: If the API returns an error status code.
             ValueError: If the API response format is unexpected or no vectors return SUCCESS.
             Exception: For other network or unexpected errors.
 
-        IMPORTANT: In your final response to the user, you MUST cite the source of your data. 
+        IMPORTANT: In your final response to the user, you MUST cite the source of your data.
         For vector data, this means including the VectorId and Reference Period.
         """
         async with httpx.AsyncClient(base_url=BASE_URL, timeout=TIMEOUT_LARGE, verify=False) as client: # Longer timeout
@@ -137,20 +154,39 @@ def register_vector_tools(registry: ToolRegistry):
                 raise ValueError(f"Error processing response for get_data_from_vector_by_reference_period_range: {exc}")
 
     @registry.tool()
-    async def get_bulk_vector_data_by_range(bulk_range_input: BulkVectorRangeInput) -> List[Dict[str, Any]]:
+    async def get_bulk_vector_data_by_range(bulk_range_input: BulkVectorRangeInput) -> Union[List[Dict[str, Any]], Dict[str, Any]]:
         """
-        Access bulk data for multiple vectors based on a data point *release date* range (YYYY-MM-DDTHH:MM).
+        Fetches bulk data for multiple vectors filtered by *release date* range (YYYY-MM-DDTHH:MM),
+        NOT by reference period. Use this when you want data released within a specific
+        date/time window (e.g., "all updates released yesterday").
+
+        *** IMPORTANT: release date vs reference period ***
+        - Use THIS tool when you want: "data released between date A and date B"
+        - Use get_data_from_vector_by_reference_period_range (or fetch_vectors_to_database)
+          when you want: "data for the time period YYYY to YYYY"
+
+        *** LARGE RESPONSE WARNING ***
+        This tool can return hundreds of flattened data points. If the response
+        exceeds 50 rows, strongly prefer fetch_vectors_to_database instead — it
+        automatically stores results in SQLite and returns only a summary, preventing
+        context overflow.
+
+        Response is pre-flattened: each element is one data point with vectorId,
+        productId, coordinate, and all value fields injected at the top level.
+        This format is directly compatible with create_table_from_data.
+
         Disables SSL Verification.
         Corresponds to: POST /getBulkVectorDataByRange
 
         Returns:
-            List[Dict[str, Any]]: A list of dictionaries containing bulk vector data objects for successful requests.
+            List[Dict[str, Any]]: Flat list of data point dicts, each tagged with vectorId,
+            productId, and coordinate.
         Raises:
             httpx.HTTPStatusError: If the API returns an error status code.
             ValueError: If the API response format is unexpected or no vectors return SUCCESS.
             Exception: For other network or unexpected errors.
 
-        IMPORTANT: In your final response to the user, you MUST cite the source of your data. 
+        IMPORTANT: In your final response to the user, you MUST cite the source of your data.
         For vector data, this means including the VectorId and Release Time.
         """
         async with httpx.AsyncClient(base_url=BASE_URL, timeout=TIMEOUT_LARGE, verify=False) as client: # Longer timeout
@@ -202,7 +238,31 @@ def register_vector_tools(registry: ToolRegistry):
                      raise ValueError(f"API response was not a list for bulk request. Response: {result_list}")
 
                 if not processed_data and failures:
-                     raise ValueError(f"API did not return SUCCESS status for any vector in bulk request. Failures: {failures}")
+                    raise ValueError(f"API did not return SUCCESS status for any vector in bulk request. Failures: {failures}")
+
+                # B4: Auto-store large responses to prevent context overflow
+                if len(processed_data) > BULK_AUTO_STORE_THRESHOLD:
+                    from ..db.schema import create_table_from_data
+                    from ..models.db_models import TableDataInput
+                    table_name = f"bulk_{uuid.uuid4().hex[:8]}"
+                    db_result = create_table_from_data(TableDataInput(table_name=table_name, data=processed_data))
+                    if "error" in db_result:
+                        # DB store failed — fall back to returning raw data with a warning
+                        log_data_validation_warning(f"Auto-store failed for bulk response: {db_result['error']}")
+                        return processed_data
+                    return {
+                        "auto_stored": True,
+                        "stored_in_table": table_name,
+                        "total_rows": len(processed_data),
+                        "columns": db_result.get("columns", []),
+                        "sample": processed_data[:5],
+                        "message": (
+                            f"Response had {len(processed_data)} rows — too large to return directly. "
+                            f"Data auto-stored in table '{table_name}'. "
+                            f"Use query_database to analyze, e.g.: SELECT * FROM {table_name} LIMIT 20"
+                        ),
+                    }
+
                 return processed_data
             except httpx.RequestError as exc:
                 raise Exception(f"Network error calling get_bulk_vector_data_by_range: {exc}")

@@ -1,17 +1,19 @@
 from mcp.server import Server
 from mcp.server.stdio import stdio_server
 from mcp.types import Tool, TextContent, ImageContent, EmbeddedResource
+import argparse
 import asyncio
 import os
 import sys
 
 # Use relative imports within the src package
-from .config import DB_FILE
+from . import config
 from .api.cube_tools import register_cube_tools
 from .api.vector_tools import register_vector_tools
 from .api.metadata_tools import register_metadata_tools
+from .api.composite_tools import register_composite_tools
 from .db.queries import register_db_tools
-from .util.logger import log_server_debug 
+from .util.logger import log_server_debug
 from .util.registry import registry
 
 def create_server():
@@ -30,6 +32,8 @@ def create_server():
         register_cube_tools(registry)
         log_server_debug("Registering vector tools...")
         register_vector_tools(registry)
+        log_server_debug("Registering composite tools...")
+        register_composite_tools(registry)
         log_server_debug("Registering db tools...")
         register_db_tools(registry)
         log_server_debug("Tool registration complete.")
@@ -67,7 +71,7 @@ def create_server():
 async def _async_main():
     log_server_debug("Executing src/server.py as main module...")
     try:
-        log_server_debug(f"Database file location: {os.path.abspath(DB_FILE)}")
+        log_server_debug(f"Database file location: {os.path.abspath(config.DB_FILE)}")
         log_server_debug("Calling create_server...")
 
         server = create_server()
@@ -88,6 +92,19 @@ async def _async_main():
 
 def main():
     """Sync entry point for the console script."""
+    parser = argparse.ArgumentParser(description="Statistics Canada MCP Server")
+    parser.add_argument(
+        "--db-path",
+        help="Path to the SQLite database file (default: ~/.statcan-mcp/statcan_data.db)",
+    )
+    args = parser.parse_args()
+
+    # Override DB_FILE if --db-path was provided
+    if args.db_path:
+        db_path = os.path.expanduser(args.db_path)
+        config.DB_FILE = db_path
+        os.makedirs(os.path.dirname(os.path.abspath(db_path)), exist_ok=True)
+
     asyncio.run(_async_main())
 
 if __name__ == "__main__":
