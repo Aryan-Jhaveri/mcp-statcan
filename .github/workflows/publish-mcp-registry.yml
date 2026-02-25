@@ -2,7 +2,7 @@ name: Publish to PyPI & MCP Registry
 
 on:
   push:
-    tags: ["v*"]
+    branches: ["main"]
 
 jobs:
   publish-pypi:
