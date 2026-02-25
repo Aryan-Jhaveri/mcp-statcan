@@ -28,6 +28,10 @@ class FetchVectorsInput(BaseModel):
         None,
         description="End of the reference period to fetch, inclusive. Format: YYYY-MM-DD.",
     )
+    sample_size: Optional[int] = Field(
+        5,
+        description="Number of sample rows to include in the response preview. Default 5.",
+    )
 
 
 def register_composite_tools(registry: ToolRegistry):
@@ -142,12 +146,13 @@ def register_composite_tools(registry: ToolRegistry):
             }
 
         # Return a summary with a small sample so the LLM can verify structure
+        sample_size = input_data.sample_size or 5
         return {
             "success": db_result["success"],
             "table": table_name,
             "columns": db_result.get("columns", []),
             "rows_inserted": db_result.get("rows_inserted", len(flat_rows)),
             "partial_failures": len(failures),
-            "sample": flat_rows[:5],
+            "sample": flat_rows[:sample_size],
             "next_step": f"Use query_database to analyze: SELECT * FROM {table_name} LIMIT 10",
         }

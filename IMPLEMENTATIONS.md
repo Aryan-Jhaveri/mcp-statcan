@@ -3,13 +3,72 @@
 
 ---
 
+## Open Problems & Next Steps
+
+### A. `get_cube_metadata` — summary/truncation mode
+
+**Problem:** Full metadata responses blow up context. CPI-type cubes have hundreds of dimension members and sub-members. Claude Desktop throws a "tool result too large" error.
+
+**Fix (modify existing tool, no new tool):**
+1. Add a `summary: bool = True` field to a new `CubeMetadataInput` model (replaces bare `ProductIdInput`).
+2. When `summary=True` (default), post-process the response before returning:
+   - Keep dimension IDs, names, and member **counts**.
+   - Truncate each dimension's `member` list to the first 20 entries.
+   - Append `"... and N more members not shown. Call again with summary=False to get all."` to the response.
+3. When `summary=False`, return the raw API object unchanged (for when the LLM needs every vectorId).
+4. The docstring should tell the LLM: "Start with `summary=True`. Only set `summary=False` if you need specific vectorIds not visible in the summary."
+
+---
+
+### B. `get_all_cubes_list` — pagination; retire `_lite` as a registered tool
+
+**Problem:** Both `get_all_cubes_list` and `get_all_cubes_list_lite` return the full list of thousands of cubes with no size control. `search_cubes_by_title` can also return hundreds of matches.
+
+**Fix (modify existing tools):**
+1. **Extract `_truncate_response`** from `vector_tools.py` into `src/util/truncation.py` so it can be shared by cube and vector tools without circular imports.
+2. **Add `offset: int = 0` and `limit: int = 100` params** to `get_all_cubes_list`. Apply `_truncate_response` before returning. Same pagination message pattern as vector tools.
+3. **Unregister `get_all_cubes_list_lite`** as an MCP tool — keep the function internally (the cache uses it) but remove the `@registry.tool()` decorator. `get_all_cubes_list` with truncation replaces its use case.
+4. **Add `max_results: int = 25`** to `search_cubes_by_title`. Slice `matching_cubes[:max_results]` and append a count message if more were found. Prevents worst-case context overflow without changing the search logic.
+
+---
+
+### C. `get_series_info_from_cube_pid_coord_bulk` — pair with truncation + LLM guidance
+
+**Problem:** The bulk coord tool exists and works (`get_series_info_from_cube_pid_coord_bulk`), but its return value is a raw list of series metadata objects. LLMs don't know what fields like `scalar`, `frequencyCode`, `unitNameEn` mean, so they can't reason about the data correctly without a separate `get_code_sets()` call.
+
+**Fix (modify existing tool response and docstring):**
+1. **Truncate the output** when the list exceeds a threshold (e.g. 30 series). Reuse `_truncate_response` after extracting it to the shared util.
+2. **Inject a `_guidance` key** into the response dict (alongside the data) that says: "Fields like `scalar`, `frequencyCode`, and `unitNameEn` use StatCan code values. Call `get_code_sets()` to resolve them to human-readable labels."
+3. **Update the docstring** to explicitly name the fields LLMs get confused by and note that `get_code_sets()` is the lookup table for them.
+
+---
+
+### D. `create_table_from_data` / chaining — already fixed, clean up docs
+
+**Problem (was):** `create_table_from_data` only created the schema but didn't insert rows. LLMs had to follow up with `insert_data_into_table`. **This is fixed** — `schema.py` now does both in one call.
+
+**Next step:** Remove this from the open problems list (done here). The remaining gap is docstring clarity: `get_data_from_vector_by_reference_period_range` should more aggressively redirect LLMs to `fetch_vectors_to_database` so they don't try to manually store the result.
+
+---
+
+### E. SQL safety in `query_database`
+
+**Problem:** The `startswith("select")` check is the only guard. A crafted query can bypass it (e.g. leading whitespace, case variants already handled but semicolons partially covered).
+
+**Fix (modify existing tool):**
+1. Normalize the query: `.strip().lower()` before the prefix check (already done, but verify).
+2. Add `PRAGMA query_only = ON` before executing — SQLite will reject any write statement at the engine level, making the check defense-in-depth rather than the sole barrier.
+3. Keep the semicolon check as-is (it already catches most multi-statement injection).
+
+---
+
 ## The Story So Far
 
 The server works. LLMs can search cubes, fetch vector data, and store results in SQLite. But real-world usage exposed problems:
 
-**Problem 1: Large responses blow up context.** A bulk vector fetch can return hundreds of rows. Dumping all of that into the LLM's context window wastes tokens and degrades reasoning. We added an "auto-store" that writes >50 rows to SQLite and returns a summary — but the LLM still has to know to call `query_database` afterward. It's not seamless.
+**Problem 1: Large responses blow up context.** A bulk vector fetch can return hundreds of rows. Dumping all of that into the LLM's context window wastes tokens and degrades reasoning. The auto-store approach was replaced with smart truncation + pagination guidance. But `get_cube_metadata` and `get_all_cubes_list` still have no size control.
 
-**Problem 2: LLMs loop single-series calls.** When an LLM needs data for 10 different items, it often calls `get_series_info_from_cube_pid_coord` 10 times instead of using the bulk vector workflow. The docstrings try to steer it, but LLMs don't always read them carefully.
+**Problem 2: LLMs loop single-series calls.** When an LLM needs data for 10 different items, it often calls `get_series_info_from_cube_pid_coord` 10 times instead of using the bulk vector workflow. The bulk tool exists now, but its output needs truncation and code-set guidance so LLMs can actually interpret the results.
 
 **Problem 3: Remote hosting breaks the storage model.** Right now everything runs locally via stdio with a single-user SQLite file. If we host the server on Render for mobile/remote users, SQLite on the server creates data isolation, persistence, and concurrency problems. The cleaner answer: **make the server stateless and let the client handle storage** — many MCP clients (Claude Desktop, Claude Code, Cursor) already have their own SQLite tools.
 
@@ -17,48 +76,7 @@ The server works. LLMs can search cubes, fetch vector data, and store results in
 
 ## Up Next
 
-### 1. Smart Truncation for Large Results (High Priority)
-
-**The problem:** When a tool returns 500+ rows, either the context overflows or we silently dump data into SQLite and hope the LLM figures out what happened.
-
-**The fix:** Instead of auto-storing, return a useful preview:
-
-- Show the **first 50 rows** as data
-- Append a clear message: *"Showing 50 of 3,200 rows. Call again with `offset` and `limit` to get more."*
-- Add `offset` and `limit` parameters to bulk tools (`get_bulk_vector_data_by_range`, `get_data_from_vector_by_reference_period_range`, `fetch_vectors_to_database`)
-- In the truncation message, **guide the LLM** toward next steps:
-  - *"To understand what this data means, call `get_code_sets()` for unit/scalar definitions"*
-  - *"To get series metadata (titles, frequency, coordinates), call `get_series_info_from_vector` or the bulk version"*
-
-This gives LLMs a head of data to reason about, a way to get more if needed, and a nudge toward metadata context. No silent side effects, no hidden SQLite tables.
-
-**What this replaces:** The current auto-store behavior in `get_bulk_vector_data_by_range` (the `BULK_AUTO_STORE_THRESHOLD = 50` code path). That code creates a random `bulk_<uuid>` table that the LLM has to discover. Truncation with guidance is more predictable.
-
-**Impact on DB tools:** The SQLite tools (`create_table_from_data`, `query_database`, etc.) stay in the server for local/stdio users who want them. The composite `fetch_vectors_to_database` tool also stays — it's still useful when users explicitly want to store data. But truncation becomes the default for raw fetch tools instead of auto-store.
-
-### 2. Bulk `get_series_info_from_cube_pid_coord` (High Priority)
-
-**The problem:** `get_series_info_from_cube_pid_coord` takes one coordinate at a time. When an LLM needs metadata for 10 series, it makes 10 sequential HTTP calls. This is slow and burns through tool call budgets.
-
-**The fix:** Accept an array of `{productId, coordinate}` pairs and batch them into a single API call (or parallel calls under the hood). Return all results at once.
-
-This pairs with the truncation work above — when the LLM sees 50 rows of data with vector IDs but no context about what they mean, it should bulk-fetch the series info to understand the dimensions, units, and frequencies.
-
-### 3. Bump `mcp>=1.3.0` (High Priority)
-
-**The problem:** The current `mcp>=1.0.0` pin responds with protocol version `2025-06-18` while newer clients send `2025-11-25`. This causes a version mismatch warning.
-
-**The fix:** Change one line in `pyproject.toml` to `mcp>=1.3.0,<2`. No code changes needed — our low-level `Server` class usage still works in all 1.x releases.
-
-**What this unlocks:**
-- **Concurrent request handling** — multiple tool calls can run in parallel (matters for async StatCan API calls)
-- **Lifespan API** — initialize DB connections at startup instead of per-call
-- **Server `instructions` field** — a place to tell clients about the StatCan data model without embedding it in every docstring
-- Opens the door to **FastMCP migration** later (replaces our custom `ToolRegistry` with `@mcp.tool()` decorators), but that's optional — the registry works fine as-is
-
-**Pin an upper bound.** v2 of the MCP SDK is in development and will have breaking changes. Use `<2` to stay safe.
-
-### 4. Stateless Mode for Remote/HTTP Deployment (Medium Priority)
+### 1. Stateless Mode for Remote/HTTP Deployment (Medium Priority)
 
 **The context:** The `http` branch has Streamable HTTP transport + Google OAuth. But it's behind `main` on data-handling fixes. Before adding features there, it needs to catch up with `main`.
 
@@ -71,11 +89,9 @@ This pairs with the truncation work above — when the LLM sees 50 rows of data 
 **What this means for the `http` branch:**
 - DB tools become optional or are excluded from the remote deployment
 - `fetch_vectors_to_database` either becomes `fetch_vectors` (no DB step) or stays as a convenience for local/stdio mode
-- The smart truncation from item #1 becomes the primary way to handle large results — no server-side storage fallback needed
+- Smart truncation (now implemented) is the primary way to handle large results — no server-side storage fallback needed
 
-### 5. MCP Resources (Medium Priority)
-
-Requires `mcp>=1.3.0` (item #3 above).
+### 2. MCP Resources (Medium Priority)
 
 MCP Resources let the server expose static reference content that clients can browse without calling tools. Good candidates:
 
@@ -85,7 +101,7 @@ MCP Resources let the server expose static reference content that clients can br
 
 This would reduce tool calls for context-gathering. Instead of the LLM calling `get_code_sets()` every time, the client can pre-load the resource.
 
-### 6. MCP Apps — Data Visualization (Future)
+### 3. MCP Apps — Data Visualization (Future)
 
 MCP Apps let tools return interactive HTML UIs rendered in the chat (charts, tables, dashboards). High value for a data server — imagine asking "show me CPI over time" and getting an interactive chart.
 
@@ -127,6 +143,13 @@ MCP Apps let tools return interactive HTML UIs rendered in the chat (charts, tab
 ---
 
 ## Completed
+
+### High-Priority Fixes *(Feb 25, 2026 — `new-mcp-vers` branch)*
+- [x] **Bump `mcp>=1.3.0,<2`** — fixes protocol version mismatch with newer clients; unlocks concurrent request handling, Lifespan API, and server `instructions` field
+- [x] **Smart truncation for large results** — replaced auto-store (`BULK_AUTO_STORE_THRESHOLD`) with offset/limit pagination in `get_bulk_vector_data_by_range` and `get_data_from_vector_by_reference_period_range`; returns preview + guidance message instead of silently storing to random SQLite tables
+- [x] **Bulk `get_series_info_from_cube_pid_coord_bulk`** — new tool accepts array of `{productId, coordinate}` pairs in a single POST; eliminates N sequential HTTP calls for multi-series metadata
+- [x] **Registry `$defs` support** — `ToolRegistry` now includes `$defs` in inputSchema for nested Pydantic models
+- [x] **DB "unable to open database file" fix (deep)** — Root cause: MCP launchers (Claude Desktop, uvx, MCP Inspector) alter the subprocess `HOME` env var, causing `os.path.expanduser("~")` to resolve to a sandbox container path instead of the real user home. Fix: `config.py` now uses `pwd.getpwuid(os.getuid()).pw_dir` (OS passwd DB, not env var) to resolve the default DB path. `get_db_connection()` wraps both `makedirs` and `sqlite3.connect` in handlers that include the **actual path** in the error message. **Workaround for current published version (v0.1.2):** add `"env": {"STATCAN_DB_FILE": "/Users/<you>/.statcan-mcp/statcan_data.db"}` to your MCP config. The `--db-path` flag is available once the `new-mcp-vers` branch is published.
 
 ### Core LLM Data-Fetching Fixes *(Feb 25, 2026)*
 - [x] `create_table_from_data` now inserts rows — creates schema + inserts all data in one call

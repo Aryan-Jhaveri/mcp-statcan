@@ -1,17 +1,36 @@
 import httpx
 import datetime
-import uuid
 from typing import List, Dict, Any, Optional, Union
-from pydantic import BaseModel # Assuming models might still be needed
+from pydantic import BaseModel
 
 from ..util.registry import ToolRegistry
-# Assuming models are defined in api_models.py
-from ..models.api_models import VectorIdInput, VectorLatestNInput, VectorRangeInput, BulkVectorRangeInput
-# Import BASE_URL and timeouts from config
+from ..models.api_models import VectorIdInput, VectorLatestNInput, VectorRangeInput, BulkVectorRangeInput, DEFAULT_TRUNCATION_LIMIT
 from ..config import BASE_URL, TIMEOUT_MEDIUM, TIMEOUT_LARGE, VERIFY_SSL
 from ..util.logger import log_ssl_warning, log_data_validation_warning
 
-BULK_AUTO_STORE_THRESHOLD = 50  # rows above this → auto-store instead of returning raw
+
+def _truncate_response(rows: List[Dict[str, Any]], offset: int, limit: int) -> Union[List[Dict[str, Any]], Dict[str, Any]]:
+    """Apply offset/limit truncation and return guidance if there are more rows."""
+    total = len(rows)
+    sliced = rows[offset:offset + limit]
+
+    if total <= limit and offset == 0:
+        return sliced
+
+    has_more = (offset + limit) < total
+    return {
+        "data": sliced,
+        "total_rows": total,
+        "offset": offset,
+        "limit": limit,
+        "has_more": has_more,
+        "message": (
+            f"Showing {len(sliced)} of {total} rows (offset={offset})."
+            + (f" Call again with offset={offset + limit} to get more." if has_more else "")
+            + " To understand this data, call get_code_sets() for unit/scalar definitions,"
+            " or get_series_info_from_vector / get_series_info_from_cube_pid_coord_bulk for series metadata."
+        ),
+    }
 
 def register_vector_tools(registry: ToolRegistry):
     """Register all vector-related API tools with the MCP server."""
@@ -147,7 +166,11 @@ def register_vector_tools(registry: ToolRegistry):
 
                 if not processed_data and failures:
                      raise ValueError(f"API did not return SUCCESS status for any vector in range request. Failures: {failures}")
-                return processed_data
+
+                # Smart truncation: return a preview with pagination guidance
+                offset = range_input.offset or 0
+                limit = range_input.limit or DEFAULT_TRUNCATION_LIMIT
+                return _truncate_response(processed_data, offset, limit)
             except httpx.RequestError as exc:
                 raise Exception(f"Network error calling get_data_from_vector_by_reference_period_range: {exc}")
             except ValueError as exc:
@@ -240,30 +263,10 @@ def register_vector_tools(registry: ToolRegistry):
                 if not processed_data and failures:
                     raise ValueError(f"API did not return SUCCESS status for any vector in bulk request. Failures: {failures}")
 
-                # B4: Auto-store large responses to prevent context overflow
-                if len(processed_data) > BULK_AUTO_STORE_THRESHOLD:
-                    from ..db.schema import create_table_from_data
-                    from ..models.db_models import TableDataInput
-                    table_name = f"bulk_{uuid.uuid4().hex[:8]}"
-                    db_result = create_table_from_data(TableDataInput(table_name=table_name, data=processed_data))
-                    if "error" in db_result:
-                        # DB store failed — fall back to returning raw data with a warning
-                        log_data_validation_warning(f"Auto-store failed for bulk response: {db_result['error']}")
-                        return processed_data
-                    return {
-                        "auto_stored": True,
-                        "stored_in_table": table_name,
-                        "total_rows": len(processed_data),
-                        "columns": db_result.get("columns", []),
-                        "sample": processed_data[:5],
-                        "message": (
-                            f"Response had {len(processed_data)} rows — too large to return directly. "
-                            f"Data auto-stored in table '{table_name}'. "
-                            f"Use query_database to analyze, e.g.: SELECT * FROM {table_name} LIMIT 20"
-                        ),
-                    }
-
-                return processed_data
+                # Smart truncation: return a preview with pagination guidance
+                offset = bulk_range_input.offset or 0
+                limit = bulk_range_input.limit or DEFAULT_TRUNCATION_LIMIT
+                return _truncate_response(processed_data, offset, limit)
             except httpx.RequestError as exc:
                 raise Exception(f"Network error calling get_bulk_vector_data_by_range: {exc}")
             except ValueError as exc:
