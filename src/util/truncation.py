@@ -4,7 +4,7 @@ from typing import List, Dict, Any, Union
 import copy
 
 
-DEFAULT_MEMBER_LIMIT = 20
+DEFAULT_MEMBER_LIMIT = 5
 
 
 def truncate_response(
@@ -80,10 +80,16 @@ def summarize_cube_metadata(
             dim["_member_count"] = total_members
             dim["_truncated"] = False
 
+    # Strip footnotes — they are long bilingual methodology notes that bloat the
+    # response without helping with navigation. Replace with a count.
+    footnotes = result.get("footnote", [])
+    if footnotes:
+        result["footnote"] = f"[{len(footnotes)} footnotes omitted. Set summary=False to include them.]"
+
     result["_summary"] = True
     result["_note"] = (
         "This is a summarized view. Dimension member lists are capped at "
-        f"{member_limit} entries. Set summary=False to get the full metadata "
-        "including all vectorIds."
+        f"{member_limit} entries. Footnotes are omitted. Set summary=False to get "
+        "the full metadata including all vectorIds and footnotes."
     )
     return result
