@@ -62,7 +62,7 @@ This server exposes StatCan API functionalities as MCP tools, including:
 **Cube Operations:**
 * Listing all available data cubes/tables — paginated, default 100 per page (`offset`/`limit`)
 * Searching cubes by title — capped at `max_results` (default 25) with count message when more exist
-* Retrieving cube metadata — `summary=True` (default) caps dimension member lists at 20 entries; use `summary=False` for all vectorIds
+* Retrieving cube metadata — `summary=True` (default) caps dimension member lists at 5 entries; use `summary=False` for all vectorIds
 * Getting data for the latest N periods based on ProductId and Coordinate
 * Getting series info based on ProductId and Coordinate
 * Batch-fetching series info for multiple `{productId, coordinate}` pairs in a single call — paginated, with guidance for code-set fields
@@ -80,6 +80,7 @@ This server exposes StatCan API functionalities as MCP tools, including:
 
 **Composite Operations:**
 * `fetch_vectors_to_database` — fetches multiple vectors and stores them in SQLite in a single call (preferred workflow for multi-series analysis)
+* `store_cube_metadata` — fetches full cube metadata and stores it into `_statcan_dimensions` and `_statcan_members` SQLite tables; returns only a compact summary so the full member list never enters the context window. Use SQL to browse dimensions and look up vectorIds.
 
 ### Database Functionality
 
@@ -89,6 +90,7 @@ The server uses a persistent SQLite database at `~/.statcan-mcp/statcan_data.db`
 * Appending additional rows to existing tables (`insert_data_into_table`)
 * Querying the database with SQL
 * Viewing table schemas and listing available tables
+* Dropping tables to free space (`drop_table`)
 
 This allows for persistent storage of retrieved data and more complex data manipulation through SQL.
 
@@ -102,10 +104,10 @@ This allows for persistent storage of retrieved data and more complex data manip
 * **`models/`**: Contains Pydantic models for API request/response validation and database representation.
 * **`util/`**: Utility functions (e.g., coordinate padding).
 * **`config.py`**: Configuration loading (e.g., database credentials, API base URL).
-* **`server.py`**: Main FastMCP server definition and tool registration.
+* **`server.py`**: MCP server definition and tool registration.
 * **`__init__.py`**: Package initialization for `src`.
 * **`pyproject.toml`**: Project dependency and build configuration.
-* **`.env`**: (Assumed) Used for storing sensitive configuration like database credentials, loaded by `src/config.py`.
+* **`server.json`**: MCP Registry metadata.
 
 ## 📥 Installation
 

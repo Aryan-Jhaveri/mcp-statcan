@@ -152,8 +152,10 @@ def register_cube_tools(registry: ToolRegistry):
         Corresponds to: POST /getCubeMetadata
 
         Start with summary=True (default). The summary caps each dimension's member
-        list at 20 entries and shows total counts. Only set summary=False if you need
+        list at 5 entries and shows total counts. Only set summary=False if you need
         specific vectorIds not visible in the summary.
+        To browse ALL members without loading them into context, use store_cube_metadata
+        instead — it stores full metadata in SQLite and returns only a compact summary.
 
         Returns:
             Dict[str, Any]: The metadata object for the specified cube on success.
