@@ -3,6 +3,10 @@ name: Publish to PyPI & MCP Registry
 on:
   push:
     branches: ["main"]
+    paths:
+      - "src/**"
+      - "pyproject.toml"
+      - "server.json"
 
 jobs:
   publish-pypi:
