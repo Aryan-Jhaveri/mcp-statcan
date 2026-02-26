@@ -9,7 +9,7 @@ packages = ["src"]
 [project]
 # Core project metadata
 name = "statcan-mcp-server"
-version = "0.1.3"
+version = "0.1.4"
 description = "MCP Server for interacting with Statistics Canada Web Data Services API"
 readme = "README.md" 
 license = "MIT" 

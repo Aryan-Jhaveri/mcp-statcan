@@ -143,7 +143,7 @@ Navigate to: Claude Desktop App → Settings (⌘ + ,) → Developer → Edit Co
 Restart the Claude Desktop app after saving.
 
 ### Claude Code
-
+WARNING: Untested yet 
 ```bash
 claude mcp add statcan --scope global -- uvx statcan-mcp-server
 ```
