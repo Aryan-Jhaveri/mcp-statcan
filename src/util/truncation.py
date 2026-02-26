@@ -4,7 +4,7 @@ from typing import List, Dict, Any, Union
 import copy
 
 
-DEFAULT_MEMBER_LIMIT = 5
+DEFAULT_MEMBER_LIMIT = 10
 
 
 def truncate_response(
@@ -74,7 +74,12 @@ def summarize_cube_metadata(
             dim["_truncated"] = True
             dim["_message"] = (
                 f"Showing first {member_limit} of {total_members} members. "
-                "Call again with summary=False to get all members and their vectorIds."
+                f"This dimension occupies position {dim.get('dimensionPositionId', '?')} in the coordinate string. "
+                "Each member's memberId is its value at that position (e.g., memberId=3 → coordinate position value 3). "
+                "To browse all members without flooding context, use store_cube_metadata(productId) — "
+                "it stores the full member list in SQLite and returns a compact summary you can query. "
+                "To resolve a specific coordinate to its vectorId and series name, use "
+                "get_series_info_from_cube_pid_coord(productId, coordinate)."
             )
         else:
             dim["_member_count"] = total_members
@@ -87,9 +92,4 @@ def summarize_cube_metadata(
         result["footnote"] = f"[{len(footnotes)} footnotes omitted. Set summary=False to include them.]"
 
     result["_summary"] = True
-    result["_note"] = (
-        "This is a summarized view. Dimension member lists are capped at "
-        f"{member_limit} entries. Footnotes are omitted. Set summary=False to get "
-        "the full metadata including all vectorIds and footnotes."
-    )
     return result
