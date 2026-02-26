@@ -1,12 +1,18 @@
 import httpx
+import sqlite3
 from typing import List, Dict, Any, Optional
 from pydantic import BaseModel, Field
 
 from ..util.registry import ToolRegistry
-from ..config import BASE_URL, TIMEOUT_LARGE, VERIFY_SSL
+from ..config import BASE_URL, TIMEOUT_LARGE, TIMEOUT_MEDIUM, VERIFY_SSL
 from ..util.logger import log_ssl_warning, log_data_validation_warning
+from ..db.connection import get_db_connection
 from ..db.schema import create_table_from_data
 from ..models.db_models import TableDataInput
+
+
+class StoreCubeMetadataInput(BaseModel):
+    productId: int = Field(..., description="The StatCan cube ProductId whose full metadata to fetch and store.")
 
 
 class FetchVectorsInput(BaseModel):
@@ -155,4 +161,127 @@ def register_composite_tools(registry: ToolRegistry):
             "partial_failures": len(failures),
             "sample": flat_rows[:sample_size],
             "next_step": f"Use query_database to analyze: SELECT * FROM {table_name} LIMIT 10",
+        }
+
+    @registry.tool()
+    async def store_cube_metadata(input_data: StoreCubeMetadataInput) -> Dict[str, Any]:
+        """
+        Fetches FULL metadata for a cube and stores it into two normalized SQLite
+        tables (_statcan_dimensions, _statcan_members) without returning the full
+        data to the context window.
+
+        Use this when you need to browse all dimension members or look up vectorIds.
+        The summary returned by get_cube_metadata only shows 5 members per dimension —
+        call this tool first, then use SQL to drill into specific dimensions.
+
+        Typical workflow:
+          1. store_cube_metadata(productId=1234567)
+             → stores all members + vectorIds, returns compact summary
+          2. query_database("SELECT * FROM _statcan_dimensions WHERE pid = 1234567")
+             → see all dimension names and member counts
+          3. query_database("SELECT member_name_en, vector_id FROM _statcan_members
+                             WHERE pid = 1234567 AND dim_index = 2")
+             → browse all members for a specific dimension
+          4. fetch_vectors_to_database(vectorIds=[...], ...) → fetch the data
+
+        Tables are shared across multiple pids — calling this for a new pid adds
+        rows without affecting data for other pids already stored.
+
+        Returns a compact summary: dimension names + member counts + example SQL.
+
+        IMPORTANT: Cite the productId and cubeTitleEn in your final response.
+        """
+        pid = input_data.productId
+
+        async with httpx.AsyncClient(base_url=BASE_URL, timeout=TIMEOUT_MEDIUM, verify=VERIFY_SSL) as client:
+            log_ssl_warning(f"SSL verification disabled for store_cube_metadata pid={pid}.")
+            try:
+                response = await client.post("/getCubeMetadata", json=[{"productId": pid}])
+                response.raise_for_status()
+                result_list = response.json()
+            except httpx.RequestError as exc:
+                return {"error": f"Network error fetching cube metadata: {exc}"}
+
+        if not (isinstance(result_list, list) and result_list and result_list[0].get("status") == "SUCCESS"):
+            msg = result_list[0].get("object") if result_list else "Unknown error"
+            return {"error": f"API did not return SUCCESS for productId {pid}: {msg}"}
+
+        metadata = result_list[0]["object"]
+        dimensions = metadata.get("dimension", [])
+
+        dim_rows = [
+            {
+                "pid": pid,
+                "dim_index": i,
+                "dim_name_en": dim.get("dimensionNameEn"),
+                "dim_name_fr": dim.get("dimensionNameFr"),
+                "member_count": len(dim.get("member", [])),
+            }
+            for i, dim in enumerate(dimensions)
+        ]
+
+        member_rows = [
+            {
+                "pid": pid,
+                "dim_index": i,
+                "member_id": member.get("memberId"),
+                "member_name_en": member.get("memberNameEn"),
+                "member_name_fr": member.get("memberNameFr"),
+                "vector_id": str(member["vectorId"]) if member.get("vectorId") is not None else None,
+                "classification_code": member.get("classificationCode"),
+            }
+            for i, dim in enumerate(dimensions)
+            for member in dim.get("member", [])
+        ]
+
+        try:
+            with get_db_connection() as conn:
+                cursor = conn.cursor()
+                cursor.execute("""
+                    CREATE TABLE IF NOT EXISTS "_statcan_dimensions" (
+                        pid INTEGER,
+                        dim_index INTEGER,
+                        dim_name_en TEXT,
+                        dim_name_fr TEXT,
+                        member_count INTEGER
+                    )
+                """)
+                cursor.execute("""
+                    CREATE TABLE IF NOT EXISTS "_statcan_members" (
+                        pid INTEGER,
+                        dim_index INTEGER,
+                        member_id INTEGER,
+                        member_name_en TEXT,
+                        member_name_fr TEXT,
+                        vector_id TEXT,
+                        classification_code TEXT
+                    )
+                """)
+                cursor.execute('DELETE FROM "_statcan_dimensions" WHERE pid = ?', (pid,))
+                cursor.execute('DELETE FROM "_statcan_members" WHERE pid = ?', (pid,))
+                cursor.executemany(
+                    'INSERT INTO "_statcan_dimensions" VALUES (?,?,?,?,?)',
+                    [(r["pid"], r["dim_index"], r["dim_name_en"], r["dim_name_fr"], r["member_count"]) for r in dim_rows],
+                )
+                cursor.executemany(
+                    'INSERT INTO "_statcan_members" VALUES (?,?,?,?,?,?,?)',
+                    [(r["pid"], r["dim_index"], r["member_id"], r["member_name_en"], r["member_name_fr"], r["vector_id"], r["classification_code"]) for r in member_rows],
+                )
+                conn.commit()
+        except sqlite3.Error as exc:
+            return {"error": f"SQLite error storing cube metadata: {exc}"}
+
+        return {
+            "success": f"Stored metadata for productId {pid}.",
+            "pid": pid,
+            "cube_title_en": metadata.get("cubeTitleEn"),
+            "dimensions": [
+                {"dim_index": r["dim_index"], "dim_name_en": r["dim_name_en"], "member_count": r["member_count"]}
+                for r in dim_rows
+            ],
+            "total_members_stored": len(member_rows),
+            "next_steps": [
+                f"SELECT * FROM _statcan_dimensions WHERE pid = {pid}",
+                f"SELECT member_name_en, vector_id FROM _statcan_members WHERE pid = {pid} AND dim_index = 0",
+            ],
         }
