@@ -1,68 +1,60 @@
 # Roadmap & Implementation Status
-*Updated Feb 25, 2026*
-
----
-
-## Up Next — Context Window Overflow (v0.2.0)
-
-The #1 problem: LLM agents hit context window limits during deep dives. When an agent needs to explore cube metadata, browse the catalog, or cross-reference dimensions, each tool response accumulates in context until the conversation dies.
-
-**Root cause:** Offset/limit pagination reduces per-call size but every page still enters the context window. After N pages, context is full. Cursor-based pagination doesn't help — it solves dataset consistency between pages (items inserted/deleted mid-pagination), not context consumption. StatCan data is static between releases, so cursors offer no benefit - or atleast thats what claude and some research says.
-
-**Solution: extend the "store-then-query" pattern.** Data goes into SQLite, only a compact summary enters context, LLM uses SQL for specifics. `fetch_vectors_to_database` already proves this pattern for vector data. Extend it to metadata and catalog browsing.
-
-
-### 1. Smaller Default Summaries
-- [ ] Reduce `summarize_cube_metadata` default from 20 members → 5 per dimension
-- [ ] Show dimension names + total counts + 5 examples — enough for the LLM to decide which dimension to drill into
-- [ ] 20 was too generous; most navigation decisions need 3-5 examples
-
-### 2. Store Cube Metadata in SQLite
-- [ ] `store_cube_metadata(pid)` — fetches full metadata, normalizes into relational tables:
-  - `_statcan_dimensions` (pid, dim_index, dim_name_en, dim_name_fr, member_count)
-  - `_statcan_members` (pid, dim_index, member_id, member_name_en, member_name_fr, vector_id, classification_code)
-- [ ] Returns compact summary: dimension names + member counts only
-- [ ] LLM drills into specific dimensions via SQL: `SELECT member_name_en, vector_id FROM _statcan_members WHERE pid=X AND dim_index=2`
-- [ ] Full metadata never enters the context window
-
-### 3. MCP Resources for Static Content
-- [ ] Expose reference content as MCP resources (browsable without tool calls):
-  - StatCan data model explainer (cubes, vectors, coordinates, reference periods)
-  - Subject category taxonomy
-  - Code sets reference (unit/scalar/frequency definitions)
-- [ ] Resources don't accumulate in the tool-call context the same way
-
-    - This needs a SME, or just resolved with Agent Skills, most important resource would be the llm knowing all tool it has availbale at all times
-
-### Other potential Low Priority ideas
-
-### Per-Dimension Member Querying (lighter alternative to #2)
-Refrain from adding more tools and overwhelming the llm
-- [ ] `get_dimension_members(pid, dimension_index, offset, limit)` — one dimension at a time instead of the whole metadata blob
-- [ ] Useful when storing to DB is overkill for a one-off lookup
-- [ ] Can coexist with strategy #2
-
-### Store Cube Catalog in SQLite
-Low priority because GetAllCubes is an overkill, and only included as a measure of thoroughness to include all api tools. 
-- [ ] `refresh_cube_catalog()` — fetches all ~7000 cubes via cached `getAllCubesListLite`, stores into a `_statcan_cubes` table (pid, title_en, title_fr, frequency, start_date, end_date, archived)
-- [ ] Returns only: `"Stored 7,234 cubes. Use query_database to search."`
-- [ ] LLM searches via SQL: `SELECT pid, title_en FROM _statcan_cubes WHERE title_en LIKE '%tobacco%'` — tiny context footprint
-- [ ] Auto-refresh if table is stale (TTL-based, reuse existing cache infra)
-
+*Updated Feb 26, 2026*
 
 ---
 
 ## Up Next — Infrastructure
 
-### 1. Stateless Mode for Remote/HTTP Deployment
+### 1. HTTP Branch — Catch Up + Stateless Architecture
 
-The `http` branch has Streamable HTTP + Google OAuth but is behind `main`. Before adding features it needs to catch up.
+The `http` branch has Streamable HTTP + Google OAuth but is behind `main` by several versions. Before adding features it needs to merge everything from `main`.
 
-**Architecture:** Don't store anything server-side. The server fetches StatCan data and returns it; the client decides whether to store it. DB tools become optional or excluded from the remote build.
+**Target architecture (stateless server):**
+- Server is a pure API proxy — fetches StatCan data and returns it, stores nothing server-side
+- DB tools are excluded from the HTTP build entirely
+- Each user's client manages its own local SQLite
+- This unlocks hosting on Render, Railway, Cloudflare Workers without per-user storage concerns
+- Required for MCP Apps (needs HTTP transport)
 
-### 2. MCP Apps — Data Visualization *(post-v1.0)*
+**Steps:**
+- [ ] Merge `main` into `http` branch (bring in all v0.1.x and v0.2.0 fixes)
+- [ ] Strip DB tools from the HTTP server build (`register_db_tools` not called in HTTP mode)
+- [ ] Audit composite tools — `fetch_vectors_to_database` and `store_cube_metadata` use local SQLite; exclude or replace with pure-return variants for HTTP mode
+- [ ] Verify Google OAuth flow still works after merge
+- [ ] Deploy to Render/Railway as a public free-tier instance
 
-Return interactive HTML charts/dashboards in-chat. Blocked on: no Python SDK support, requires HTTP transport, limited host support. Only viable after the HTTP branch is stable and stateless.
+### 2. Client-Side SQLite (Remote Use Case)
+
+When the server is remote and stateless, the LLM client still needs somewhere to store fetched data for the store-then-query pattern to work. Options:
+
+**Option A — Client manages its own local SQLite (preferred)**
+The MCP client (Claude Desktop, Claude Code) runs a local `statcan-db` MCP server alongside the remote `statcan` HTTP server. The remote server handles API fetching; the local DB server handles storage and querying. The LLM orchestrates across both.
+
+- [ ] Publish a minimal `statcan-db-server` package — just the DB tools (create, insert, query, list, schema, drop), no API tools
+- [ ] User wires both servers in their MCP config: remote statcan for data + local statcan-db for storage
+- [ ] This is the cleanest separation: fetch is stateless and hostable, storage is local and private
+
+**Option B — Return data to client, let client store**
+HTTP build returns full data payloads (no auto-store). LLM uses a separate local DB tool to store. Already works today if the user has the local stdio build running alongside. No new code needed — just documentation.
+
+**Option C — Remote DB (DynamoDB, Turso, etc.)**
+Per-user cloud storage. Significant ops complexity, cost, and privacy concerns. Not worth it for this use case.
+
+*Recommended path: ship Option A after the HTTP branch is stable.*
+
+### 3. MCP Apps — Data Visualization *(post-HTTP)*
+
+Return interactive HTML charts/dashboards in-chat. Blocked on:
+- No Python MCP SDK support yet (JS only as of Feb 2026)
+- Requires HTTP transport (stdio can't serve HTML resources back)
+- Limited host support — only a few MCP clients render `ui://` resources
+
+**What this would look like:**
+- `visualize_table(table_name, chart_type)` — queries local SQLite, returns an interactive Chart.js or Plotly chart as an MCP App resource
+- `create_dashboard(tables, layout)` — multi-panel view combining time series, bar charts, and summary stats
+- Text fallback for clients that don't support MCP Apps
+
+**Unblocked when:** HTTP branch is stable + Python SDK ships MCP Apps support.
 
 ---
 
@@ -70,7 +62,7 @@ Return interactive HTML charts/dashboards in-chat. Blocked on: no Python SDK sup
 
 - [ ] **Enable SSL verification** — `VERIFY_SSL = False` is a security risk
 - [ ] **CI/CD linting** — ruff + mypy on push/PR
-- [ ] **Expand tests** — mock StatCan API responses; per-tool coverage
+- [ ] **Expand tests** — mock StatCan API responses; per-tool coverage (currently only truncation is tested)
 
 ---
 
@@ -95,9 +87,15 @@ Return interactive HTML charts/dashboards in-chat. Blocked on: no Python SDK sup
 
 ## Completed
 
+### Context Window Overflow — v0.2.0 *(Feb 26, 2026)*
+- [x] **`summarize_cube_metadata` default reduced 20 → 5** — `DEFAULT_MEMBER_LIMIT = 5` in `src/util/truncation.py`; 2 new tests added (15 total)
+- [x] **Footnote stripping in summary mode** — `summarize_cube_metadata` replaces the full `footnote` array with a count string (e.g., `"[20 footnotes omitted. Set summary=False to include them.]"`). Footnotes were the dominant response size contributor on data-rich cubes like CPI (18100004).
+- [x] **`store_cube_metadata(pid)` composite tool** — fetches full metadata, stores into `_statcan_dimensions` + `_statcan_members`; returns compact summary only. Tables shared across pids, idempotent via `DELETE WHERE pid = ?`. Lives in `composite_tools.py` alongside `fetch_vectors_to_database`.
+- [x] **`get_cube_metadata` docstring updated** — now points LLMs to `store_cube_metadata` for full member browsing without context cost
+
 ### Context Overflow & Truncation *(Feb 25, 2026)*
 - [x] **Shared truncation utility** — `src/util/truncation.py`: `truncate_response`, `truncate_with_guidance`, `summarize_cube_metadata`; 13 unit tests
-- [x] **`get_cube_metadata` summary mode** — `summary=True` (default) caps dimension member lists at 20; `summary=False` returns full response with all vectorIds
+- [x] **`get_cube_metadata` summary mode** — `summary=True` (default) caps dimension member lists at 5; `summary=False` returns full response with all vectorIds and footnotes
 - [x] **Cube list pagination** — `get_all_cubes_list` / `get_all_cubes_list_lite` paginated via `CubeListInput(offset, limit=100)`
 - [x] **Search result cap** — `search_cubes_by_title` via `CubeSearchInput(max_results=25)`; count message when more exist
 - [x] **Bulk coord truncation + guidance** — `get_series_info_from_cube_pid_coord_bulk` paginates + injects `_guidance` for code-set resolution
@@ -131,24 +129,22 @@ Return interactive HTML charts/dashboards in-chat. Blocked on: no Python SDK sup
 
 ## Architecture & Data Flow
 
+### Current (stdio / local)
+
 ```mermaid
 flowchart TD
-    A[Claude/MCP Client] -->|MCP Protocol| B[MCP Server]
+    A[Claude/MCP Client] -->|MCP Protocol| B[MCP Server - stdio]
 
     B --> C{Tool Type}
     C -->|Cube/Vector/Composite| D[StatCan WDS API]
     C -->|DB Tools| E[SQLite ~/.statcan-mcp/]
 
-    D -->|fetch_vectors_to_database| F[Composite: fetch + store in one call]
+    D -->|fetch_vectors_to_database\nstore_cube_metadata| F[Composite: fetch + store in one call]
     F --> E
 
     D -->|get_bulk_vector_data_by_range\nget_data_from_vector_by_reference_period_range| G[Paginated response\noffset + limit]
     G -->|store if needed| E
     G -->|preview + guidance| A
-
-    D -->|store_cube_metadata\nrefresh_cube_catalog| H[Store-then-query:\nmetadata + catalog → SQLite]
-    H --> E
-    H -->|compact summary only| A
 
     E --> I[create_table_from_data\ninsert_data_into_table\nquery_database\nlist_tables\nget_table_schema\ndrop_table]
     I -->|SQL Results| A
@@ -157,5 +153,24 @@ flowchart TD
     style B fill:#70190d
     style E fill:#700d49
     style F fill:#0d5c70
-    style H fill:#0d7045
+```
+
+### Target (HTTP / remote + client-side SQLite)
+
+```mermaid
+flowchart TD
+    A[Claude/MCP Client] -->|MCP Protocol - HTTP| B[MCP Server - stateless HTTP]
+    A -->|MCP Protocol - stdio| DB[statcan-db-server - local]
+
+    B -->|API proxy only| D[StatCan WDS API]
+    D -->|data payload| A
+
+    A -->|store fetched data| DB
+    DB --> E[SQLite - local machine]
+    E -->|SQL Results| A
+
+    style A fill:#210d70
+    style B fill:#70190d
+    style DB fill:#0d5c70
+    style E fill:#700d49
 ```
