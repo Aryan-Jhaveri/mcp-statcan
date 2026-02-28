@@ -51,6 +51,22 @@ def flatten_sdmx_json(data: Dict[str, Any]) -> List[Dict[str, Any]]:
     series_attrs: List[Dict] = attrs.get("series", [])
     obs_attrs: List[Dict] = attrs.get("observation", [])
 
+    # Period decoding strategy: StatCan sets id to the calendar year even for
+    # sub-annual (monthly) data. Detect sub-annual by duplicate id values.
+    period_vals: List[Dict] = obs_dims[0].get("values", []) if obs_dims else []
+    n_period_vals = len(period_vals)
+    period_ids = [e.get("id", "") for e in period_vals]
+    use_start_field = len(set(period_ids)) < len(period_ids) if period_ids else False
+
+    def _get_period(idx: int) -> Optional[str]:
+        effective = idx % n_period_vals if n_period_vals else idx
+        if effective >= n_period_vals:
+            return None
+        entry = period_vals[effective]
+        if use_start_field and entry.get("start"):
+            return entry["start"][:7]  # "2024-01-01T..." → "2024-01"
+        return entry.get("id") or entry.get("name")
+
     rows: List[Dict[str, Any]] = []
 
     for dataset in data.get("dataSets", []):
@@ -80,11 +96,11 @@ def flatten_sdmx_json(data: Dict[str, Any]) -> List[Dict[str, Any]]:
                 obs_idx = int(obs_key_str)
                 row: Dict[str, Any] = dict(dim_values)
 
-                # Time period — use "id" (the period string like "2025" or "2023-01")
-                if obs_dims:
-                    period_vals = obs_dims[0].get("values", [])
-                    if obs_idx < len(period_vals):
-                        row["period"] = period_vals[obs_idx].get("id") or period_vals[obs_idx].get("name")
+                # Time period — modulo handles StatCan's global obs_key encoding for OR queries
+                if n_period_vals:
+                    period = _get_period(obs_idx)
+                    if period is not None:
+                        row["period"] = period
 
                 # Data value is the first element of the obs array
                 row["value"] = obs_value[0] if obs_value else None

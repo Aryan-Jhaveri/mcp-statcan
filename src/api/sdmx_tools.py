@@ -166,13 +166,17 @@ def register_sdmx_tools(registry: ToolRegistry) -> None:
 
         Key syntax (dot-separated codes in dimension position order):
           "1.2.1"   = Geography=1 (Canada), Gender=2 (Men+), Age=1 (All ages)
-          ".2.1"    = all geographies, Gender=2, Age=1  (wildcard)
-          "1+2.2.1" = Geography 1 or 2, Gender=2, Age=1 (OR)
+          ".2.1"    = all geographies, Gender=2, Age=1  (wildcard — preferred for multi-geo)
+          "1+2.2.1" = Geography 1 or 2, Gender=2, Age=1 (OR — use wildcard instead)
 
-        Time filtering:
+        Time filtering (use one or the other, not both):
           lastNObservations=12  → last 12 periods (e.g. 1 year of monthly data)
           startPeriod="2020"    → from 2020 onwards (annual); "2020-01" for monthly
           endPeriod="2023-12"   → up to Dec 2023
+
+        LIMITATION: StatCan rejects combining lastNObservations with startPeriod/endPeriod (returns 406).
+        LIMITATION: OR syntax (+) for Geography may produce incorrect Geography labels in output —
+          use wildcard (omit the dimension) to retrieve multiple geographies instead.
 
         Output rows contain: dimension values, "period", "value", SCALAR_FACTOR,
         UOM, VECTOR_ID, STATUS, and other SDMX attributes.
@@ -181,6 +185,13 @@ def register_sdmx_tools(registry: ToolRegistry) -> None:
         """
         product_id = data_input.productId
         key = data_input.key
+
+        if data_input.lastNObservations is not None and (data_input.startPeriod or data_input.endPeriod):
+            raise ValueError(
+                "StatCan SDMX does not support combining lastNObservations with startPeriod/endPeriod. "
+                "Use lastNObservations=N for recent data, or startPeriod/endPeriod for a date range."
+            )
+
         url = f"{SDMX_BASE_URL}data/DF_{product_id}/{key}"
 
         params: Dict[str, Any] = {}
@@ -222,10 +233,12 @@ def register_sdmx_tools(registry: ToolRegistry) -> None:
         Simpler alternative to get_sdmx_data when you already know the vectorId.
         Use get_series_info_from_cube_pid_coord or get_cube_metadata to find vectorIds.
 
-        Time filtering:
+        Time filtering (use one or the other, not both):
           lastNObservations=5   → last 5 periods
           startPeriod="2020-01" → from Jan 2020 (monthly); "2020" for annual
           endPeriod="2023-12"   → up to Dec 2023
+
+        LIMITATION: StatCan rejects combining lastNObservations with startPeriod/endPeriod (returns 406).
 
         Output rows contain: dimension values, "period", "value", SCALAR_FACTOR,
         UOM, VECTOR_ID, STATUS, and other SDMX attributes.
@@ -233,6 +246,13 @@ def register_sdmx_tools(registry: ToolRegistry) -> None:
         IMPORTANT: Cite _sdmx_url and vectorId in your response.
         """
         vector_id = vector_input.vectorId
+
+        if vector_input.lastNObservations is not None and (vector_input.startPeriod or vector_input.endPeriod):
+            raise ValueError(
+                "StatCan SDMX does not support combining lastNObservations with startPeriod/endPeriod. "
+                "Use lastNObservations=N for recent data, or startPeriod/endPeriod for a date range."
+            )
+
         url = f"{SDMX_BASE_URL}vector/v{vector_id}"
 
         params: Dict[str, Any] = {}
