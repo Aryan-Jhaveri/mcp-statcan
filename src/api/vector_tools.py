@@ -48,7 +48,7 @@ def register_vector_tools(registry: ToolRegistry):
             except ValueError as exc: # Catch JSON decoding errors or our own ValueErrors
                 raise ValueError(f"Error processing response for get_series_info_from_vector: {exc}")
 
-    @registry.tool()
+    # @registry.tool()  # Deregistered: replaced by get_sdmx_vector_data (server-side filtering)
     async def get_data_from_vectors_and_latest_n_periods(vector_latest_n_input: VectorLatestNInput) -> Dict[str, Any]:
         """
         Get data for the N most recent reporting periods for a specific data series
@@ -83,7 +83,7 @@ def register_vector_tools(registry: ToolRegistry):
             except ValueError as exc:
                 raise ValueError(f"Error processing response for get_data_from_vectors_and_latest_n_periods: {exc}")
 
-    @registry.tool()
+    # @registry.tool()  # Deregistered: replaced by get_sdmx_data/get_sdmx_vector_data with startPeriod/endPeriod
     async def get_data_from_vector_by_reference_period_range(range_input: VectorRangeInput) -> List[Dict[str, Any]]:
         """
         PREFERRED tool for fetching data across multiple series by reference period date range (YYYY-MM-DD).

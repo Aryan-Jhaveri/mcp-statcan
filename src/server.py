@@ -12,6 +12,7 @@ from .api.cube_tools import register_cube_tools
 from .api.vector_tools import register_vector_tools
 from .api.metadata_tools import register_metadata_tools
 from .api.composite_tools import register_composite_tools
+from .api.sdmx_tools import register_sdmx_tools
 from .db.queries import register_db_tools
 from .util.logger import log_server_debug
 from .util.registry import registry
@@ -34,6 +35,8 @@ def create_server():
         register_vector_tools(registry)
         log_server_debug("Registering composite tools...")
         register_composite_tools(registry)
+        log_server_debug("Registering SDMX tools...")
+        register_sdmx_tools(registry)
         log_server_debug("Registering db tools...")
         register_db_tools(registry)
         log_server_debug("Tool registration complete.")
