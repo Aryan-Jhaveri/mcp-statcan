@@ -9,7 +9,7 @@
 
 <!-- mcp-name: io.github.Aryan-Jhaveri/mcp-statcan -->
 
-MCP server for Statistics Canada's [Web Data Service (WDS)](https://www.statcan.gc.ca/eng/developers/wds) and [SDMX REST API](https://www150.statcan.gc.ca/t1/wds/sdmx/statcan/rest/). Gives any MCP client — Claude, Cursor, VS Code Copilot, and more — structured access to Canadian statistical data.
+MCP server for Statistics Canada's [Web Data Service (WDS)](https://www.statcan.gc.ca/eng/developers/wds) and [SDMX REST API](https://www150.statcan.gc.ca/t1/wds/sdmx/statcan/rest/). Gives any MCP client — Claude, ChatGPT, Gemini,Cursor, VS Code Copilot, and more — structured access to Canadian statistical data.
 
 **Two connection modes:**
 
