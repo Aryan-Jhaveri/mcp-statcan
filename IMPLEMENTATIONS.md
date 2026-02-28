@@ -117,12 +117,6 @@ This is the same `Server` instance and `ToolRegistry` — only the transport lay
 - [ ] Evaluate rate limiting (Render free tier has limits; StatCan API has its own)
 - [ ] If needed later: add OAuth via MCP SDK auth support or simple API key header
 
-#### Tool Cleanup *(done on `tool-cleanup` branch)*
-
-- [x] Merged `get_series_info_from_cube_pid_coord` + `_bulk` → `get_series_info(items: list[{productId, coordinate}])` — both old tools deregistered (decorator commented), functions kept
-- [x] Fixed `get_cube_metadata` docstring — corrected member cap (5→10), replaced `store_cube_metadata` reference with `get_sdmx_structure` (works in HTTP mode)
-- [x] Fixed `get_bulk_vector_data_by_range` docstring — removed `fetch_vectors_to_database` / `create_table_from_data` references, replaced with pagination guidance
-
 ---
 
 ### Phase 3 — MCP Resources & Prompts for SDMX *(after HTTP is stable)*
@@ -281,6 +275,13 @@ flowchart TD
 ## Completed
 
 
+#### Tool Cleanup *(done on `tool-cleanup` branch)*
+
+- [x] Merged `get_series_info_from_cube_pid_coord` + `_bulk` → `get_series_info(items: list[{productId, coordinate}])` — both old tools deregistered (decorator commented), functions kept
+- [x] Fixed `get_cube_metadata` docstring — corrected member cap (5→10), replaced `store_cube_metadata` reference with `get_sdmx_structure` (works in HTTP mode)
+- [x] Fixed `get_bulk_vector_data_by_range` docstring — removed `fetch_vectors_to_database` / `create_table_from_data` references, replaced with pagination guidance
+
+o
 #### Phase 1 Progress
 
 - [x] Add SDMX constants to `config.py` — `SDMX_BASE_URL`, `SDMX_JSON_ACCEPT`, `SDMX_XML_ACCEPT`, `MAX_SDMX_ROWS`
