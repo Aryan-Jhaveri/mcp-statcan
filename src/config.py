@@ -40,6 +40,12 @@ TIMEOUT_MEDIUM = 60.0  # For list endpoints
 TIMEOUT_LARGE = 120.0  # For bulk data endpoints
 VERIFY_SSL = False  # WARNING: Security risk!
 
+# SDMX REST API configuration
+SDMX_BASE_URL = "https://www150.statcan.gc.ca/t1/wds/sdmx/statcan/rest/"
+SDMX_JSON_ACCEPT = "application/vnd.sdmx.data+json;version=1.0.0-wd"
+SDMX_XML_ACCEPT = "application/vnd.sdmx.structure+xml;version=2.1"
+MAX_SDMX_ROWS = 500  # Safety cap for flattened SDMX rows
+
 # Coordinate padding configuration
 EXPECTED_COORD_DIMENSIONS = 10
 
