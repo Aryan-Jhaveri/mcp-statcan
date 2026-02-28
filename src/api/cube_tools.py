@@ -188,7 +188,7 @@ def register_cube_tools(registry: ToolRegistry):
                 raise ValueError(f"Error processing response for get_cube_metadata: {exc}")
 
     # --- Coordinate-Based Data/Info Tools ---
-    @registry.tool()
+    # @registry.tool()  # Deregistered: replaced by get_sdmx_data (server-side filtering)
     async def get_data_from_cube_pid_coord_and_latest_n_periods(input_data: CubeCoordLatestNInput) -> Dict[str, Any]:
         """
         Retrieves data for the N most recent reporting periods for ONE specific series

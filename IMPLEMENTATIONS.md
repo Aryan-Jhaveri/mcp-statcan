@@ -301,15 +301,15 @@ XML structure to parse:
 
 - [x] Add SDMX constants to `config.py` — `SDMX_BASE_URL`, `SDMX_JSON_ACCEPT`, `SDMX_XML_ACCEPT`, `MAX_SDMX_ROWS`
 - [x] `src/util/sdmx_json.py` — `flatten_sdmx_json(data)` SDMX-JSON → tabular rows
-- [ ] `src/models/sdmx_models.py` — `SDMXStructureInput`, `SDMXDataInput`, `SDMXVectorInput`
-- [ ] `src/api/sdmx_tools.py` — `register_sdmx_tools(registry)` with 3 tools
-- [ ] Wire `register_sdmx_tools` into `server.py`
-- [ ] `get_sdmx_structure(productId)` — XML parse → JSON summary
-- [ ] `get_sdmx_data(productId, key, startPeriod?, endPeriod?, lastNObservations?)` — JSON fetch + flatten
-- [ ] `get_sdmx_vector_data(vectorId, startPeriod?, endPeriod?, lastNObservations?)` — JSON fetch + flatten
-- [ ] Deregister `get_data_from_cube_pid_coord_and_latest_n_periods` (comment out `@registry.tool()` in `cube_tools.py`)
-- [ ] Deregister `get_data_from_vectors_and_latest_n_periods` (comment out `@registry.tool()` in `vector_tools.py`)
-- [ ] Deregister `get_data_from_vector_by_reference_period_range` (comment out `@registry.tool()` in `vector_tools.py`)
+- [x] `src/models/sdmx_models.py` — `SDMXStructureInput`, `SDMXDataInput`, `SDMXVectorInput`
+- [x] `src/api/sdmx_tools.py` — `register_sdmx_tools(registry)` with 3 tools
+- [x] Wire `register_sdmx_tools` into `server.py`
+- [x] `get_sdmx_structure(productId)` — XML parse → JSON summary with codelist truncation
+- [x] `get_sdmx_data(productId, key, startPeriod?, endPeriod?, lastNObservations?)` — JSON fetch + flatten
+- [x] `get_sdmx_vector_data(vectorId, startPeriod?, endPeriod?, lastNObservations?)` — JSON fetch + flatten
+- [x] Deregister `get_data_from_cube_pid_coord_and_latest_n_periods` (comment out `@registry.tool()` in `cube_tools.py`)
+- [x] Deregister `get_data_from_vectors_and_latest_n_periods` (comment out `@registry.tool()` in `vector_tools.py`)
+- [x] Deregister `get_data_from_vector_by_reference_period_range` (comment out `@registry.tool()` in `vector_tools.py`)
 - [ ] `build_sdmx_url(...)` *(optional, or MCP Prompt)*
 
 ---
@@ -484,10 +484,14 @@ flowchart TD
 
 ## Completed
 
-### Phase 1 Partial — SDMX Foundation *(Feb 28, 2026)*
+### Phase 1 Complete — SDMX Tools *(Feb 28, 2026)*
 
 - [x] `SDMX_BASE_URL`, `SDMX_JSON_ACCEPT`, `SDMX_XML_ACCEPT`, `MAX_SDMX_ROWS` added to `config.py`
 - [x] `src/util/sdmx_json.py` — `flatten_sdmx_json(data)`: dereferences SDMX-JSON compact indices into tabular rows. Handles series dims, obs dims, series attrs, obs attrs. Uses `_deref()` helper for safe index lookup. Obs-level attributes take priority over series-level on name collision.
+- [x] `src/models/sdmx_models.py` — `SDMXStructureInput`, `SDMXDataInput` (productId, key, startPeriod, endPeriod, lastNObservations), `SDMXVectorInput` (vectorId, startPeriod, endPeriod, lastNObservations)
+- [x] `src/api/sdmx_tools.py` — `register_sdmx_tools(registry)` with 3 tools: `get_sdmx_structure`, `get_sdmx_data`, `get_sdmx_vector_data`. XML parsing via ElementTree with SDMX 2.1 namespaces and Clark-notation `xml:lang` handling. Codelist truncation at `DEFAULT_MEMBER_LIMIT=10`. MAX_SDMX_ROWS=500 cap on flattened rows. `_sdmx_url` included in all responses.
+- [x] `server.py` — `register_sdmx_tools` wired in
+- [x] 3 WDS data-fetch tools deregistered (`@registry.tool()` commented out, functions kept): `get_data_from_cube_pid_coord_and_latest_n_periods`, `get_data_from_vectors_and_latest_n_periods`, `get_data_from_vector_by_reference_period_range`
 
 ### Metadata Navigation Guidance — v0.2.1 *(Feb 26, 2026)*
 
