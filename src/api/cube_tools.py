@@ -152,10 +152,10 @@ def register_cube_tools(registry: ToolRegistry):
         Corresponds to: POST /getCubeMetadata
 
         Start with summary=True (default). The summary caps each dimension's member
-        list at 5 entries and shows total counts. Only set summary=False if you need
-        specific vectorIds not visible in the summary.
-        To browse ALL members without loading them into context, use store_cube_metadata
-        instead — it stores full metadata in SQLite and returns only a compact summary.
+        list at 10 entries and shows total counts. Set summary=False to get the full
+        member list (may be large for wide tables).
+        To understand dimension codelists and key syntax for get_sdmx_data, use
+        get_sdmx_structure(productId) — it returns the SDMX dimension codes directly.
 
         Returns:
             Dict[str, Any]: The metadata object for the specified cube on success.
@@ -246,7 +246,7 @@ def register_cube_tools(registry: ToolRegistry):
             except ValueError as exc:
                 raise ValueError(f"Error processing response for get_data_from_cube_pid_coord_and_latest_n_periods: {exc}")
 
-    @registry.tool()
+    # @registry.tool()  # Deregistered: merged into get_series_info
     async def get_series_info_from_cube_pid_coord(input_data: CubeCoordInput) -> Dict[str, Any]:
         """
         Retrieves series metadata (vectorId, titles, frequency etc.) using Cube ProductId
@@ -261,7 +261,7 @@ def register_cube_tools(registry: ToolRegistry):
             ValueError: If the API response format is unexpected or status is not SUCCESS.
             Exception: For other network or unexpected errors.
 
-        IMPORTANT: In your final response to the user, you MUST cite the source of your data. 
+        IMPORTANT: In your final response to the user, you MUST cite the source of your data.
         For series info, this means including the ProductId (pid) and Coordinate.
         """
         async with httpx.AsyncClient(base_url=BASE_URL, timeout=TIMEOUT_MEDIUM, verify=False) as client:
@@ -403,29 +403,14 @@ def register_cube_tools(registry: ToolRegistry):
             except ValueError as exc:
                 raise ValueError(f"Error processing response for get_full_table_download_sdmx: {exc}")
 
-    # --- Bulk Coordinate Tools ---
-    @registry.tool()
+    # --- Coordinate → Series Info ---
+    # @registry.tool()  # Deregistered: merged into get_series_info
     async def get_series_info_from_cube_pid_coord_bulk(input_data: BulkCubeCoordInput) -> Union[List[Dict[str, Any]], Dict[str, Any]]:
         """
         Batch-fetch series metadata for MULTIPLE {productId, coordinate} pairs in a
         single API call. Returns vectorId, titles, frequency, etc. for each series.
-
-        Use this instead of calling get_series_info_from_cube_pid_coord in a loop.
-        Coordinates are automatically padded to 10 dimensions.
         Corresponds to: POST /getSeriesInfoFromCubePidCoord (accepts array)
-
-        NOTE: Response fields like `scalarFactorCode`, `frequencyCode`, and
-        `memberUomCode` use StatCan numeric code values. Call get_code_sets()
-        to resolve them to human-readable labels (e.g., frequency 6 = "Monthly").
-
-        Returns:
-            List[Dict[str, Any]] or Dict: Series metadata objects, paginated if >50 results.
-        Raises:
-            httpx.HTTPStatusError: If the API returns an error status code.
-            ValueError: If no items return SUCCESS.
-            Exception: For other network or unexpected errors.
-
-        IMPORTANT: In your final response cite the ProductId and Coordinate for each series.
+        REPLACED BY: get_series_info (merged single + bulk, same behaviour)
         """
         if not input_data.items:
             raise ValueError("items list cannot be empty.")
@@ -468,6 +453,72 @@ def register_cube_tools(registry: ToolRegistry):
                 raise Exception(f"Network error calling get_series_info_from_cube_pid_coord_bulk: {exc}")
             except ValueError as exc:
                 raise ValueError(f"Error processing response for get_series_info_from_cube_pid_coord_bulk: {exc}")
+
+    @registry.tool()
+    async def get_series_info(input_data: BulkCubeCoordInput) -> Union[List[Dict[str, Any]], Dict[str, Any]]:
+        """
+        Resolve one or more {productId, coordinate} pairs to series metadata
+        (vectorId, titles, frequency, UOM, etc.) in a single API call.
+
+        Use this to find vectorIds before fetching data with get_sdmx_data or
+        get_sdmx_vector_data. Pass one item or many — same tool either way.
+        Coordinates are automatically padded to 10 dimensions.
+        Corresponds to: POST /getSeriesInfoFromCubePidCoord (accepts array)
+
+        NOTE: Response fields like scalarFactorCode, frequencyCode, and memberUomCode
+        use StatCan numeric codes. Call get_code_sets() to decode them
+        (e.g. frequencyCode 6 = "Monthly", scalarFactorCode 0 = "Units").
+
+        Returns:
+            List of series metadata dicts, paginated with _guidance if >50 results.
+        Raises:
+            httpx.HTTPStatusError: If the API returns an error status code.
+            ValueError: If no items return SUCCESS.
+            Exception: For other network or unexpected errors.
+
+        IMPORTANT: In your final response cite the ProductId and Coordinate for each series.
+        """
+        if not input_data.items:
+            raise ValueError("items list cannot be empty.")
+
+        async with httpx.AsyncClient(base_url=BASE_URL, timeout=TIMEOUT_MEDIUM, verify=False) as client:
+            log_ssl_warning("SSL verification disabled for get_series_info.")
+            post_data = [
+                {"productId": item.productId, "coordinate": pad_coordinate(item.coordinate)}
+                for item in input_data.items
+            ]
+            try:
+                response = await client.post("/getSeriesInfoFromCubePidCoord", json=post_data)
+                response.raise_for_status()
+                result_list = response.json()
+
+                results = []
+                failures = []
+                if isinstance(result_list, list):
+                    for item in result_list:
+                        if isinstance(item, dict) and item.get("status") == "SUCCESS":
+                            results.append(item.get("object", {}))
+                        else:
+                            failures.append(item)
+                            log_data_validation_warning(f"Series info partial failure: {item}")
+                else:
+                    raise ValueError(f"API response was not a list. Response: {result_list}")
+
+                if not results and failures:
+                    raise ValueError(f"API did not return SUCCESS for any item. Failures: {failures}")
+
+                offset = input_data.offset or 0
+                limit = input_data.limit or DEFAULT_TRUNCATION_LIMIT
+                return truncate_with_guidance(
+                    results, offset, limit,
+                    "Fields like scalarFactorCode, frequencyCode, and memberUomCode use StatCan "
+                    "numeric code values. Call get_code_sets() to resolve them to human-readable "
+                    "labels (e.g., frequency 6 = 'Monthly', scalar 0 = 'Units')."
+                )
+            except httpx.RequestError as exc:
+                raise Exception(f"Network error calling get_series_info: {exc}")
+            except ValueError as exc:
+                raise ValueError(f"Error processing response for get_series_info: {exc}")
 
     # --- Change List Tools ---
     @registry.tool()

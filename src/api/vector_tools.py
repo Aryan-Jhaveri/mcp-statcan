@@ -168,13 +168,11 @@ def register_vector_tools(registry: ToolRegistry):
 
         *** LARGE RESPONSE WARNING ***
         This tool can return hundreds of flattened data points. If the response
-        exceeds 50 rows, strongly prefer fetch_vectors_to_database instead — it
-        automatically stores results in SQLite and returns only a summary, preventing
-        context overflow.
+        exceeds context limits, narrow the request: use fewer vectorIds, or use
+        offset/limit pagination to page through results in smaller chunks.
 
         Response is pre-flattened: each element is one data point with vectorId,
         productId, coordinate, and all value fields injected at the top level.
-        This format is directly compatible with create_table_from_data.
 
         Disables SSL Verification.
         Corresponds to: POST /getBulkVectorDataByRange
