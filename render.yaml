@@ -1,0 +1,13 @@
+services:
+  - type: web
+    name: statcan-mcp-server
+    runtime: python
+    buildCommand: pip install .
+    startCommand: statcan-mcp-server --transport http
+    envVars:
+      - key: STATCAN_TRANSPORT
+        value: http
+      - key: PORT
+        generateValue: false
+    healthCheckPath: /health
+    plan: free

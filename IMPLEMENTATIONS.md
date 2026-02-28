@@ -5,41 +5,117 @@
 
 ## Up Next (Priority Order)
 
-### 0 — Tool Cleanup (quick wins, before Phase 2)
+### Phase 2 — Streamable HTTP Transport
 
-**A. Consolidate coord tools**
+#### Goal
 
-`get_series_info_from_cube_pid_coord` (single) and `get_series_info_from_cube_pid_coord_bulk` (list) are redundant from the LLM's perspective. Merge into one tool that accepts either a single `(productId, coordinate)` pair or a list of them — same tool, same output format.
+Make the server accessible remotely so any MCP client (Claude.ai web, Claude iOS/Android, API MCP Connector, third-party clients) can connect via a URL — no local installation required.
 
-- [ ] Audit `cube_tools.py` for duplicate `get_series_info_from_cube_pid_coord` definition
-- [ ] Merge single + bulk into one tool: `get_series_info` accepting `items: list[{productId, coordinate}]` with `limit`/`offset` for large batches
-- [ ] Deregister old single/bulk tools (comment decorator), keep functions
+#### Why This Matters
 
-**B. Any other redundant/confusing tools to audit?** *(check docstrings for LLM confusion risk)*
+- **Mobile**: Claude iOS/Android support remote MCP servers. Users add the URL once via claude.ai Settings > Connectors, it syncs to mobile automatically.
+- **Web**: Claude.ai Custom Connectors connect to remote MCP servers via Streamable HTTP.
+- **API**: The Claude API MCP Connector supports remote servers programmatically.
+- **No install**: Users don't need Python, `uvx`, or `pip`. Just a URL.
+- **93% of MCP servers** already use Streamable HTTP (the old SSE transport is deprecated as of spec revision 2025-03-26).
 
-### Phase 2 — HTTP Transport *(next, after tool cleanup)*
+#### Architecture Decision: Stateless API Proxy
 
-#### Approach
+The remote server is **stateless** — every request is independent, no sessions, no server-side storage. This works because:
 
-Do **not** merge the stale `http` branch — it uses FastMCP which is unnecessary. The standard `mcp` SDK (>=1.3.0, already a dependency) supports Streamable HTTP transport. Build HTTP support directly on the existing `server.py` + `ToolRegistry` pattern.
+1. All WDS tools are pure API proxies (call StatCan, return JSON)
+2. All SDMX tools are pure API proxies (call StatCan, return filtered data)
+3. StatCan data is public — no per-user auth state needed
+4. No SQLite on the server — DB tools are local-only
 
-**Stateless server architecture:**
-- Server is a pure API proxy — fetches StatCan/SDMX data and returns it, stores nothing server-side
-- DB tools excluded from HTTP mode (no per-user storage)
-- Each client manages its own local SQLite via a separate `statcan-db-server` stdio sidecar (optional)
-- SDMX tools are especially well-suited for HTTP mode — filtered responses, no storage needed
-- Unlocks hosting on Render, Railway, Cloudflare Workers
+**Tools registered in HTTP mode** (~15 tools):
+- WDS discovery: `search_cubes_by_title`, `get_all_cubes_list`, `get_all_cubes_list_lite`, `get_cube_metadata`, `get_code_sets`
+- WDS series resolution: `get_series_info_from_cube_pid_coord`, `get_series_info_from_cube_pid_coord_bulk`
+- WDS change detection: `get_changed_series_data_from_cube_pid_coord`, `get_changed_series_data_from_vector`, `get_changed_cube_list`, `get_changed_series_list`
+- WDS data: `get_bulk_vector_data_by_range`
+- SDMX: `get_sdmx_structure`, `get_sdmx_data`, `get_sdmx_vector_data`
 
-**Implementation:**
-- Add `--transport [stdio|http]` CLI flag to `server.py`
-- In HTTP mode: skip `register_composite_tools` and `register_db_tools`
-- Configure host/port via env vars or CLI args
-- Auth: evaluate OAuth vs API key based on Python SDK support at implementation time
+**Tools excluded in HTTP mode** (require local SQLite):
+- DB tools: `create_table_from_data`, `insert_data`, `query_database`, `list_tables`, `get_table_schema`, `drop_table`
+- Composite tools: `fetch_vectors_to_database`, `store_cube_metadata`
 
-- [ ] Add `--transport` CLI flag; wire Streamable HTTP transport from `mcp` SDK
-- [ ] Exclude DB/composite tools in HTTP mode
-- [ ] Deploy to Render/Railway as a public free-tier instance
-- [ ] Audit `fetch_vectors_to_database` and `store_cube_metadata` — provide pure-return variants for HTTP mode
+Users who want DB/composite tools run the existing stdio server locally alongside the remote server. The remote server handles discovery + data fetch; the local server handles storage + SQL queries.
+
+#### Technical Approach: `mcp` SDK 
+
+Stay on the existing `mcp` SDK (`mcp>=1.8.0,<2`). The SDK provides Streamable HTTP transport via:
+
+- `mcp.server.streamable_http_manager.StreamableHTTPSessionManager` — wraps our `Server` instance, manages HTTP request handling
+- `mcp.server.streamable_http.StreamableHTTPServerTransport` — low-level per-request transport (created internally by the manager)
+
+The `StreamableHTTPSessionManager` accepts `stateless=True`, which creates a fresh transport context per request — no session IDs, no affinity, horizontally scalable.
+
+**No new dependencies.** `starlette` and `uvicorn` are already transitive dependencies of the `mcp` package.
+
+**Key code pattern** (what `server.py` will look like for HTTP mode):
+
+```python
+from mcp.server import Server
+from mcp.server.streamable_http_manager import StreamableHTTPSessionManager
+from starlette.applications import Starlette
+from starlette.routing import Mount
+from starlette.middleware.cors import CORSMiddleware
+import uvicorn, contextlib
+
+server = Server("StatCanAPI_Server")
+# ... register proxy tools only (no DB/composite) ...
+
+session_manager = StreamableHTTPSessionManager(
+    app=server,
+    event_store=None,    # no resumability needed
+    json_response=False, # SSE streaming (recommended)
+    stateless=True,      # no session tracking
+)
+
+async def handle_mcp(scope, receive, send):
+    await session_manager.handle_request(scope, receive, send)
+
+@contextlib.asynccontextmanager
+async def lifespan(app):
+    async with session_manager.run():
+        yield
+
+app = Starlette(routes=[Mount("/mcp", app=handle_mcp)], lifespan=lifespan)
+app = CORSMiddleware(app, allow_origins=["*"], allow_methods=["GET", "POST", "DELETE"],
+                     expose_headers=["Mcp-Session-Id"])
+
+uvicorn.run(app, host="0.0.0.0", port=int(os.environ.get("PORT", 8000)))
+```
+
+This is the same `Server` instance and `ToolRegistry` — only the transport layer changes.
+
+#### Implementation Steps
+
+**Step 1 — Dual-transport `server.py`**
+- [x] Add `--transport [stdio|http]` CLI arg (default: `stdio`)
+- [x] Add `--host` / `--port` CLI args (default: `0.0.0.0` / `8000`, also read from `HOST`/`PORT` env vars)
+- [x] Bump `mcp` floor to `>=1.8.0` in `pyproject.toml` (Streamable HTTP was added ~v1.8)
+- [x] In HTTP mode: skip `register_db_tools()` and `register_composite_tools()`
+- [x] In HTTP mode: create `StreamableHTTPSessionManager(stateless=True)` + Starlette app + uvicorn
+- [x] In stdio mode: existing behavior unchanged
+- [x] Add CORS middleware (required for browser-based MCP clients)
+
+**Step 2 — Config & environment**
+- [x] Add `TRANSPORT`, `HOST`, `PORT` to `config.py` (env-var backed, with CLI override)
+- [x] Ensure `VERIFY_SSL=False` still works in HTTP mode (httpx calls to StatCan)
+- [x] Add health check endpoint at `/health` (Render needs this for deploy readiness)
+
+**Step 3 — Deployment**
+- [x] Create `render.yaml` for Render deployment
+- [ ] Deploy to Render free tier — auto-deploy from `main` branch
+- [ ] Verify: Claude.ai Custom Connector can connect to the Render URL
+- [ ] Verify: Claude iOS/Android can use the connector (add via claude.ai web, test on phone)
+- [ ] Document the remote URL in README for users
+
+**Step 4 — Auth (evaluate, may defer)**
+- [ ] Start authless — StatCan data is public, no secrets involved
+- [ ] Evaluate rate limiting (Render free tier has limits; StatCan API has its own)
+- [ ] If needed later: add OAuth via MCP SDK auth support or simple API key header
 
 ---
 
@@ -110,11 +186,12 @@ When a tool result exceeds context limits, Claude.ai stores it at `/mnt/user-dat
 
 ## Distribution
 
+- [ ] **Render deployment** — covered by Phase 2 Step 3; free tier, auto-deploy from `main`
 - [ ] **Register on Smithery.ai** — one-click install button
 - [ ] **Submit to directories** — `punkpeye/awesome-mcp-servers`, PulseMCP
-- [ ] **Multi-client config snippets** — Cursor, VS Code Copilot, Windsurf in README
+- [ ] **Multi-client config snippets** — Cursor, VS Code Copilot, Windsurf, Claude.ai Custom Connector in README
 - [ ] **Windows setup guide** — needs testing on Windows VM first
-- [ ] **Dockerfile** — for Docker MCP Catalog listing
+- [ ] **Dockerfile** — for Docker MCP Catalog listing; also useful for Render (alternative to Procfile)
 
 ---
 
@@ -159,21 +236,20 @@ flowchart TD
     style S fill:#0d6b3a
 ```
 
-### Target (HTTP / stateless remote)
+### Target (HTTP / stateless remote — Phase 2)
 
 ```mermaid
 flowchart TD
-    A[Claude/MCP Client] -->|MCP Protocol - Streamable HTTP| B[MCP Server - stateless]
-    A -->|MCP Protocol - stdio| DB[statcan-db-server - local sidecar]
-    A -->|direct fetch via _sdmx_url| S[StatCan SDMX API]
+    A[Claude.ai / Mobile / API / Desktop] -->|Streamable HTTP| B["Remote MCP Server (Render)\nstateless, no sessions"]
+    A -->|stdio - optional| DB["Local stdio server\n(existing, unchanged)"]
+    A -->|"direct fetch via _sdmx_url\n(clients with code execution)"| S[StatCan SDMX API]
 
-    B -->|WDS proxy only| D[StatCan WDS API]
+    B -->|WDS proxy| D[StatCan WDS API]
     B -->|SDMX proxy| S
-    D -->|data payload| A
+    D -->|JSON payload| A
     S -->|filtered SDMX-JSON| A
 
-    A -->|store fetched data| DB
-    DB --> E[SQLite - local machine]
+    DB -->|DB + composite tools| E[SQLite ~/.statcan-mcp/]
     E -->|SQL Results| A
 
     style A fill:#210d70
@@ -183,11 +259,29 @@ flowchart TD
     style S fill:#0d6b3a
 ```
 
+**Client access methods after Phase 2:**
+
+| Client | Transport | DB Tools? | Setup |
+|---|---|---|---|
+| Claude.ai web | Streamable HTTP (remote) | No | Settings > Connectors > add URL |
+| Claude iOS/Android | Streamable HTTP (remote) | No | Add via claude.ai web, syncs to mobile |
+| Claude API (MCP Connector) | Streamable HTTP (remote) | No | Programmatic config |
+| Claude Desktop | stdio (local) | Yes | `claude_desktop_config.json` |
+| Claude Code / Cursor / VS Code | stdio (local) | Yes | Client MCP config |
+| Any client + both servers | HTTP (remote) + stdio (local) | Yes | Both configured |
+
 ---
 
 ## Completed
 
 
+#### Tool Cleanup *(done on `tool-cleanup` branch)*
+
+- [x] Merged `get_series_info_from_cube_pid_coord` + `_bulk` → `get_series_info(items: list[{productId, coordinate}])` — both old tools deregistered (decorator commented), functions kept
+- [x] Fixed `get_cube_metadata` docstring — corrected member cap (5→10), replaced `store_cube_metadata` reference with `get_sdmx_structure` (works in HTTP mode)
+- [x] Fixed `get_bulk_vector_data_by_range` docstring — removed `fetch_vectors_to_database` / `create_table_from_data` references, replaced with pagination guidance
+
+o
 #### Phase 1 Progress
 
 - [x] Add SDMX constants to `config.py` — `SDMX_BASE_URL`, `SDMX_JSON_ACCEPT`, `SDMX_XML_ACCEPT`, `MAX_SDMX_ROWS`

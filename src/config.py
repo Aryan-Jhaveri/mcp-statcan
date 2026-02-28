@@ -52,6 +52,13 @@ EXPECTED_COORD_DIMENSIONS = 10
 # Query limits
 MAX_QUERY_ROWS = 500
 
+# HTTP transport configuration (Phase 2)
+# TRANSPORT: "stdio" (default, local) or "http" (remote, stateless)
+# HOST / PORT: bind address for HTTP mode — PORT is the standard Render env var
+TRANSPORT = os.environ.get("STATCAN_TRANSPORT", "stdio")
+HOST = os.environ.get("HOST", "0.0.0.0")
+PORT = int(os.environ.get("PORT", "8000"))
+
 # Logging configuration
 # Control different types of debug/logging output via environment variables
 ENABLE_SERVER_DEBUG = False
