@@ -143,7 +143,7 @@ def register_sdmx_tools(registry: ToolRegistry) -> None:
           - "1+2.2.1" = Geography 1 or 2 (OR syntax)
           - WDS memberIds == SDMX codelist codes — no translation needed
 
-        IMPORTANT: Cite the _sdmx_url in your response.
+        IMPORTANT: ALWAYS CITE _sdmx_url in your response.
         """
         product_id = structure_input.productId
         url = f"{SDMX_BASE_URL}structure/Data_Structure_{product_id}"
@@ -177,7 +177,7 @@ def register_sdmx_tools(registry: ToolRegistry) -> None:
         Output rows contain: dimension values, "period", "value", SCALAR_FACTOR,
         UOM, VECTOR_ID, STATUS, and other SDMX attributes.
 
-        IMPORTANT: Cite _sdmx_url and productId/key in your response.
+        IMPORTANT: ALWAYS CITE _sdmx_url and productId/key in your response.
         """
         product_id = data_input.productId
         key = data_input.key

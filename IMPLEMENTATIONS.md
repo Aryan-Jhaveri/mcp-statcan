@@ -314,6 +314,108 @@ XML structure to parse:
 
 ---
 
+### Phase 1 — Post-Implementation Bug Investigations *(found in stress testing, Feb 28, 2026)*
+
+Three bugs found during stress testing. Two have confirmed root causes; one needs live investigation.
+
+---
+
+#### Bug 1 — Wrong `period` values for sub-annual frequencies (CONFIRMED, fix known)
+
+**Symptom:** For a monthly table (`14100287`), `get_sdmx_data` and `get_sdmx_vector_data` return `period: "2026"` (annual year) for all observations instead of `"2025-11"`, `"2025-12"`, `"2026-01"`. Multiple distinct months become indistinguishable — every row says `"2026"`.
+
+**Root cause (confirmed via live inspection):** StatCan's SDMX API sets the `id` field in `structure.dimensions.observation[0].values` to the calendar year only, even for monthly data:
+
+```json
+{
+  "start": "2025-11-01T00:00:00",
+  "end":   "2026-10-31T23:59:59",
+  "id":    "2026",
+  "name":  "2026"
+}
+```
+
+The correct period is derivable from `start`: `"2025-11"`. Our `flatten_sdmx_json` uses `entry.get("id")` which gives the wrong bare-year string.
+
+**Fix (in `src/util/sdmx_json.py`):**
+In the TIME_PERIOD section of `flatten_sdmx_json`, prefer `start[:7]` (YYYY-MM) when `id` is a bare 4-digit year and `start` is available:
+
+```python
+entry = period_vals[obs_idx]
+period_id = entry.get("id", "")
+start_dt = entry.get("start", "")
+# StatCan sets id to bare year even for monthly data; start has the real period
+if start_dt and len(period_id) == 4 and period_id.isdigit():
+    row["period"] = start_dt[:7]  # "2025-11-01T..." → "2025-11"
+else:
+    row["period"] = period_id or entry.get("name")
+```
+
+For annual tables this gives `"YYYY-01"` — more precise than `"YYYY"` but unambiguous.
+For monthly tables this gives `"YYYY-MM"` — correct.
+
+- [ ] Apply fix in `src/util/sdmx_json.py`
+- [ ] Add unit test: mock response with `start` fields, assert `period` is YYYY-MM
+
+---
+
+#### Bug 2 — `lastNObservations` + `startPeriod`/`endPeriod` combined → 406 (CONFIRMED, API limitation)
+
+**Symptom:**
+```
+Error: 406 for url '.../data/DF_14100287/6+7+10.7.1.1.1.1?lastNObservations=24&startPeriod=2024-01&endPeriod=2026-01'
+```
+
+Without `lastNObservations`, the same key with `startPeriod`/`endPeriod` returns 200 and data. With `lastNObservations` alone, also 200.
+
+**Root cause:** StatCan's SDMX REST implementation rejects requests that combine `lastNObservations` with `startPeriod` or `endPeriod`. This is not in the SDMX spec but is a known StatCan API constraint.
+
+**Fix (in `src/api/sdmx_tools.py`):**
+Add early validation in both `get_sdmx_data` and `get_sdmx_vector_data`:
+
+```python
+if data_input.lastNObservations is not None and (data_input.startPeriod or data_input.endPeriod):
+    raise ValueError(
+        "StatCan SDMX does not support combining lastNObservations with startPeriod/endPeriod. "
+        "Use one or the other: lastNObservations=N for recent data, "
+        "or startPeriod/endPeriod for a date range."
+    )
+```
+
+Also update docstrings to document this constraint explicitly.
+
+- [ ] Add validation in `get_sdmx_data`
+- [ ] Add validation in `get_sdmx_vector_data`
+- [ ] Update docstrings with explicit constraint note
+
+---
+
+#### Bug 3 — Missing `Geography` and `period` in some rows for OR-key queries (NEEDS INVESTIGATION)
+
+**Symptom:** Key `6+7+10.7.1.1.1.1` (Quebec + Ontario + Alberta, `startPeriod`/`endPeriod`) returns 75 rows. Most rows show `Geography: "Quebec"` correctly. But a subset of rows has no `Geography` field, no `Data_type` field, and no `period` field — only `Labour_force_characteristics`, `Gender`, `Age_group`, `Statistics`, `value`, `SCALAR_FACTOR`, `DGUID`. These phantom rows confuse the LLM into citing incorrect provincial data.
+
+**Hypothesis 1:** The SDMX response `structure.dimensions.observation[0].values` list is too short for some series — observation index overflows and `period` silently drops. This could happen if different series (Ontario, Alberta) have a different number of available observations within the requested period range.
+
+**Hypothesis 2:** The API returns additional unlisted series for OR-key queries (e.g., a `Trend-cycle` variant) where the series key has fewer dimensions, causing `Geography` to be decoded at the wrong dim index.
+
+**Hypothesis 3:** The `startPeriod`/`endPeriod` filter is not applied per-series — the combined observation dimension values list from multi-series is longer than expected, and the flattener decodes periods correctly for some series but `obs_idx` overflows `period_vals` for others (period silently drops per the `if obs_idx < len(period_vals)` guard).
+
+**Investigation needed:**
+1. Fetch `data/DF_14100287/6+7+10.7.1.1.1.1?startPeriod=2024-01&endPeriod=2026-01` raw JSON
+2. Inspect `structure.dimensions.series[0].values` — does it contain all 3 geographies?
+3. Inspect `structure.dimensions.observation[0].values` — how many entries? Are they all monthly (YYYY-MM in `start`)?
+4. Check series keys — do all series have 6-part keys? Any with 5 or fewer parts (indicating a missing dimension)?
+5. Cross-check: `max(obs_idx for each series)` vs `len(observation values)` — is there overflow?
+
+**Workaround until fixed:** Use separate `get_sdmx_data` calls per geography instead of OR syntax. Document in tool docstring.
+
+- [ ] Run investigation (fetch raw SDMX JSON and inspect structure for OR query)
+- [ ] Determine root cause: overflow, phantom series, or API bug
+- [ ] Fix in `flatten_sdmx_json` (guard against overflow) or `sdmx_tools.py` (validate response before flattening)
+- [ ] Update docstring with OR-key limitations
+
+---
+
 ### Phase 2 — HTTP Transport (`sdmx-http` branch, after SDMX tools are stable)
 
 #### Approach
