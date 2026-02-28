@@ -354,8 +354,8 @@ else:
 For annual tables this gives `"YYYY-01"` — more precise than `"YYYY"` but unambiguous.
 For monthly tables this gives `"YYYY-MM"` — correct.
 
-- [ ] Apply fix in `src/util/sdmx_json.py`
-- [ ] Add unit test: mock response with `start` fields, assert `period` is YYYY-MM
+- [x] Apply fix in `src/util/sdmx_json.py` — detect duplicate period IDs → use `start[:7]`; `obs_idx % n_period_vals` for overflow
+- [x] Unit tests added: `tests/test_sdmx_json.py` (annual/monthly/mixed-year/OR-query period cases)
 
 ---
 
@@ -384,9 +384,9 @@ if data_input.lastNObservations is not None and (data_input.startPeriod or data_
 
 Also update docstrings to document this constraint explicitly.
 
-- [ ] Add validation in `get_sdmx_data`
-- [ ] Add validation in `get_sdmx_vector_data`
-- [ ] Update docstrings with explicit constraint note
+- [x] Add validation in `get_sdmx_data`
+- [x] Add validation in `get_sdmx_vector_data`
+- [x] Update docstrings with explicit constraint note
 
 ---
 
@@ -407,12 +407,14 @@ Also update docstrings to document this constraint explicitly.
 4. Check series keys — do all series have 6-part keys? Any with 5 or fewer parts (indicating a missing dimension)?
 5. Cross-check: `max(obs_idx for each series)` vs `len(observation values)` — is there overflow?
 
-**Workaround until fixed:** Use separate `get_sdmx_data` calls per geography instead of OR syntax. Document in tool docstring.
+**Root cause confirmed (Feb 28, 2026):** StatCan uses globally sequential obs_keys across all series in OR-key queries (series 1: 0-24, series 2: 25-49, series 3: 50-74) while TIME_PERIOD only has 25 entries. Additionally, geography indices in series keys are incorrect for series 2+ — StatCan API bug.
 
-- [ ] Run investigation (fetch raw SDMX JSON and inspect structure for OR query)
-- [ ] Determine root cause: overflow, phantom series, or API bug
-- [ ] Fix in `flatten_sdmx_json` (guard against overflow) or `sdmx_tools.py` (validate response before flattening)
-- [ ] Update docstring with OR-key limitations
+**Fix applied:** `obs_idx % n_period_vals` in `flatten_sdmx_json` corrects period for all series. Geography labels for series 2+ in OR queries remain incorrect (StatCan encodes wrong indices — no client-side workaround without guessing).
+
+- [x] Investigation complete — root cause confirmed
+- [x] Period overflow fixed via modulo in `flatten_sdmx_json`
+- [x] Docstring updated: warns against OR syntax for Geography; recommends wildcard instead
+- [ ] Geography labels for series 2+ in OR queries still incorrect (StatCan API bug, no client fix)
 
 ---
 
