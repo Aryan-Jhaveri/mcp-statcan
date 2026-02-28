@@ -3,7 +3,7 @@
   "name": "io.github.Aryan-Jhaveri/mcp-statcan",
   "title": "Statistics Canada MCP Server",
   "description": "Access Statistics Canada data via the Web Data Services API",
-  "version": "0.2.1",
+  "version": "0.3.0",
   "repository": {
     "url": "https://github.com/Aryan-Jhaveri/mcp-statcan",
     "source": "github",
@@ -13,7 +13,7 @@
     {
       "registryType": "pypi",
       "identifier": "statcan-mcp-server",
-      "version": "0.2.1",
+      "version": "0.3.0",
       "registryBaseUrl": "https://pypi.org",
       "runtimeHint": "uvx",
       "transport": {
