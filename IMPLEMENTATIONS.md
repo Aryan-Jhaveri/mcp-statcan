@@ -3,6 +3,12 @@
 
 ## Up Next
 
+- Duplicate async def get_series_info_from_cube_pid_coord(input_data: CubeCoordInput) -> Dict[str, Any]:
+
+- Look into combining async def get_series_info_from_cube_pid_coord_bulk and  get_series_info_from_cube_pid_coord so LLM can either put in one pid and get an output, or put in multiple and get an output
+
+
+
 ### Phase 1 — SDMX Tools (`sdmx-http` branch from `main`)
 
 #### Background: Why SDMX
