@@ -92,21 +92,21 @@ This is the same `Server` instance and `ToolRegistry` — only the transport lay
 #### Implementation Steps
 
 **Step 1 — Dual-transport `server.py`**
-- [ ] Add `--transport [stdio|http]` CLI arg (default: `stdio`)
-- [ ] Add `--host` / `--port` CLI args (default: `0.0.0.0` / `8000`, also read from `HOST`/`PORT` env vars)
-- [ ] Bump `mcp` floor to `>=1.8.0` in `pyproject.toml` (Streamable HTTP was added ~v1.8)
-- [ ] In HTTP mode: skip `register_db_tools()` and `register_composite_tools()`
-- [ ] In HTTP mode: create `StreamableHTTPSessionManager(stateless=True)` + Starlette app + uvicorn
-- [ ] In stdio mode: existing behavior unchanged
-- [ ] Add CORS middleware (required for browser-based MCP clients)
+- [x] Add `--transport [stdio|http]` CLI arg (default: `stdio`)
+- [x] Add `--host` / `--port` CLI args (default: `0.0.0.0` / `8000`, also read from `HOST`/`PORT` env vars)
+- [x] Bump `mcp` floor to `>=1.8.0` in `pyproject.toml` (Streamable HTTP was added ~v1.8)
+- [x] In HTTP mode: skip `register_db_tools()` and `register_composite_tools()`
+- [x] In HTTP mode: create `StreamableHTTPSessionManager(stateless=True)` + Starlette app + uvicorn
+- [x] In stdio mode: existing behavior unchanged
+- [x] Add CORS middleware (required for browser-based MCP clients)
 
 **Step 2 — Config & environment**
-- [ ] Add `TRANSPORT`, `HOST`, `PORT` to `config.py` (env-var backed, with CLI override)
-- [ ] Ensure `VERIFY_SSL=False` still works in HTTP mode (httpx calls to StatCan)
-- [ ] Add health check endpoint at `/health` (Render needs this for deploy readiness)
+- [x] Add `TRANSPORT`, `HOST`, `PORT` to `config.py` (env-var backed, with CLI override)
+- [x] Ensure `VERIFY_SSL=False` still works in HTTP mode (httpx calls to StatCan)
+- [x] Add health check endpoint at `/health` (Render needs this for deploy readiness)
 
 **Step 3 — Deployment**
-- [ ] Create `Procfile` or `render.yaml` for Render deployment
+- [x] Create `render.yaml` for Render deployment
 - [ ] Deploy to Render free tier — auto-deploy from `main` branch
 - [ ] Verify: Claude.ai Custom Connector can connect to the Render URL
 - [ ] Verify: Claude iOS/Android can use the connector (add via claude.ai web, test on phone)

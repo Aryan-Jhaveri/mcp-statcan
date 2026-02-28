@@ -15,8 +15,8 @@ MCP server for Statistics Canada's [Web Data Service (WDS)](https://www.statcan.
 
 | Mode | Transport | Who it's for | DB/Storage tools? |
 |---|---|---|---|
-| **Remote** *(coming soon)* | Streamable HTTP | Claude.ai web, Claude mobile, Claude API — no install | No |
-| **Local** | stdio | Claude Desktop, Claude Code, Cursor, VS Code | Yes (SQLite) |
+| **Remote** *(deploying soon)* | Streamable HTTP | Claude.ai web, Claude mobile, Claude API — no install | No |
+| **Local** | stdio | Claude Desktop, Claude Code, Cursor, VS Code, Antigravity | Yes (SQLite) |
 
 ---
 
@@ -33,11 +33,11 @@ MCP server for Statistics Canada's [Web Data Service (WDS)](https://www.statcan.
 
 ## Quick Start
 
-### Remote — Claude.ai, Mobile *(coming soon)*
+### Remote — Claude.ai, Mobile *(deploying soon)*
 
 No installation required. Add the server URL once via [claude.ai](https://claude.ai) Settings → Connectors → Add custom connector. The connector syncs automatically to Claude mobile (iOS/Android).
 
-> Remote deployment via Render is in progress. URL will be published here once live.
+> Render deployment is in progress. URL will be published here once live.
 
 ### Local — Claude Desktop, Claude Code, Cursor
 
@@ -61,17 +61,17 @@ There are two independent ways to connect — you can use both at the same time:
 
 | Connection | Config location | DB tools? | Tools available |
 |---|---|---|---|
-| **Remote HTTP** *(coming soon)* | claude.ai Settings → Connectors | No | WDS + SDMX (~15 tools) |
+| **Remote HTTP** *(deploying soon)* | claude.ai Settings → Connectors | No | WDS + SDMX (~15 tools) |
 | **Local stdio** | client config file | Yes | All tools incl. SQLite |
 
 ---
 
-### Remote HTTP — Claude.ai, Claude Desktop, Mobile *(coming soon)*
+### Remote HTTP — Claude.ai, Claude Desktop, Mobile *(deploying soon)*
 
 Remote servers are added via the **claude.ai web interface**, not a config file. This applies to all clients including Claude Desktop and mobile.
 
 1. Go to [claude.ai](https://claude.ai) → Settings → Connectors → **Add custom connector**
-2. Enter the server URL: *(URL will be published here once the Render deployment is live)*
+2. Enter the server URL: *(URL will be published here once Render deployment is live)*
 3. Click **Add** — no authentication required (StatCan data is public)
 
 The connector syncs automatically to Claude Desktop and Claude mobile once added.
@@ -137,6 +137,26 @@ In `.vscode/mcp.json`:
   }
 }
 ```
+
+**Google Antigravity**
+
+Open the config via the UI: **three dots (⋮) → MCP Servers → Manage MCP Servers → View raw config**, or edit directly:
+
+- macOS / Linux: `~/.gemini/antigravity/mcp_config.json`
+- Windows: `C:\Users\<you>\.gemini\antigravity\mcp_config.json`
+
+```json
+{
+  "mcpServers": {
+    "statcan": {
+      "command": "uvx",
+      "args": ["statcan-mcp-server"]
+    }
+  }
+}
+```
+
+---
 
 **Optional flags**
 
