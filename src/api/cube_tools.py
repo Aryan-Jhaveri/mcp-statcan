@@ -151,11 +151,13 @@ def register_cube_tools(registry: ToolRegistry):
         Includes dimension info, titles, date ranges, codes, etc. Disables SSL Verification.
         Corresponds to: POST /getCubeMetadata
 
-        Start with summary=True (default). The summary caps each dimension's member
-        list at 10 entries and shows total counts. Set summary=False to get the full
-        member list (may be large for wide tables).
-        To understand dimension codelists and key syntax for get_sdmx_data, use
-        get_sdmx_structure(productId) — it returns the SDMX dimension codes directly.
+        Start with summary=True (default). The summary strips noise (French translations,
+        archive codes, footnotes) and shows only 3 sample members per dimension with
+        _next_steps guidance. Safe for all context window sizes.
+        Set summary=False only if you need the full raw member list or all API fields.
+
+        To browse dimension codes for get_sdmx_data key construction, use get_sdmx_structure.
+        To resolve a coordinate to a vectorId, use get_series_info.
 
         Returns:
             Dict[str, Any]: The metadata object for the specified cube on success.

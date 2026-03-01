@@ -9,7 +9,7 @@ class ProductIdInput(BaseModel):
 
 class CubeMetadataInput(BaseModel):
     productId: int
-    summary: bool = Field(True, description="When True (default), truncates dimension member lists to 5 entries and shows counts. Set to False only if you need specific vectorIds not visible in the summary.")
+    summary: bool = Field(True, description="When True (default), returns a compact summary: essential cube metadata, dimension names, 3 sample members per dimension, and _next_steps guidance. Set to False only when you need the full raw member list or all API fields.")
 
 class VectorIdInput(BaseModel):
     vectorId: int

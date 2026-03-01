@@ -5,6 +5,17 @@ import copy
 
 
 DEFAULT_MEMBER_LIMIT = 10
+SUMMARY_MEMBER_LIMIT = 3  # Members shown per dimension in summary mode
+
+# Top-level fields kept in summary mode — everything else is stripped.
+_SUMMARY_TOP_LEVEL = {
+    "productId", "cansimId", "cubeTitleEn",
+    "cubeStartDate", "cubeEndDate", "frequencyCode", "releaseTime",
+    "dimension", "footnote",
+}
+
+# Member fields kept in summary mode — strips Fr translations and low-level codes.
+_SUMMARY_MEMBER_FIELDS = {"memberId", "memberNameEn", "terminated"}
 
 
 def truncate_response(
@@ -55,41 +66,64 @@ def truncate_with_guidance(
 
 
 def summarize_cube_metadata(
-    metadata: Dict[str, Any], member_limit: int = DEFAULT_MEMBER_LIMIT
+    metadata: Dict[str, Any], member_limit: int = SUMMARY_MEMBER_LIMIT
 ) -> Dict[str, Any]:
-    """Summarize cube metadata by truncating dimension member lists.
+    """Return a compact cube metadata summary safe for LLM context windows.
 
-    Keeps dimension IDs, names, and member counts. Truncates each dimension's
-    member list to member_limit entries and appends a count message.
+    Strips French translations, low-level codes, and noisy top-level fields.
+    Keeps at most member_limit members per dimension (default 3) for orientation;
+    strips per-member noise fields (Fr name, classification codes, geo level, etc.).
+    Footnotes are replaced with a count.
+
+    Adds _next_steps guidance so the LLM knows how to get full member lists
+    or resolve coordinates to vectorIds without another large fetch.
     """
-    result = copy.deepcopy(metadata)
-    dimensions = result.get("dimension", [])
+    # ── 1. Keep only essential top-level fields ─────────────────────────────
+    result: Dict[str, Any] = {
+        k: copy.deepcopy(v)
+        for k, v in metadata.items()
+        if k in _SUMMARY_TOP_LEVEL
+    }
 
-    for dim in dimensions:
+    # ── 2. Slim each dimension ───────────────────────────────────────────────
+    slim_dims = []
+    for dim in result.get("dimension", []):
         members = dim.get("member", [])
         total_members = len(members)
-        if total_members > member_limit:
-            dim["member"] = members[:member_limit]
-            dim["_member_count"] = total_members
-            dim["_truncated"] = True
-            dim["_message"] = (
-                f"Showing first {member_limit} of {total_members} members. "
-                f"This dimension occupies position {dim.get('dimensionPositionId', '?')} in the coordinate string. "
-                "Each member's memberId is its value at that position (e.g., memberId=3 → coordinate position value 3). "
-                "To browse all members without flooding context, use store_cube_metadata(productId) — "
-                "it stores the full member list in SQLite and returns a compact summary you can query. "
-                "To resolve a specific coordinate to its vectorId and series name, use "
-                "get_series_info_from_cube_pid_coord(productId, coordinate)."
-            )
-        else:
-            dim["_member_count"] = total_members
-            dim["_truncated"] = False
 
-    # Strip footnotes — they are long bilingual methodology notes that bloat the
-    # response without helping with navigation. Replace with a count.
+        slim_members = [
+            {f: m[f] for f in _SUMMARY_MEMBER_FIELDS if f in m}
+            for m in members[:member_limit]
+        ]
+
+        slim_dim: Dict[str, Any] = {
+            "dimensionPositionId": dim.get("dimensionPositionId"),
+            "dimensionNameEn": dim.get("dimensionNameEn"),
+            "hasUom": dim.get("hasUom"),
+            "member": slim_members,
+            "_member_count": total_members,
+            "_truncated": total_members > member_limit,
+        }
+        slim_dims.append(slim_dim)
+
+    result["dimension"] = slim_dims
+
+    # ── 3. Replace footnotes with a count ────────────────────────────────────
     footnotes = result.get("footnote", [])
-    if footnotes:
-        result["footnote"] = f"[{len(footnotes)} footnotes omitted. Set summary=False to include them.]"
+    if isinstance(footnotes, list) and footnotes:
+        result["footnote"] = f"[{len(footnotes)} footnotes omitted — set summary=False to include]"
+    elif not footnotes:
+        result.pop("footnote", None)
+
+    # ── 4. Guidance ──────────────────────────────────────────────────────────
+    pid = metadata.get("productId", "?")
+    result["_next_steps"] = (
+        f"Showing {member_limit} sample members per dimension. "
+        "To browse full member lists and build SDMX keys, call get_sdmx_structure(productId). "
+        "To resolve a specific coordinate to a vectorId, call "
+        f"get_series_info(items=[{{\"productId\": {pid}, \"coordinate\": \"1.1.1...\"}}]). "
+        "To see all raw API fields and full member lists, call get_cube_metadata(summary=False)."
+    )
 
     result["_summary"] = True
     return result
