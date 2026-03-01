@@ -11,6 +11,8 @@
 
 MCP server for Statistics Canada's [Web Data Service (WDS)](https://www.statcan.gc.ca/eng/developers/wds) and [SDMX REST API](https://www150.statcan.gc.ca/t1/wds/sdmx/statcan/rest/). Gives any MCP client — Claude, ChatGPT, Gemini,Cursor, VS Code Copilot, and more — structured access to Canadian statistical data.
 
+Currently hosting on Render! Add this url to ur Claude Connector: https://mcp-statcan.onrender.com/mcp
+
 **Two setup modes:**
 
 | Mode | Tools available | DB/Storage? | Best for |
