@@ -34,25 +34,6 @@ The LLM already gets `_sdmx_url` in every SDMX tool response. The missing piece:
 
 ---
 
-## Up Next
-
-### Phase 2 — Streamable HTTP Transport (remaining)
-
-Implementation and local dev complete. Remaining: deployment and verification.
-
-- [ ] Deploy to Render free tier — auto-deploy from `main` branch
-- [ ] Verify: Claude.ai Custom Connector can connect to the Render URL
-- [ ] Verify: Claude iOS/Android can use the connector (add via claude.ai web, test on phone)
-- [ ] Document the remote URL in README for users
-
-#### Auth (evaluate, may defer)
-
-- [ ] Start authless — StatCan data is public, no secrets involved
-- [ ] Evaluate rate limiting (Render free tier has limits; StatCan API has its own)
-- [ ] If needed later: add OAuth via MCP SDK auth support or simple API key header
-
----
-
 ### Phase 3 — MCP Resources & Prompts for SDMX
 
 Expose SDMX URL construction as MCP primitives — supplementary to tools, not a replacement.
@@ -106,42 +87,13 @@ Additive primitive — new module `src/api/app_tools.py` registered in `create_s
 - [ ] **A2A + MCP** — multi-agent system exploration
 - [ ] **Scheduled reports** — periodic LLM calls for dataset summaries
 - [ ] **Caching aligned to StatCan update schedule** — time-based invalidation at StatCan's 8:30 AM ET release cadence
+- [ ] **Full cube list pre-fetch** — download all cube list so wildcarding can be allow llm to find stuff from the file instead of online
 - [ ] **Full cube pre-fetch** — download all cube metadata to local DB for fully offline browsing
 
 
 ## Architecture & Data Flow
 
-### Current (stdio / local)
-
-```mermaid
-flowchart TD
-    A[Claude/MCP Client] -->|MCP Protocol - stdio| B[MCP Server]
-
-    B --> C{Tool Type}
-    C -->|WDS Cube/Vector| D[StatCan WDS API]
-    C -->|SDMX - Phase 1| S[StatCan SDMX API]
-    C -->|DB Tools| E[SQLite ~/.statcan-mcp/]
-
-    D -->|fetch_vectors_to_database\nstore_cube_metadata| F[Composite: fetch + store]
-    F --> E
-
-    D -->|paginated tools| G[offset + limit response]
-    G -->|preview + guidance| A
-
-    S -->|filtered by key + date| T[flat tabular rows + _sdmx_url]
-    T --> A
-
-    E --> I[create_table_from_data\nquery_database\nlist_tables\nget_table_schema\ndrop_table]
-    I -->|SQL Results| A
-
-    style A fill:#210d70
-    style B fill:#70190d
-    style E fill:#700d49
-    style F fill:#0d5c70
-    style S fill:#0d6b3a
-```
-
-### Target (HTTP / stateless remote — Phase 2)
+### Current
 
 ```mermaid
 flowchart TD
