@@ -63,8 +63,8 @@ MCP server for Statistics Canada's [Web Data Service (WDS)](https://www.statcan.
 
 ## Quick Start
 
-#### 🚀 Use the hosted version (easiest)
-Last Hosting Update:  Feb 28/2026
+#### 🚀 Use the currently hosted version (easiest if available)
+Last Hosting Update: <code> Feb 28/2026 </code>
 
 No installation required, connect to the public server if you the link below works 
 
