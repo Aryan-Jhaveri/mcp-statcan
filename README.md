@@ -15,6 +15,7 @@ MCP server for Statistics Canada's [Web Data Service (WDS)](https://www.statcan.
 Go to Claude -> Settings -> Connectors -> "Add Custom Connector" -> for the fields: 
 
 **Name**: mcp-statcan
+
 **REMOTE MCP Server URL**: **https://mcp-statcan.onrender.com/mcp**
 
 Click Add. Now Get statcan data on your device
