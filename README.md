@@ -407,6 +407,7 @@ src/
 - **SSL verification disabled**: `VERIFY_SSL = False` in all StatCan API calls. This is a known limitation — StatCan's certificate chain causes verification failures in some environments.
 - **SDMX OR-key geography labels**: Using `+` syntax for multiple geographies (e.g. `"1+2.2.1"`) produces incorrect Geography labels for series 2+. Use wildcard (omit the dimension: `".2.1"`) instead — this is a StatCan API bug.
 - **`lastNObservations` + date range**: StatCan SDMX returns 406 when combining `lastNObservations` with `startPeriod`/`endPeriod`. Use one or the other.
+- **Context overflow may cause data fabrication**: When tool results are large, the LLM's context window fills up and it may fabricate or hallucinate data values instead of fetching them. Always verify important figures against [official Statistics Canada sources](https://www.statcan.gc.ca/). Use precise SDMX queries (`lastNObservations`, specific keys) to keep responses small.
 - **Rate limits**: StatCan's API may throttle during high-demand periods.
 
 ---
