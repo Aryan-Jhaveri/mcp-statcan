@@ -86,7 +86,7 @@ Additive primitive — new module `src/api/app_tools.py` registered in `create_s
 - [ ] **A2A + MCP** — multi-agent system exploration
 - [ ] **Scheduled reports** — periodic LLM calls for dataset summaries
 - [ ] **Caching aligned to StatCan update schedule** — time-based invalidation at StatCan's 8:30 AM ET release cadence
-- [ ] **Full cube list pre-fetch** — download all cube list so wildcarding can be allow llm to find stuff from the file instead of online
+- [ ] **Full cube list pre-fetch** — download all cube list so wildcarding allow llm to find stuff from the file instead of having to call functions to search online multiple times
 - [ ] **Full cube pre-fetch** — download all cube metadata to local DB for fully offline browsing
 
 
