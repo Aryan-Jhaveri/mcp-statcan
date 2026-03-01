@@ -11,14 +11,30 @@
 
 MCP server for Statistics Canada's [Web Data Service (WDS)](https://www.statcan.gc.ca/eng/developers/wds) and [SDMX REST API](https://www150.statcan.gc.ca/t1/wds/sdmx/statcan/rest/). Gives any MCP client — Claude, ChatGPT, Gemini,Cursor, VS Code Copilot, and more — structured access to Canadian statistical data.
 
-**Two connection modes:**
+**Two setup modes:**
 
-| Mode | Transport | Who it's for | DB/Storage tools? |
+| Mode | Tools available | DB/Storage? | Best for |
 |---|---|---|---|
-| **Remote** *(deploying soon)* | Streamable HTTP | Claude.ai web, Claude mobile, Claude API — no install | No |
-| **Local** | stdio | Claude Desktop, Claude Code, Cursor, VS Code, Antigravity | Yes (SQLite) |
+| **HTTP** (self-hosted) | WDS + SDMX (~15 tools) | No | Most users — data access without local storage |
+| **stdio** (full) | All tools incl. SQLite | Yes | Power users — multi-series analysis, SQL queries |
 
 ---
+
+## Examples
+
+### Chat demos
+
+| Dataset | Query | Demo | Source |
+|---|---|---|---|
+| Canada's Greenhouse Gas Emissions (2018-2022) | "Create a simple visualization for greenhouse emissions for Canada as a whole over the last 4 years" | <a href="https://claude.ai/share/7de892a1-e1d9-410f-96f7-90cd140e5dd9" target="_blank">View</a> | <a href="https://www150.statcan.gc.ca/t1/tbl1/en/cv.action?pid=3810009701" target="_blank">Table 38-10-0097-01</a> |
+| Canada's International Trade in Services | "Create a quick analysis for international trade in services for the last 6 months with a visualization" | <a href="https://claude.ai/share/c00eba2d-4e86-4405-878a-7ea4110cb7d3" target="_blank">View</a> | <a href="https://www150.statcan.gc.ca/t1/tbl1/en/cv.action?pid=1210014401" target="_blank">Table 12-10-0144-01</a> |
+| Ontario Building Construction Price Index | "Generate a visualization for Ontario's Building Price index from Q4 2023 to Q4 2024" | <a href="https://claude.ai/share/12ce906f-5a26-4e74-86d9-10451ab5bc4b" target="_blank">View</a> | <a href="https://www150.statcan.gc.ca/t1/tbl1/en/cv.action?pid=1810028901" target="_blank">Table 18-10-0289-01</a> |
+
+### Dashboard example
+
+| Dataset | Link | Source |
+|---|---|---|
+| Labour force characteristics by province, territory and economic region, annual | <a href="https://claude.ai/public/artifacts/298dfc5f-8e1b-4b73-a4d0-9a68b30cdb54" target="_blank">Dashboard</a> | <a href="https://www150.statcan.gc.ca/t1/tbl1/en/tv.action?pid=1410046401" target="_blank">Table 14-10-0464-01</a> |
 
 ## Table of Contents
 
@@ -33,14 +49,6 @@ MCP server for Statistics Canada's [Web Data Service (WDS)](https://www.statcan.
 
 ## Quick Start
 
-### Remote — Claude.ai, Mobile *(deploying soon)*
-
-No installation required. Add the server URL once via [claude.ai](https://claude.ai) Settings → Connectors → Add custom connector. The connector syncs automatically to Claude mobile (iOS/Android).
-
-> Render deployment is in progress. URL will be published here once live.
-
-### Local — Claude Desktop, Claude Code, Cursor
-
 Requires [`uv`](https://docs.astral.sh/uv/):
 
 ```bash
@@ -51,37 +59,125 @@ curl -LsSf https://astral.sh/uv/install.sh | sh
 powershell -ExecutionPolicy ByPass -c "irm https://astral.sh/uv/install.ps1 | iex"
 ```
 
-`uvx` (bundled with `uv`) downloads and runs `statcan-mcp-server` from PyPI automatically on first use — no manual `pip install` needed.
+### HTTP mode — WDS + SDMX, no DB (recommended)
+
+Start the server in a terminal and leave it running:
+
+```bash
+uvx statcan-mcp-server --transport http
+# Server running at http://localhost:8000  |  /health  |  /mcp
+```
+
+Then configure your client to connect to `http://localhost:8000/mcp` — see [Setup by Client](#setup-by-client) below.
+
+### Full mode — add SQLite DB tools
+
+Run via stdio — no separate server process needed:
+
+```bash
+uvx statcan-mcp-server
+```
+
+Configure your client with the stdio snippets in [Setup by Client](#setup-by-client).
 
 ---
 
 ## Setup by Client
 
-There are two independent ways to connect — you can use both at the same time:
-
-| Connection | Config location | DB tools? | Tools available |
-|---|---|---|---|
-| **Remote HTTP** *(deploying soon)* | claude.ai Settings → Connectors | No | WDS + SDMX (~15 tools) |
-| **Local stdio** | client config file | Yes | All tools incl. SQLite |
+| Mode | DB tools? | Tools available |
+|---|---|---|
+| **HTTP** (self-hosted, start server first) | No | WDS + SDMX (~15 tools) |
+| **stdio** (full) | Yes | All tools incl. SQLite |
 
 ---
 
-### Remote HTTP — Claude.ai, Claude Desktop, Mobile *(deploying soon)*
+### HTTP mode — WDS + SDMX (no DB)
 
-Remote servers are added via the **claude.ai web interface**, not a config file. This applies to all clients including Claude Desktop.
+> **Before configuring your client:** start the server in a separate terminal:
+> ```bash
+> uvx statcan-mcp-server --transport http
+> ```
+> Keep it running while using your client. Verify at `http://localhost:8000/health`.
 
-1. Go to [claude.ai](https://claude.ai) → Settings → Connectors → **Add custom connector**
-2. Enter the server URL: *(Either on published here that I could host, or you could install the mcp-server and self-host on your machine.) 
-    - [Remember: Self Hosting is always more secure]
-3. Click **Add** 
+Most clients use [`mcp-proxy`](https://github.com/sparfenyuk/mcp-proxy) to bridge stdio ↔ HTTP. Claude Code connects natively.
 
-The connector syncs automatically to Claude Desktop once added.
+**Claude Desktop**
+
+Navigate to: Claude Desktop → Settings (⌘,) → Developer → Edit Config
+
+```json
+{
+  "mcpServers": {
+    "statcan": {
+      "command": "uvx",
+      "args": ["mcp-proxy", "--transport", "streamablehttp", "http://localhost:8000/mcp"]
+    }
+  }
+}
+```
+
+Restart Claude Desktop after saving.
+
+**Claude Code**
+
+```bash
+claude mcp add statcan --transport http http://localhost:8000/mcp --scope global
+```
+
+**Cursor**
+
+In `.cursor/mcp.json` (project) or `~/.cursor/mcp.json` (global):
+
+```json
+{
+  "mcpServers": {
+    "statcan": {
+      "command": "uvx",
+      "args": ["mcp-proxy", "--transport", "streamablehttp", "http://localhost:8000/mcp"]
+    }
+  }
+}
+```
+
+**VS Code (GitHub Copilot)**
+
+In `.vscode/mcp.json`:
+
+```json
+{
+  "servers": {
+    "statcan": {
+      "type": "stdio",
+      "command": "uvx",
+      "args": ["mcp-proxy", "--transport", "streamablehttp", "http://localhost:8000/mcp"]
+    }
+  }
+}
+```
+
+**Google Antigravity**
+
+Open the config via the UI: **three dots (⋮) → MCP Servers → Manage MCP Servers → View raw config**, or edit directly:
+
+- macOS / Linux: `~/.gemini/antigravity/mcp_config.json`
+- Windows: `C:\Users\<you>\.gemini\antigravity\mcp_config.json`
+
+```json
+{
+  "mcpServers": {
+    "statcan": {
+      "command": "uvx",
+      "args": ["mcp-proxy", "--transport", "streamablehttp", "http://localhost:8000/mcp"]
+    }
+  }
+}
+```
 
 ---
 
-### Local stdio — Full feature set (WDS + SDMX + SQLite)
+### Full mode — WDS + SDMX + SQLite DB tools
 
-Requires [`uv`](https://docs.astral.sh/uv/) installed. `uvx` downloads `statcan-mcp-server` from PyPI automatically.
+No separate server process. `uvx` downloads and runs `statcan-mcp-server` from PyPI automatically.
 
 **Claude Desktop**
 
@@ -100,7 +196,7 @@ Navigate to: Claude Desktop → Settings (⌘,) → Developer → Edit Config
 
 > **Note:** Pass `--db-path` with an absolute path. Claude Desktop overrides the subprocess `HOME` env var, which breaks the default `~/.statcan-mcp/` path resolution.
 
-Restart the Claude Desktop app after saving.
+Restart Claude Desktop after saving.
 
 **Claude Code**
 
@@ -157,9 +253,7 @@ Open the config via the UI: **three dots (⋮) → MCP Servers → Manage MCP Se
 }
 ```
 
----
-
-**Optional flags**
+**Optional flags (full/stdio mode)**
 
 ```bash
 # Custom database path (recommended for Claude Desktop)
@@ -167,9 +261,6 @@ uvx statcan-mcp-server --db-path /your/path/statcan_data.db
 
 # Environment variable alternative
 STATCAN_DB_FILE=/your/path/statcan_data.db uvx statcan-mcp-server
-
-# Self-host the HTTP server (Phase 2 — for advanced use)
-STATCAN_TRANSPORT=http PORT=8000 uvx statcan-mcp-server
 ```
 
 ---
@@ -245,22 +336,6 @@ Persistent SQLite at `~/.statcan-mcp/statcan_data.db`.
 | `drop_table` | Drop a table. |
 
 ---
-
-## Examples
-
-### Chat demos
-
-| Dataset | Query | Demo | Source |
-|---|---|---|---|
-| Canada's Greenhouse Gas Emissions (2018-2022) | "Create a simple visualization for greenhouse emissions for Canada as a whole over the last 4 years" | <a href="https://claude.ai/share/7de892a1-e1d9-410f-96f7-90cd140e5dd9" target="_blank">View</a> | <a href="https://www150.statcan.gc.ca/t1/tbl1/en/cv.action?pid=3810009701" target="_blank">Table 38-10-0097-01</a> |
-| Canada's International Trade in Services | "Create a quick analysis for international trade in services for the last 6 months with a visualization" | <a href="https://claude.ai/share/c00eba2d-4e86-4405-878a-7ea4110cb7d3" target="_blank">View</a> | <a href="https://www150.statcan.gc.ca/t1/tbl1/en/cv.action?pid=1210014401" target="_blank">Table 12-10-0144-01</a> |
-| Ontario Building Construction Price Index | "Generate a visualization for Ontario's Building Price index from Q4 2023 to Q4 2024" | <a href="https://claude.ai/share/12ce906f-5a26-4e74-86d9-10451ab5bc4b" target="_blank">View</a> | <a href="https://www150.statcan.gc.ca/t1/tbl1/en/cv.action?pid=1810028901" target="_blank">Table 18-10-0289-01</a> |
-
-### Dashboard example
-
-| Dataset | Link | Source |
-|---|---|---|
-| Labour force characteristics by province, territory and economic region, annual | <a href="https://claude.ai/public/artifacts/298dfc5f-8e1b-4b73-a4d0-9a68b30cdb54" target="_blank">Dashboard</a> | <a href="https://www150.statcan.gc.ca/t1/tbl1/en/tv.action?pid=1410046401" target="_blank">Table 14-10-0464-01</a> |
 
 ### Typical workflow (local mode)
 
