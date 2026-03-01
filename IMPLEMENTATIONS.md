@@ -71,7 +71,6 @@ Additive primitive — new module `src/api/app_tools.py` registered in `create_s
 - [ ] **Enable SSL verification** — `VERIFY_SSL = False` is a security risk
 - [ ] **CI/CD linting** — ruff + mypy on push/PR
 - [ ] **Expand tests** — mock StatCan API responses; per-tool coverage (currently only truncation + sdmx_json tested)
-- [ ] **Consolidate HTTP client usage** — most tools create inline `httpx.AsyncClient` instead of using a shared helper
 
 ### Distribution
 
