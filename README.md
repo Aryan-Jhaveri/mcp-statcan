@@ -51,14 +51,12 @@ MCP server for Statistics Canada's [Web Data Service (WDS)](https://www.statcan.
 
 ### Dashboard examples
 
-| Dataset | Link | Source |
+| Title | Link | Source |
 |---|---|---|
-  | Labour force characteristics by province, territory and economic region, annual | <a href="https://claude.ai/public/artifacts/298dfc5f-8e1b-4b73-a4d0-9a68b30cdb54" target="_blank">Dashboard</a> | <ul> <li> Labour force characteristics by province, territory and economic region, annual. <ul> <li> <a href="https://www150.statcan.gc.ca/t1/tbl1/en/tv.action?pid=1410046401" target="_blank">  Table 14-10-0464-01 </a> </ul> </li>
-| Canada's Critical Minerals Economy | <a href="https://claude.ai/public/artifacts/ 15d289c7-f324-4ced-bcc0-53d6ac3218c9" target="_blank">Dashboard</a> | <ul> <li> Economic contribution of critical mineral production, by Natural Resources Canada prioritized group, Canada. <ul> <li> <a href="https://www150.statcan.gc.ca/t1/tbl1/en/cv.action?pid=3610070801" target="_blank"> Table 36-10-0708-01</a> </li> </li> </ul> <li> Economic contribution of critical mineral production based on the Natural Resources Satellite Account, by commodity, Canada (x 1,000,000) <ul> <li> <a href="https://www150.statcan.gc.ca/t1/tbl1/en/cv.action?pid=3610070801" target="_blank"> Table 36-10-0707-01 </a> </li> </ul>
-| Canadian Unemployment. Annual Labour Force Survey Results by Province & Territory — 2011 to 2025 | <a href="https://claude.ai/public/artifacts/298dfc5f-8e1b-4b73-a4d0-9a68b30cdb54"> Dashboard </a> | <ul> <li> Labour force characteristics by province, territory and economic region, annual. <ul> <li> <a href="https://www150.statcan.gc.ca/t1/tbl1/en/tv.action?pid=1410046401" target="_blank"> Table 14-10-0464-01 </a> </li> </ul>
-
-
-
+| Canadian Unemployement Dashboard | <a href="https://claude.ai/public/artifacts/298dfc5f-8e1b-4b73-a4d0-9a68b30cdb54" target="_blank">Dashboard</a> | <ul> <li> Labour force characteristics by province, territory and economic region, annual. <ul> <li> <a href="https://www150.statcan.gc.ca/t1/tbl1/en/tv.action?pid=1410046401" target="_blank">  Table 14-10-0464-01 </a> </ul> </li>
+| Canada's Critical Minerals Economy | <a href="https://claude.ai/public/artifacts/15d289c7-f324-4ced-bcc0-53d6ac3218c9" target="_blank">Dashboard</a> | <ul> <li> Economic contribution of critical mineral production, by Natural Resources Canada prioritized group, Canada. <ul> <li> <a href="https://www150.statcan.gc.ca/t1/tbl1/en/cv.action?pid=3610070801" target="_blank"> Table 36-10-0708-01</a> </li> </li> </ul> <li> Economic contribution of critical mineral production based on the Natural Resources Satellite Account, by commodity, Canada (x 1,000,000) <ul> <li> <a href="https://www150.statcan.gc.ca/t1/tbl1/en/cv.action?pid=3610070801" target="_blank"> Table 36-10-0707-01 </a> </li> </ul>
+| Price of Everything: CPI Dashboard 2015 - 2026 | <a href="https://claude.ai/public/artifacts/61e99645-934c-4fe2-9693-88dca714a634"> Dashboard </a> | <ul> <li> Consumer Price Index, monthly, not seasonally adjusted  </li> <ul> <li> <a href="https://www150.statcan.gc.ca/t1/tbl1/en/cv.action?pid=1810000401" target="_blank"> Table 14-10-0464-01 </a> </li> </ul>
+| Canada's Biomedical & Biotech Industries | <a href="https://claude.ai/public/artifacts/749ab9ef-c7a2-4186-8a75-d94a6eb8772e" target="_blank"> Dashboard </a> | <ul> <li> Applications related to biotechnology, by industry and enterprise size </li> <ul> <li> <a href="https://www150.statcan.gc.ca/t1/tbl1/en/tv.action?pid=2710029701&request_locale=en" target="_blank"> Table 27-10-0297-01 (formerly CANSIM 358-0428) </a> </li> </ul> </ul> <ul> <li> Adoption of biotechnology, by industry and enterprise size </li> <ul> <li> <a href="https://www150.statcan.gc.ca/t1/tbl1/en/cv.action?pid=2710029601" target="_blank"> Table 27-10-0296-01 (formerly CANSIM 358-0427) </a> </li> </ul> 
 ---
 
 ## Quick Start
