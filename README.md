@@ -41,19 +41,23 @@ MCP server for Statistics Canada's [Web Data Service (WDS)](https://www.statcan.
 
 ## Examples
 
-### Chat demos
+### Chat examples
 
 | Dataset | Query | Demo | Source |
 |---|---|---|---|
-| Canada's Greenhouse Gas Emissions (2018-2022) | "Create a simple visualization for greenhouse emissions for Canada as a whole over the last 4 years" | <a href="https://claude.ai/share/7de892a1-e1d9-410f-96f7-90cd140e5dd9" target="_blank">View</a> | <a href="https://www150.statcan.gc.ca/t1/tbl1/en/cv.action?pid=3810009701" target="_blank">Table 38-10-0097-01</a> |
-| Canada's International Trade in Services | "Create a quick analysis for international trade in services for the last 6 months with a visualization" | <a href="https://claude.ai/share/c00eba2d-4e86-4405-878a-7ea4110cb7d3" target="_blank">View</a> | <a href="https://www150.statcan.gc.ca/t1/tbl1/en/cv.action?pid=1210014401" target="_blank">Table 12-10-0144-01</a> |
-| Ontario Building Construction Price Index | "Generate a visualization for Ontario's Building Price index from Q4 2023 to Q4 2024" | <a href="https://claude.ai/share/12ce906f-5a26-4e74-86d9-10451ab5bc4b" target="_blank">View</a> | <a href="https://www150.statcan.gc.ca/t1/tbl1/en/cv.action?pid=1810028901" target="_blank">Table 18-10-0289-01</a> |
+| Canada's Greenhouse Gas Emissions (2018-2022) | "Create a simple visualization for greenhouse emissions for Canada as a whole over the last 4 years" | <a href="https://claude.ai/share/7de892a1-e1d9-410f-96f7-90cd140e5dd9" target="_blank">Chat</a> | <a href="https://www150.statcan.gc.ca/t1/tbl1/en/cv.action?pid=3810009701" target="_blank">Table 38-10-0097-01</a> |
+| Canada's International Trade in Services | "Create a quick analysis for international trade in services for the last 6 months with a visualization" | <a href="https://claude.ai/share/c00eba2d-4e86-4405-878a-7ea4110cb7d3" target="_blank">Chat</a> | <a href="https://www150.statcan.gc.ca/t1/tbl1/en/cv.action?pid=1210014401" target="_blank">Table 12-10-0144-01</a> |
+| Ontario Building Construction Price Index | "Generate a visualization for Ontario's Building Price index from Q4 2023 to Q4 2024" | <a href="https://claude.ai/share/12ce906f-5a26-4e74-86d9-10451ab5bc4b" target="_blank">Chat</a> | <a href="https://www150.statcan.gc.ca/t1/tbl1/en/cv.action?pid=1810028901" target="_blank">Table 18-10-0289-01</a> |
 
-### Dashboard example
+### Dashboard examples
 
 | Dataset | Link | Source |
 |---|---|---|
-| Labour force characteristics by province, territory and economic region, annual | <a href="https://claude.ai/public/artifacts/298dfc5f-8e1b-4b73-a4d0-9a68b30cdb54" target="_blank">Dashboard</a> | <a href="https://www150.statcan.gc.ca/t1/tbl1/en/tv.action?pid=1410046401" target="_blank">Table 14-10-0464-01</a> |
+  | Labour force characteristics by province, territory and economic region, annual | <a href="https://claude.ai/public/artifacts/298dfc5f-8e1b-4b73-a4d0-9a68b30cdb54" target="_blank">Dashboard</a> | <ul> <li> Labour force characteristics by province, territory and economic region, annual. <ul> <li> <a href="https://www150.statcan.gc.ca/t1/tbl1/en/tv.action?pid=1410046401" target="_blank">  Table 14-10-0464-01 </a> </ul> </li>
+| Canada's Critical Minerals Economy | <a href="https://claude.ai/public/artifacts/ 15d289c7-f324-4ced-bcc0-53d6ac3218c9" target="_blank">Dashboard</a> | <ul> <li> Economic contribution of critical mineral production, by Natural Resources Canada prioritized group, Canada. <ul> <li> <a href="https://www150.statcan.gc.ca/t1/tbl1/en/cv.action?pid=3610070801" target="_blank"> Table 36-10-0708-01</a> </li> </li> </ul> <li> Economic contribution of critical mineral production based on the Natural Resources Satellite Account, by commodity, Canada (x 1,000,000) <ul> <li> <a href="https://www150.statcan.gc.ca/t1/tbl1/en/cv.action?pid=3610070801" target="_blank"> Table 36-10-0707-01 </a> </li> </ul>
+| Canadian Unemployment. Annual Labour Force Survey Results by Province & Territory — 2011 to 2025 | <a href="https://claude.ai/public/artifacts/298dfc5f-8e1b-4b73-a4d0-9a68b30cdb54"> Dashboard </a> | <ul> <li> Labour force characteristics by province, territory and economic region, annual. <ul> <li> <a href="https://www150.statcan.gc.ca/t1/tbl1/en/tv.action?pid=1410046401" target="_blank"> Table 14-10-0464-01 </a> </li> </ul>
+
+
 
 ---
 
