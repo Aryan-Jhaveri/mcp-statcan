@@ -19,23 +19,12 @@ Last Hosting Update:  Feb 28/2026
 No installation required, connect to the public server if you the link below works 
 
 **Claude Desktop**
-1. Go to **Settings (⌘,) → Developer → Edit Config**
-2. Add to `mcpServers`:
-```json
-{
-  "mcpServers": {
-    "statcan": {
-      "command": "uvx",
-      "args": ["mcp-proxy", "--transport", "streamablehttp", "https://mcp-statcan.onrender.com/mcp"]
-    }
-  }
-}
-```
-3. Restart Claude Desktop
+1. Go to **Settings (⌘,) → Connectors → Add Custom Connector**
+2. Add mcp-statcan to `name`
+3. Add https://mcp-statcan.onrender.com/mcp to `Remote MCP Server URL`
+4. Restart Claude Desktop
 
 ### 💻 Can also be Self-host locally (full features and additional SQLite database support!)
-
-See [Setup by Client](#setup-by-client) for step-by-step instructions per client.
 
 
 #### **Two setup modes:**
