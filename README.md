@@ -68,13 +68,14 @@ There are two independent ways to connect — you can use both at the same time:
 
 ### Remote HTTP — Claude.ai, Claude Desktop, Mobile *(deploying soon)*
 
-Remote servers are added via the **claude.ai web interface**, not a config file. This applies to all clients including Claude Desktop and mobile.
+Remote servers are added via the **claude.ai web interface**, not a config file. This applies to all clients including Claude Desktop.
 
 1. Go to [claude.ai](https://claude.ai) → Settings → Connectors → **Add custom connector**
-2. Enter the server URL: *(URL will be published here once Render deployment is live)*
-3. Click **Add** — no authentication required (StatCan data is public)
+2. Enter the server URL: *(Either on published here that I could host, or you could install the mcp-server and self-host on your machine.) 
+    - [Remember: Self Hosting is always more secure]
+3. Click **Add** 
 
-The connector syncs automatically to Claude Desktop and Claude mobile once added.
+The connector syncs automatically to Claude Desktop once added.
 
 ---
 
