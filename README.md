@@ -11,16 +11,32 @@
 
 MCP server for Statistics Canada's [Web Data Service (WDS)](https://www.statcan.gc.ca/eng/developers/wds) and [SDMX REST API](https://www150.statcan.gc.ca/t1/wds/sdmx/statcan/rest/). Gives any MCP client — Claude, ChatGPT, Gemini,Cursor, VS Code Copilot, and more — structured access to Canadian statistical data.
 
-#### **Currently hosting on Render!**
-Go to Claude -> Settings -> Connectors -> "Add Custom Connector" -> for the fields: 
+### Currently Hosting!
 
-**Name**: mcp-statcan
+#### 🚀 Use the hosted version (easiest)
+Last Hosting Update:  Feb 28/2026
 
-**REMOTE MCP Server URL**: **https://mcp-statcan.onrender.com/mcp**
+No installation required, connect to the public server if you the link below works 
 
-Click Add. Now Get statcan data on your device
+**Claude Desktop**
+1. Go to **Settings (⌘,) → Developer → Edit Config**
+2. Add to `mcpServers`:
+```json
+{
+  "mcpServers": {
+    "statcan": {
+      "command": "uvx",
+      "args": ["mcp-proxy", "--transport", "streamablehttp", "https://mcp-statcan.onrender.com/mcp"]
+    }
+  }
+}
+```
+3. Restart Claude Desktop
 
-For Offline setup please see below
+### 💻 Can also be Self-host locally (full features and additional SQLite database support!)
+
+See [Setup by Client](#setup-by-client) for step-by-step instructions per client.
+
 
 #### **Two setup modes:**
 
@@ -28,6 +44,16 @@ For Offline setup please see below
 |---|---|---|---|
 | **HTTP** (self-hosted) | WDS + SDMX (~15 tools) | No | Most users — data access without local storage |
 | **stdio** (full) | All tools incl. SQLite | Yes | Power users — multi-series analysis, SQL queries |
+
+
+## Table of Contents
+
+- [Quick Start](#quick-start)
+- [Examples](#examples)
+- [Setup by Client](#setup-by-client)
+- [Features & Tools](#features--tools)
+- [Project Structure](#project-structure)
+- [Known Issues](#known-issues)
 
 ---
 
@@ -46,15 +72,6 @@ For Offline setup please see below
 | Dataset | Link | Source |
 |---|---|---|
 | Labour force characteristics by province, territory and economic region, annual | <a href="https://claude.ai/public/artifacts/298dfc5f-8e1b-4b73-a4d0-9a68b30cdb54" target="_blank">Dashboard</a> | <a href="https://www150.statcan.gc.ca/t1/tbl1/en/tv.action?pid=1410046401" target="_blank">Table 14-10-0464-01</a> |
-
-## Table of Contents
-
-- [Quick Start](#quick-start)
-- [Setup by Client](#setup-by-client)
-- [Features & Tools](#features--tools)
-- [Examples](#examples)
-- [Project Structure](#project-structure)
-- [Known Issues](#known-issues)
 
 ---
 
