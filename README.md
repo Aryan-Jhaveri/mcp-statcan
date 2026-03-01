@@ -11,25 +11,11 @@
 
 MCP server for Statistics Canada's [Web Data Service (WDS)](https://www.statcan.gc.ca/eng/developers/wds) and [SDMX REST API](https://www150.statcan.gc.ca/t1/wds/sdmx/statcan/rest/). Gives any MCP client — Claude, ChatGPT, Gemini,Cursor, VS Code Copilot, and more — structured access to Canadian statistical data.
 
-### Currently Hosting!
+> **Currently Hosting on Render see [quick start](#quick-start)!**
 
-#### 🚀 Use the hosted version (easiest)
-Last Hosting Update:  Feb 28/2026
+**‼️‼️ LLM's may fabricate information, Always double check outputs, [see known issues](#known-issues)**
 
-No installation required, connect to the public server if you the link below works 
-
-**Claude Desktop**
-1. Go to **Settings (⌘,) → Connectors → Add Custom Connector**
-2. Add mcp-statcan to `name`
-3. Add https://mcp-statcan.onrender.com/mcp to `Remote MCP Server URL`
-4. Restart Claude Desktop
-
-#### 💻 Can also be Self-host locally (full features and additional SQLite database support, [see below!](#setup-by-client))
-
-#### ️‼️‼️ LLM's may fabricate information, Always double check outputs, see [known issues](#known-issues) below
-
-#### ‼️‼️ Be critical of conclusions and results of analysis done by LLM's, see [known issues](#known-issues) below
-
+**‼️‼️ Be critical of conclusions and results of analysis done by LLM's, [see known issues](#known-issues)**
 
 #### **Two setup modes:**
 
@@ -37,6 +23,9 @@ No installation required, connect to the public server if you the link below wor
 |---|---|---|---|
 | **HTTP** (self-hosted) | WDS + SDMX (~15 tools) | No | Most users — data access without local storage |
 | **stdio** (full) | All tools incl. SQLite | Yes | Power users — multi-series analysis, SQL queries |
+
+💻 So it can also be Self-host locally (with SQL query features and additional SQLite database support), see [Features & Tools](#features--tools)!
+
 
 
 ## Table of Contents
@@ -69,6 +58,17 @@ No installation required, connect to the public server if you the link below wor
 ---
 
 ## Quick Start
+
+> #### 🚀 Use the hosted version (easiest)
+> Last Hosting Update:  Feb 28/2026
+>
+> No installation required, connect to the public server if you the link below works 
+>
+> **Claude Desktop**
+> 1. Go to **Settings (⌘,) → Connectors → Add Custom Connector**
+> 2. Add `mcp-statcan` to **name**
+> 3. Add `https://mcp-statcan.onrender.com/mcp` to **Remote MCP Server URL**
+> 4. Restart Claude Desktop
 
 Requires [`uv`](https://docs.astral.sh/uv/):
 
