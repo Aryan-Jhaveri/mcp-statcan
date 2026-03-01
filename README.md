@@ -26,9 +26,9 @@ No installation required, connect to the public server if you the link below wor
 
 #### 💻 Can also be Self-host locally (full features and additional SQLite database support, [see below!](#setup-by-client))
 
-## ️‼️‼️ LLM's may fabricate information, Always double check outputs, see [known issues](#known-issues) below
+#### ️‼️‼️ LLM's may fabricate information, Always double check outputs, see [known issues](#known-issues) below
 
-## ‼️‼️ Be critical of conclusions and results of analysis done by LLM's, see [known issues](#known-issues) below
+#### ‼️‼️ Be critical of conclusions and results of analysis done by LLM's, see [known issues](#known-issues) below
 
 
 #### **Two setup modes:**
