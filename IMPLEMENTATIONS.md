@@ -97,9 +97,9 @@ Additive primitive — new module `src/api/app_tools.py` registered in `create_s
 
 ```mermaid
 flowchart TD
-    A[Claude.ai / Mobile / API / Desktop] -->|Streamable HTTP| B["Remote MCP Server (Render)\nstateless, no sessions"]
-    A -->|stdio - optional| DB["Local stdio server\n(existing, unchanged)"]
-    A -->|"direct fetch via _sdmx_url\n(clients with code execution)"| S[StatCan SDMX API]
+    A[Claude.ai / Mobile / API / Desktop] -->|Streamable HTTP| B["Remote MCP Server (Render) stateless, no sessions"]
+    A -->|stdio - optional| DB["Local stdio server (existing, unchanged)"]
+    A -->|"direct fetch via _sdmx_url (clients with code execution)"| S[StatCan SDMX API]
 
     B -->|WDS proxy| D[StatCan WDS API]
     B -->|SDMX proxy| S
