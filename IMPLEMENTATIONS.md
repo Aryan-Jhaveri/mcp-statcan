@@ -75,7 +75,7 @@ Additive primitive — new module `src/api/app_tools.py` registered in `create_s
 
 ### Distribution
 
-- [ ] **Render deployment** — covered by Phase 2 remaining items
+- [x] **Render deployment** — covered by Phase 2 remaining items
 - [ ] **Register on Smithery.ai** — one-click install button
 - [ ] **Submit to directories** — `punkpeye/awesome-mcp-servers`, PulseMCP
 - [ ] **Multi-client config snippets** — Cursor, VS Code Copilot, Windsurf, Claude.ai Custom Connector in README
