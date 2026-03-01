@@ -11,7 +11,15 @@
 
 MCP server for Statistics Canada's [Web Data Service (WDS)](https://www.statcan.gc.ca/eng/developers/wds) and [SDMX REST API](https://www150.statcan.gc.ca/t1/wds/sdmx/statcan/rest/). Gives any MCP client — Claude, ChatGPT, Gemini,Cursor, VS Code Copilot, and more — structured access to Canadian statistical data.
 
-Currently hosting on Render! Add this url to ur Claude Connector: https://mcp-statcan.onrender.com/mcp
+Currently hosting on Render! 
+Go to Claude -> Settings -> Connectors -> "Add Custom Connector" -> for the fields: 
+
+**Name**: mcp-statcan
+**REMOTE MCP Server URL**: **https://mcp-statcan.onrender.com/mcp**
+
+Click Add. Now Get statcan data on your device
+
+For Offline setup please see below
 
 **Two setup modes:**
 
