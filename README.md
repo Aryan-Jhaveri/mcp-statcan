@@ -63,18 +63,18 @@ MCP server for Statistics Canada's [Web Data Service (WDS)](https://www.statcan.
 
 ## Quick Start
 
-> #### 🚀 Use the hosted version (easiest)
-> Last Hosting Update:  Feb 28/2026
->
-> No installation required, connect to the public server if you the link below works 
->
-> **Claude Desktop**
-> 1. Go to **Settings (⌘,) → Connectors → Add Custom Connector**
-> 2. Add `mcp-statcan` to **name**
-> 3. Add `https://mcp-statcan.onrender.com/mcp` to **Remote MCP Server URL**
-> 4. Restart Claude Desktop
+#### 🚀 Use the hosted version (easiest)
+Last Hosting Update:  Feb 28/2026
 
-Requires [`uv`](https://docs.astral.sh/uv/):
+No installation required, connect to the public server if you the link below works 
+
+**Claude Desktop**
+1. Go to **Settings (⌘,) → Connectors → Add Custom Connector**
+2. Add `mcp-statcan` to **name**
+3. Add `https://mcp-statcan.onrender.com/mcp` to **Remote MCP Server URL**
+4. Restart Claude Desktop
+
+Requires [`uv`](https://docs.astral.sh/uv/): 
 
 ```bash
 # macOS / Linux
