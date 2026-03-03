@@ -1,6 +1,18 @@
 # Roadmap
 
-*Updated Mar 1, 2026*
+*Updated Mar 2, 2026*
+
+- [ ] **Full cube list pre-fetch** — download all cube list so wildcarding allow llm to find stuff from the file instead of having to call functions to search online multiple times
+- [ ] **Full cube pre-fetch** — download all cube metadata to local DB for fully offline browsing
+- [ ] **SDMX Wildcarding + Repeated calls** - 406 errors for smaller models, the LLM has to do multiple SDMX fetch data call, adding on to context bloat. The LLM needs SDMX wildcarding directions. 
+
+Example call by Gemini Flash. 
+{
+  "key": "1.1.3.1.1.1.1+2+3+4",
+  "productId": 37100163,
+  "startPeriod": "2023"
+}
+
 
 ---
 
@@ -86,8 +98,6 @@ Additive primitive — new module `src/api/app_tools.py` registered in `create_s
 - [ ] **A2A + MCP** — multi-agent system exploration
 - [ ] **Scheduled reports** — periodic LLM calls for dataset summaries
 - [ ] **Caching aligned to StatCan update schedule** — time-based invalidation at StatCan's 8:30 AM ET release cadence
-- [ ] **Full cube list pre-fetch** — download all cube list so wildcarding allow llm to find stuff from the file instead of having to call functions to search online multiple times
-- [ ] **Full cube pre-fetch** — download all cube metadata to local DB for fully offline browsing
 
 
 ## Architecture & Data Flow
