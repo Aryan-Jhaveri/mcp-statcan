@@ -1,4 +1,29 @@
-    # --- Coordinate-Based Data/Info Tools ---
+"""Cube series tools — coordinate resolution, change detection."""
+
+import datetime
+from typing import Dict, Any, List, Union
+
+import httpx
+
+from ...config import BASE_URL, TIMEOUT_MEDIUM, TIMEOUT_LARGE
+from ...models.api_models import (
+    CubeCoordInput,
+    CubeCoordLatestNInput,
+    BulkCubeCoordInput,
+    FullTableDownloadCSVInput,
+    FullTableDownloadSDMXInput,
+    ProductIdInput,
+    DEFAULT_TRUNCATION_LIMIT,
+)
+from ...util.coordinate import pad_coordinate
+from ...util.logger import log_ssl_warning, log_data_validation_warning
+from ...util.registry import ToolRegistry
+from ...util.truncation import truncate_with_guidance
+
+
+def register_cube_series_tools(registry: ToolRegistry):
+    """Register cube series resolution and change detection tools."""
+
     # @registry.tool()  # Deregistered: replaced by get_sdmx_data (server-side filtering)
     async def get_data_from_cube_pid_coord_and_latest_n_periods(input_data: CubeCoordLatestNInput) -> Dict[str, Any]:
         """
@@ -14,11 +39,11 @@
         HTTP requests and is slow.
 
         PREFERRED multi-series workflow:
-          1. get_cube_metadata → find the vectorIds for each series you need
+          1. get_cube_metadata -> find the vectorIds for each series you need
           2. fetch_vectors_to_database(vectorIds=[...], table_name="my_table",
              startRefPeriod="YYYY-MM-DD", endRefPeriod="YYYY-MM-DD")
-             → fetches all series in ONE request and stores them in SQLite
-          3. query_database → analyze with SQL
+             -> fetches all series in ONE request and stores them in SQLite
+          3. query_database -> analyze with SQL
 
         Only use THIS tool when you genuinely need a single series or when you
         do not have vectorIds yet and cannot run the multi-series workflow.
@@ -36,7 +61,6 @@
         async with httpx.AsyncClient(base_url=BASE_URL, timeout=TIMEOUT_MEDIUM, verify=False) as client:
             log_ssl_warning("SSL verification disabled for get_data_from_cube_pid_coord_and_latest_n_periods.")
             padded_coord = pad_coordinate(input_data.coordinate)
-            # API expects a list containing one object
             post_data = [{
                 "productId": input_data.productId,
                 "coordinate": padded_coord,
@@ -46,7 +70,6 @@
                 response = await client.post("/getDataFromCubePidCoordAndLatestNPeriods", json=post_data)
                 response.raise_for_status()
                 result_list = response.json()
-                # Assuming API returns list with one status/object wrapper like vector equivalent
                 if result_list and isinstance(result_list, list) and len(result_list) > 0 and result_list[0].get("status") == "SUCCESS":
                     return result_list[0].get("object", {})
                 else:
@@ -78,7 +101,6 @@
         async with httpx.AsyncClient(base_url=BASE_URL, timeout=TIMEOUT_MEDIUM, verify=False) as client:
             log_ssl_warning("SSL verification disabled for get_series_info_from_cube_pid_coord.")
             padded_coord = pad_coordinate(input_data.coordinate)
-            # API expects a list containing one object
             post_data = [{
                 "productId": input_data.productId,
                 "coordinate": padded_coord
@@ -87,7 +109,6 @@
                 response = await client.post("/getSeriesInfoFromCubePidCoord", json=post_data)
                 response.raise_for_status()
                 result_list = response.json()
-                # Assuming API returns list with one status/object wrapper like vector equivalent
                 if result_list and isinstance(result_list, list) and len(result_list) > 0 and result_list[0].get("status") == "SUCCESS":
                     return result_list[0].get("object", {})
                 else:
@@ -113,13 +134,12 @@
             ValueError: If the API response format is unexpected or status is not SUCCESS.
             Exception: For other network or unexpected errors.
 
-        IMPORTANT: In your final response to the user, you MUST cite the source of your data. 
+        IMPORTANT: In your final response to the user, you MUST cite the source of your data.
         For changed series data, this means including the VectorId, ProductId (pid), and Coordinate.
         """
         async with httpx.AsyncClient(base_url=BASE_URL, timeout=TIMEOUT_MEDIUM, verify=False) as client:
             log_ssl_warning("SSL verification disabled for get_changed_series_data_from_cube_pid_coord.")
             padded_coord = pad_coordinate(input_data.coordinate)
-            # API expects a list containing one object
             post_data = [{
                 "productId": input_data.productId,
                 "coordinate": padded_coord
@@ -128,7 +148,6 @@
                 response = await client.post("/getChangedSeriesDataFromCubePidCoord", json=post_data)
                 response.raise_for_status()
                 result_list = response.json()
-                 # Assuming API returns list with one status/object wrapper like vector equivalent
                 if result_list and isinstance(result_list, list) and len(result_list) > 0 and result_list[0].get("status") == "SUCCESS":
                     return result_list[0].get("object", {})
                 else:
@@ -139,7 +158,7 @@
             except ValueError as exc:
                 raise ValueError(f"Error processing response for get_changed_series_data_from_cube_pid_coord: {exc}")
 
-    # DISABLED --- Bulk Download Tools (Consider disabling/discouraging if coord/vector preferred) --- 
+    # DISABLED --- Bulk Download Tools ---
     #@mcp.tool()
     async def get_full_table_download_csv(download_input: FullTableDownloadCSVInput) -> str:
         """
@@ -150,8 +169,8 @@
 
         Returns:
             str: The download URL for the CSV file.
-        
-        IMPORTANT: In your final response to the user, you MUST cite the source of your data. 
+
+        IMPORTANT: In your final response to the user, you MUST cite the source of your data.
         For full table downloads, this means including the ProductId (pid).
         """
         productId = download_input.productId
@@ -164,7 +183,7 @@
             try:
                 response = await client.get(f"/getFullTableDownloadCSV/{productId}/{lang}")
                 response.raise_for_status()
-                result = response.json() # Expects a single status/object wrapper
+                result = response.json()
                 if isinstance(result, dict) and result.get("status") == "SUCCESS":
                     download_url = result.get("object")
                     if isinstance(download_url, str):
@@ -178,7 +197,8 @@
                 raise Exception(f"Network error calling get_full_table_download_csv: {exc}")
             except ValueError as exc:
                 raise ValueError(f"Error processing response for get_full_table_download_csv: {exc}")
-    # DISABLED --- Bulk Download Tools (Consider disabling/discouraging if coord/vector preferred) ---
+
+    # DISABLED --- Bulk Download Tools ---
     #@mcp.tool()
     async def get_full_table_download_sdmx(product_input: ProductIdInput) -> str:
         """
@@ -190,7 +210,7 @@
         Returns:
             str: The download URL for the SDMX file.
 
-        IMPORTANT: In your final response to the user, you MUST cite the source of your data. 
+        IMPORTANT: In your final response to the user, you MUST cite the source of your data.
         For full table downloads, this means including the ProductId (pid).
         """
         productId = product_input.productId
@@ -199,7 +219,7 @@
             try:
                 response = await client.get(f"/getFullTableDownloadSDMX/{productId}")
                 response.raise_for_status()
-                result = response.json() # Expects a single status/object wrapper
+                result = response.json()
                 if isinstance(result, dict) and result.get("status") == "SUCCESS":
                     download_url = result.get("object")
                     if isinstance(download_url, str):
@@ -214,7 +234,6 @@
             except ValueError as exc:
                 raise ValueError(f"Error processing response for get_full_table_download_sdmx: {exc}")
 
-    # --- Coordinate → Series Info ---
     # @registry.tool()  # Deregistered: merged into get_series_info
     async def get_series_info_from_cube_pid_coord_bulk(input_data: BulkCubeCoordInput) -> Union[List[Dict[str, Any]], Dict[str, Any]]:
         """
@@ -331,7 +350,6 @@
             except ValueError as exc:
                 raise ValueError(f"Error processing response for get_series_info: {exc}")
 
-    # --- Change List Tools ---
     @registry.tool()
     async def get_changed_cube_list(date: str) -> List[Dict[str, Any]]:
         """
@@ -342,22 +360,21 @@
         Returns:
             List[Dict[str, Any]]: A list of dictionaries describing changed cube objects.
 
-        IMPORTANT: In your final response to the user, you MUST cite the source of your data. 
+        IMPORTANT: In your final response to the user, you MUST cite the source of your data.
         For changed cubes, this means including the ProductId (pid) and Title.
         """
         try:
-            datetime.date.fromisoformat(date) # Validate date format
+            datetime.date.fromisoformat(date)
         except ValueError:
-             raise ValueError(f"Invalid date format for get_changed_cube_list. Expected YYYY-MM-DD, got {date}")
+            raise ValueError(f"Invalid date format for get_changed_cube_list. Expected YYYY-MM-DD, got {date}")
 
         async with httpx.AsyncClient(base_url=BASE_URL, timeout=TIMEOUT_MEDIUM, verify=False) as client:
             log_ssl_warning("SSL verification disabled for get_changed_cube_list.")
             try:
                 response = await client.get(f"/getChangedCubeList/{date}")
                 response.raise_for_status()
-                result = response.json() # API returns a single status/object wrapper
+                result = response.json()
                 if isinstance(result, dict) and result.get("status") == "SUCCESS":
-                    # The 'object' contains the list of changed cubes
                     return result.get("object", [])
                 else:
                     api_message = result.get("object", "Unknown API Error") if isinstance(result, dict) else "Malformed Response"
