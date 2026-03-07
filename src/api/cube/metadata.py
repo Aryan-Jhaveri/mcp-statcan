@@ -1,4 +1,19 @@
-    # --- Metadata Tools ---
+"""Cube metadata tools — fetch table structure."""
+
+from typing import Dict, Any
+
+import httpx
+
+from ...config import BASE_URL, TIMEOUT_MEDIUM
+from ...models.api_models import CubeMetadataInput
+from ...util.logger import log_ssl_warning
+from ...util.registry import ToolRegistry
+from ...util.truncation import summarize_cube_metadata
+
+
+def register_cube_metadata_tools(registry: ToolRegistry):
+    """Register cube metadata tools."""
+
     @registry.tool()
     async def get_cube_metadata(metadata_input: CubeMetadataInput) -> Dict[str, Any]:
         """
@@ -26,7 +41,7 @@
         """
         async with httpx.AsyncClient(base_url=BASE_URL, timeout=TIMEOUT_MEDIUM, verify=False) as client:
             log_ssl_warning("SSL verification disabled for get_cube_metadata.")
-            post_data = [{"productId": metadata_input.productId}] # API expects a list
+            post_data = [{"productId": metadata_input.productId}]
             try:
                 response = await client.post("/getCubeMetadata", json=post_data)
                 response.raise_for_status()

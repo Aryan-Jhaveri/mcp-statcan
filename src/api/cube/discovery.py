@@ -1,4 +1,28 @@
-    # --- List and Search Tools ---
+"""Cube discovery tools — search and list cubes."""
+
+import time
+from typing import Dict, Any, List, Union
+
+import httpx
+
+from ...config import BASE_URL, TIMEOUT_LARGE
+from ...models.api_models import CubeListInput, CubeSearchInput
+from ...util.cache import get_cached_cubes_list_lite
+from ...util.logger import log_ssl_warning, log_search_progress, log_data_validation_warning
+from ...util.registry import ToolRegistry
+from ...util.truncation import truncate_response
+
+
+def register_cube_discovery_tools(registry: ToolRegistry):
+    """Register cube discovery tools."""
+
+    async def _fetch_all_cubes_list_lite_raw() -> List[Dict[str, Any]]:
+        """Raw API fetch for cache use — returns full unpaginated list."""
+        async with httpx.AsyncClient(base_url=BASE_URL, timeout=TIMEOUT_LARGE, verify=False) as client:
+            response = await client.get("/getAllCubesListLite")
+            response.raise_for_status()
+            return response.json()
+
     @registry.tool()
     async def get_all_cubes_list(list_input: CubeListInput) -> Union[List[Dict[str, Any]], Dict[str, Any]]:
         """
@@ -72,10 +96,8 @@
         log_search_progress(f"Searching for cubes with title containing: '{search_term}'")
 
         try:
-            # Use cached cube list instead of fetching fresh each time
             all_cubes_lite = await get_cached_cubes_list_lite(_fetch_all_cubes_list_lite_raw)
 
-            # Filter the results - AND logic on keywords
             search_terms = search_term.lower().split()
             matching_cubes = []
             for cube in all_cubes_lite:
