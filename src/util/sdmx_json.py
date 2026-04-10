@@ -95,6 +95,10 @@ def flatten_sdmx_json(data: Dict[str, Any]) -> List[Dict[str, Any]]:
             for obs_key_str, obs_value in series_data.get("observations", {}).items():
                 obs_idx = int(obs_key_str)
                 row: Dict[str, Any] = dict(dim_values)
+                # Include raw series key so callers can identify which OR-query code
+                # each row belongs to when dimension labels are absent (StatCan bug:
+                # values array is sparse for OR-key queries — only index 0 is labeled).
+                row["_series_key"] = series_key_str
 
                 # Time period — modulo handles StatCan's global obs_key encoding for OR queries
                 if n_period_vals:

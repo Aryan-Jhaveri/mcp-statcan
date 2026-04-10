@@ -1,195 +1,29 @@
-import httpx
-import datetime
-import time
-from typing import List, Dict, Any, Optional, Union
-from pydantic import BaseModel
+"""Cube series tools — coordinate resolution, change detection."""
 
-from ..util.registry import ToolRegistry
-# Import necessary models
-from ..models.api_models import (
-    ProductIdInput,
-    CubeMetadataInput,
-    CubeListInput,
-    CubeSearchInput,
-    FullTableDownloadCSVInput,
-    FullTableDownloadSDMXInput,
+import datetime
+from typing import Dict, Any, List, Union
+
+import httpx
+
+from ...config import BASE_URL, TIMEOUT_MEDIUM, TIMEOUT_LARGE
+from ...models.api_models import (
     CubeCoordInput,
     CubeCoordLatestNInput,
     BulkCubeCoordInput,
+    FullTableDownloadCSVInput,
+    FullTableDownloadSDMXInput,
+    ProductIdInput,
     DEFAULT_TRUNCATION_LIMIT,
 )
-# Import coordinate padding utility
-from ..util.coordinate import pad_coordinate
-# Import BASE_URL and timeouts from config
-from ..config import BASE_URL, TIMEOUT_MEDIUM, TIMEOUT_LARGE
-from ..util.logger import log_ssl_warning, log_search_progress, log_data_validation_warning, log_server_debug
-from ..util.cache import get_cached_cubes_list_lite, get_cache_stats
-from ..util.truncation import truncate_response, truncate_with_guidance, summarize_cube_metadata
+from ...util.coordinate import pad_coordinate
+from ...util.logger import log_ssl_warning, log_data_validation_warning
+from ...util.registry import ToolRegistry
+from ...util.truncation import truncate_with_guidance
 
-def register_cube_tools(registry: ToolRegistry):
-    """Register all cube-related API tools with the MCP server."""
 
-    async def _fetch_all_cubes_list_lite_raw() -> List[Dict[str, Any]]:
-        """Raw API fetch for cache use — returns full unpaginated list."""
-        async with httpx.AsyncClient(base_url=BASE_URL, timeout=TIMEOUT_LARGE, verify=False) as client:
-            response = await client.get("/getAllCubesListLite")
-            response.raise_for_status()
-            return response.json()
+def register_cube_series_tools(registry: ToolRegistry):
+    """Register cube series resolution and change detection tools."""
 
-    # --- List and Search Tools ---
-    @registry.tool()
-    async def get_all_cubes_list(list_input: CubeListInput) -> Union[List[Dict[str, Any]], Dict[str, Any]]:
-        """
-        Provides a complete inventory of data tables available via the API,
-        including dimension-level details. Disables SSL Verification.
-        Corresponds to: GET /getAllCubesList
-
-        Results are paginated. Default returns first 100 cubes. Use offset/limit
-        to page through. Prefer search_cubes_by_title if you know what you're looking for.
-
-        IMPORTANT: In your final response to the user, you MUST cite the source of your data.
-        For cubes, this means including the ProductId (pid) and the Title.
-        """
-        async with httpx.AsyncClient(base_url=BASE_URL, timeout=TIMEOUT_LARGE, verify=False) as client:
-            log_ssl_warning("SSL verification disabled for get_all_cubes_list.")
-            try:
-                response = await client.get("/getAllCubesList")
-                response.raise_for_status()
-                all_cubes = response.json()
-                return truncate_response(all_cubes, list_input.offset, list_input.limit)
-            except httpx.RequestError as exc:
-                raise Exception(f"Network error calling get_all_cubes_list: {exc}")
-            except ValueError as exc:
-                raise ValueError(f"Error processing response for get_all_cubes_list: {exc}")
-
-    @registry.tool()
-    async def get_all_cubes_list_lite(list_input: CubeListInput) -> Union[List[Dict[str, Any]], Dict[str, Any]]:
-        """
-        Provides a complete inventory of data tables available via the API,
-        excluding dimension or footnote information (lighter version). Disables SSL Verification.
-        Corresponds to: GET /getAllCubesListLite
-
-        Results are paginated. Default returns first 100 cubes. Use offset/limit
-        to page through. Prefer search_cubes_by_title if you know what you're looking for.
-
-        IMPORTANT: In your final response to the user, you MUST cite the source of your data.
-        For cubes, this means including the ProductId (pid) and the Title.
-        """
-        async with httpx.AsyncClient(base_url=BASE_URL, timeout=TIMEOUT_LARGE, verify=False) as client:
-            log_ssl_warning("SSL verification disabled for get_all_cubes_list_lite.")
-            try:
-                response = await client.get("/getAllCubesListLite")
-                response.raise_for_status()
-                all_cubes = response.json()
-                return truncate_response(all_cubes, list_input.offset, list_input.limit)
-            except httpx.RequestError as exc:
-                raise Exception(f"Network error calling get_all_cubes_list_lite: {exc}")
-            except ValueError as exc:
-                raise ValueError(f"Error processing response for get_all_cubes_list_lite: {exc}")
-
-    @registry.tool()
-    async def search_cubes_by_title(search_input: CubeSearchInput) -> Union[List[Dict[str, Any]], Dict[str, Any]]:
-        """
-        Searches for data cubes/tables where the English or French title contains
-        the provided search term (case-insensitive). Returns a list of matching cubes
-        in the 'lite' format (excluding dimensions/footnotes).
-
-        Multiple keywords use AND logic (e.g., "tobacco smoking age" finds cubes
-        containing ALL three words). Results are capped at max_results (default 25).
-
-        IMPORTANT: In your final response to the user, you MUST cite the source of your data.
-        For cubes, this means including the ProductId (pid) and the Title.
-
-        Raises:
-            httpx.HTTPStatusError: If the underlying API call fails.
-            Exception: For other network or unexpected errors during the fetch.
-        """
-        start_time = time.time()
-        search_term = search_input.search_term
-        max_results = search_input.max_results
-        log_search_progress(f"Searching for cubes with title containing: '{search_term}'")
-
-        try:
-            # Use cached cube list instead of fetching fresh each time
-            all_cubes_lite = await get_cached_cubes_list_lite(_fetch_all_cubes_list_lite_raw)
-
-            # Filter the results - AND logic on keywords
-            search_terms = search_term.lower().split()
-            matching_cubes = []
-            for cube in all_cubes_lite:
-                title_en = (cube.get("cubeTitleEn", "") or "").lower()
-                title_fr = (cube.get("cubeTitleFr", "") or "").lower()
-
-                match_en = all(term in title_en for term in search_terms)
-                match_fr = all(term in title_fr for term in search_terms)
-
-                if match_en or match_fr:
-                    matching_cubes.append(cube)
-
-            elapsed = time.time() - start_time
-            total_found = len(matching_cubes)
-            log_search_progress(f"Found {total_found} cubes matching keywords '{search_terms}' in {elapsed:.2f}s")
-
-            if total_found > max_results:
-                return {
-                    "data": matching_cubes[:max_results],
-                    "total_matches": total_found,
-                    "showing": max_results,
-                    "message": f"Showing {max_results} of {total_found} matches. Increase max_results to see more.",
-                }
-            return matching_cubes
-
-        except Exception as e:
-            log_data_validation_warning(f"Unexpected error during cube search: {e}")
-            raise
-
-    # --- Metadata Tools ---
-    @registry.tool()
-    async def get_cube_metadata(metadata_input: CubeMetadataInput) -> Dict[str, Any]:
-        """
-        Retrieves detailed metadata for a specific data table/cube using its ProductId.
-        Includes dimension info, titles, date ranges, codes, etc. Disables SSL Verification.
-        Corresponds to: POST /getCubeMetadata
-
-        Start with summary=True (default). The summary strips noise (French translations,
-        archive codes, footnotes) and shows only 3 sample members per dimension with
-        _next_steps guidance. Safe for all context window sizes.
-        Set summary=False only if you need the full raw member list or all API fields.
-
-        To browse dimension codes for get_sdmx_data key construction, use get_sdmx_structure.
-        To resolve a coordinate to a vectorId, use get_series_info.
-
-        Returns:
-            Dict[str, Any]: The metadata object for the specified cube on success.
-        Raises:
-            httpx.HTTPStatusError: If the API returns an error status code.
-            ValueError: If the API response format is unexpected or status is not SUCCESS.
-            Exception: For other network or unexpected errors.
-
-        IMPORTANT: In your final response to the user, you MUST cite the source of your data.
-        For cubes, this means including the ProductId (pid) and the Title.
-        """
-        async with httpx.AsyncClient(base_url=BASE_URL, timeout=TIMEOUT_MEDIUM, verify=False) as client:
-            log_ssl_warning("SSL verification disabled for get_cube_metadata.")
-            post_data = [{"productId": metadata_input.productId}] # API expects a list
-            try:
-                response = await client.post("/getCubeMetadata", json=post_data)
-                response.raise_for_status()
-                result_list = response.json()
-                if result_list and isinstance(result_list, list) and len(result_list) > 0 and result_list[0].get("status") == "SUCCESS":
-                    metadata = result_list[0].get("object", {})
-                    if metadata_input.summary:
-                        return summarize_cube_metadata(metadata)
-                    return metadata
-                else:
-                    api_message = result_list[0].get("object") if (result_list and isinstance(result_list, list) and len(result_list) > 0) else "Unknown API Error or Malformed Response"
-                    raise ValueError(f"API did not return SUCCESS status for get_cube_metadata productId {metadata_input.productId}: {api_message}")
-            except httpx.RequestError as exc:
-                raise Exception(f"Network error calling get_cube_metadata: {exc}")
-            except ValueError as exc:
-                raise ValueError(f"Error processing response for get_cube_metadata: {exc}")
-
-    # --- Coordinate-Based Data/Info Tools ---
     # @registry.tool()  # Deregistered: replaced by get_sdmx_data (server-side filtering)
     async def get_data_from_cube_pid_coord_and_latest_n_periods(input_data: CubeCoordLatestNInput) -> Dict[str, Any]:
         """
@@ -205,11 +39,11 @@ def register_cube_tools(registry: ToolRegistry):
         HTTP requests and is slow.
 
         PREFERRED multi-series workflow:
-          1. get_cube_metadata → find the vectorIds for each series you need
+          1. get_cube_metadata -> find the vectorIds for each series you need
           2. fetch_vectors_to_database(vectorIds=[...], table_name="my_table",
              startRefPeriod="YYYY-MM-DD", endRefPeriod="YYYY-MM-DD")
-             → fetches all series in ONE request and stores them in SQLite
-          3. query_database → analyze with SQL
+             -> fetches all series in ONE request and stores them in SQLite
+          3. query_database -> analyze with SQL
 
         Only use THIS tool when you genuinely need a single series or when you
         do not have vectorIds yet and cannot run the multi-series workflow.
@@ -227,7 +61,6 @@ def register_cube_tools(registry: ToolRegistry):
         async with httpx.AsyncClient(base_url=BASE_URL, timeout=TIMEOUT_MEDIUM, verify=False) as client:
             log_ssl_warning("SSL verification disabled for get_data_from_cube_pid_coord_and_latest_n_periods.")
             padded_coord = pad_coordinate(input_data.coordinate)
-            # API expects a list containing one object
             post_data = [{
                 "productId": input_data.productId,
                 "coordinate": padded_coord,
@@ -237,7 +70,6 @@ def register_cube_tools(registry: ToolRegistry):
                 response = await client.post("/getDataFromCubePidCoordAndLatestNPeriods", json=post_data)
                 response.raise_for_status()
                 result_list = response.json()
-                # Assuming API returns list with one status/object wrapper like vector equivalent
                 if result_list and isinstance(result_list, list) and len(result_list) > 0 and result_list[0].get("status") == "SUCCESS":
                     return result_list[0].get("object", {})
                 else:
@@ -269,7 +101,6 @@ def register_cube_tools(registry: ToolRegistry):
         async with httpx.AsyncClient(base_url=BASE_URL, timeout=TIMEOUT_MEDIUM, verify=False) as client:
             log_ssl_warning("SSL verification disabled for get_series_info_from_cube_pid_coord.")
             padded_coord = pad_coordinate(input_data.coordinate)
-            # API expects a list containing one object
             post_data = [{
                 "productId": input_data.productId,
                 "coordinate": padded_coord
@@ -278,7 +109,6 @@ def register_cube_tools(registry: ToolRegistry):
                 response = await client.post("/getSeriesInfoFromCubePidCoord", json=post_data)
                 response.raise_for_status()
                 result_list = response.json()
-                # Assuming API returns list with one status/object wrapper like vector equivalent
                 if result_list and isinstance(result_list, list) and len(result_list) > 0 and result_list[0].get("status") == "SUCCESS":
                     return result_list[0].get("object", {})
                 else:
@@ -304,13 +134,12 @@ def register_cube_tools(registry: ToolRegistry):
             ValueError: If the API response format is unexpected or status is not SUCCESS.
             Exception: For other network or unexpected errors.
 
-        IMPORTANT: In your final response to the user, you MUST cite the source of your data. 
+        IMPORTANT: In your final response to the user, you MUST cite the source of your data.
         For changed series data, this means including the VectorId, ProductId (pid), and Coordinate.
         """
         async with httpx.AsyncClient(base_url=BASE_URL, timeout=TIMEOUT_MEDIUM, verify=False) as client:
             log_ssl_warning("SSL verification disabled for get_changed_series_data_from_cube_pid_coord.")
             padded_coord = pad_coordinate(input_data.coordinate)
-            # API expects a list containing one object
             post_data = [{
                 "productId": input_data.productId,
                 "coordinate": padded_coord
@@ -319,7 +148,6 @@ def register_cube_tools(registry: ToolRegistry):
                 response = await client.post("/getChangedSeriesDataFromCubePidCoord", json=post_data)
                 response.raise_for_status()
                 result_list = response.json()
-                 # Assuming API returns list with one status/object wrapper like vector equivalent
                 if result_list and isinstance(result_list, list) and len(result_list) > 0 and result_list[0].get("status") == "SUCCESS":
                     return result_list[0].get("object", {})
                 else:
@@ -330,7 +158,7 @@ def register_cube_tools(registry: ToolRegistry):
             except ValueError as exc:
                 raise ValueError(f"Error processing response for get_changed_series_data_from_cube_pid_coord: {exc}")
 
-    # DISABLED --- Bulk Download Tools (Consider disabling/discouraging if coord/vector preferred) --- 
+    # DISABLED --- Bulk Download Tools ---
     #@mcp.tool()
     async def get_full_table_download_csv(download_input: FullTableDownloadCSVInput) -> str:
         """
@@ -341,8 +169,8 @@ def register_cube_tools(registry: ToolRegistry):
 
         Returns:
             str: The download URL for the CSV file.
-        
-        IMPORTANT: In your final response to the user, you MUST cite the source of your data. 
+
+        IMPORTANT: In your final response to the user, you MUST cite the source of your data.
         For full table downloads, this means including the ProductId (pid).
         """
         productId = download_input.productId
@@ -355,7 +183,7 @@ def register_cube_tools(registry: ToolRegistry):
             try:
                 response = await client.get(f"/getFullTableDownloadCSV/{productId}/{lang}")
                 response.raise_for_status()
-                result = response.json() # Expects a single status/object wrapper
+                result = response.json()
                 if isinstance(result, dict) and result.get("status") == "SUCCESS":
                     download_url = result.get("object")
                     if isinstance(download_url, str):
@@ -369,7 +197,8 @@ def register_cube_tools(registry: ToolRegistry):
                 raise Exception(f"Network error calling get_full_table_download_csv: {exc}")
             except ValueError as exc:
                 raise ValueError(f"Error processing response for get_full_table_download_csv: {exc}")
-    # DISABLED --- Bulk Download Tools (Consider disabling/discouraging if coord/vector preferred) ---
+
+    # DISABLED --- Bulk Download Tools ---
     #@mcp.tool()
     async def get_full_table_download_sdmx(product_input: ProductIdInput) -> str:
         """
@@ -381,7 +210,7 @@ def register_cube_tools(registry: ToolRegistry):
         Returns:
             str: The download URL for the SDMX file.
 
-        IMPORTANT: In your final response to the user, you MUST cite the source of your data. 
+        IMPORTANT: In your final response to the user, you MUST cite the source of your data.
         For full table downloads, this means including the ProductId (pid).
         """
         productId = product_input.productId
@@ -390,7 +219,7 @@ def register_cube_tools(registry: ToolRegistry):
             try:
                 response = await client.get(f"/getFullTableDownloadSDMX/{productId}")
                 response.raise_for_status()
-                result = response.json() # Expects a single status/object wrapper
+                result = response.json()
                 if isinstance(result, dict) and result.get("status") == "SUCCESS":
                     download_url = result.get("object")
                     if isinstance(download_url, str):
@@ -405,7 +234,6 @@ def register_cube_tools(registry: ToolRegistry):
             except ValueError as exc:
                 raise ValueError(f"Error processing response for get_full_table_download_sdmx: {exc}")
 
-    # --- Coordinate → Series Info ---
     # @registry.tool()  # Deregistered: merged into get_series_info
     async def get_series_info_from_cube_pid_coord_bulk(input_data: BulkCubeCoordInput) -> Union[List[Dict[str, Any]], Dict[str, Any]]:
         """
@@ -522,7 +350,6 @@ def register_cube_tools(registry: ToolRegistry):
             except ValueError as exc:
                 raise ValueError(f"Error processing response for get_series_info: {exc}")
 
-    # --- Change List Tools ---
     @registry.tool()
     async def get_changed_cube_list(date: str) -> List[Dict[str, Any]]:
         """
@@ -533,22 +360,21 @@ def register_cube_tools(registry: ToolRegistry):
         Returns:
             List[Dict[str, Any]]: A list of dictionaries describing changed cube objects.
 
-        IMPORTANT: In your final response to the user, you MUST cite the source of your data. 
+        IMPORTANT: In your final response to the user, you MUST cite the source of your data.
         For changed cubes, this means including the ProductId (pid) and Title.
         """
         try:
-            datetime.date.fromisoformat(date) # Validate date format
+            datetime.date.fromisoformat(date)
         except ValueError:
-             raise ValueError(f"Invalid date format for get_changed_cube_list. Expected YYYY-MM-DD, got {date}")
+            raise ValueError(f"Invalid date format for get_changed_cube_list. Expected YYYY-MM-DD, got {date}")
 
         async with httpx.AsyncClient(base_url=BASE_URL, timeout=TIMEOUT_MEDIUM, verify=False) as client:
             log_ssl_warning("SSL verification disabled for get_changed_cube_list.")
             try:
                 response = await client.get(f"/getChangedCubeList/{date}")
                 response.raise_for_status()
-                result = response.json() # API returns a single status/object wrapper
+                result = response.json()
                 if isinstance(result, dict) and result.get("status") == "SUCCESS":
-                    # The 'object' contains the list of changed cubes
                     return result.get("object", [])
                 else:
                     api_message = result.get("object", "Unknown API Error") if isinstance(result, dict) else "Malformed Response"
