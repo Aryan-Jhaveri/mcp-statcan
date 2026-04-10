@@ -15,13 +15,20 @@ from typing import Any, Dict, List, Optional
 import httpx
 
 from ...config import (
+    FILE_THRESHOLD,
     MAX_SDMX_ROWS,
+    RENDER_BASE_URL,
     SDMX_BASE_URL,
     SDMX_JSON_ACCEPT,
     SDMX_XML_ACCEPT,
     TIMEOUT_MEDIUM,
 )
-from ...models.sdmx_models import SDMXDataInput, SDMXStructureInput, SDMXVectorInput
+from ...models.sdmx_models import (
+    SDMXDataInput,
+    SDMXKeyForDimensionInput,
+    SDMXStructureInput,
+    SDMXVectorInput,
+)
 from ...util.registry import ToolRegistry
 from ...util.sdmx_json import flatten_sdmx_json
 from ...util.truncation import DEFAULT_MEMBER_LIMIT
@@ -135,8 +142,10 @@ def _parse_structure_xml(xml_text: str, product_id: int) -> Dict[str, Any]:
 
     # ── Collect all codelists ───────────────────────────────────────────────
     codelists: Dict[str, List[Dict[str, Any]]] = {}
+    codelist_names: Dict[str, str] = {}  # cl_id → English name
     for cl in root.findall(".//str:Codelist", _NS):
         cl_id = cl.get("id", "")
+        codelist_names[cl_id] = _get_english_name(cl)
         codes: List[Dict[str, Any]] = []
         for code in cl.findall("str:Code", _NS):
             entry: Dict[str, Any] = {
@@ -175,6 +184,7 @@ def _parse_structure_xml(xml_text: str, product_id: int) -> Dict[str, Any]:
 
                 dim_info: Dict[str, Any] = {
                     "id": dim_id,
+                    "name": codelist_names.get(cl_id, "") if cl_id else "",
                     "position": pos,
                     "codelist": cl_id,
                     "codes": codes_list[:DEFAULT_MEMBER_LIMIT] if truncated else codes_list,
@@ -242,7 +252,16 @@ def register_sdmx_tools(registry: ToolRegistry) -> None:
         Key syntax (dot-separated codes in dimension position order):
           "1.2.1"   = Geography=1 (Canada), Gender=2 (Men+), Age=1 (All ages)
           ".2.1"    = all geographies, Gender=2, Age=1  (wildcard — preferred for multi-geo)
-          "1+2.2.1" = Geography 1 or 2, Gender=2, Age=1 (OR — use wildcard instead)
+          "1+2.2.1" = Geography 1 or 2, Gender=2, Age=1 (OR)
+
+        IMPORTANT — key position codes:
+          - Use member IDs from get_cube_metadata(), NOT SDMX codelist positions from
+            get_sdmx_structure(). Member IDs and SDMX codelist codes are the same numbers.
+          - Wildcard (omit a position) returns a SPARSE SAMPLE for large dimensions — do NOT
+            use wildcard for dimensions with >30 codes (e.g. NOC occupations, CMA geographies).
+            Use explicit member IDs joined with '+' instead.
+          - To get all leaf IDs for a large dimension as a ready-to-use OR string, call
+            get_sdmx_key_for_dimension(productId, dimension_position) first.
 
         Time filtering (use one or the other, not both):
           lastNObservations=12  → last 12 periods (e.g. 1 year of monthly data)
@@ -252,13 +271,16 @@ def register_sdmx_tools(registry: ToolRegistry) -> None:
         LIMITATION: StatCan rejects combining lastNObservations with startPeriod/endPeriod (returns 406).
         NOTE: OR syntax (+) triggers a StatCan SDMX-JSON encoding bug (non-positional series keys).
           This is automatically corrected before rows are returned, so all OR-ed dimension labels
-          should be present. Wildcard (omit the dimension) remains the more reliable alternative
-          for large multi-code selections.
+          should be present.
 
         Output rows contain: dimension values, "period", "value", SCALAR_FACTOR,
         UOM, VECTOR_ID, STATUS, and other SDMX attributes.
 
-        IMPORTANT: In your final response to the user, you MUST cite the source of your data. 
+        Large responses: when row_count > 50 and RENDER_BASE_URL is configured, a download_csv
+        URL is returned instead of inline data. Use it in a Python analysis tool:
+          import pandas as pd; df = pd.read_csv(result["download_csv"])
+
+        IMPORTANT: In your final response to the user, you MUST cite the source of your data.
         This means including the _sdmx_url, table information and productId/key in your response.
         """
         product_id = data_input.productId
@@ -291,6 +313,25 @@ def register_sdmx_tools(registry: ToolRegistry) -> None:
             rows = flatten_sdmx_json(response_json)
 
         result: Dict[str, Any] = {"_sdmx_url": sdmx_url, "row_count": len(rows)}
+
+        # Large-response path: return a CSV download URL instead of inline data
+        if len(rows) > FILE_THRESHOLD and RENDER_BASE_URL:
+            import urllib.parse
+            encoded_key = urllib.parse.quote(key, safe="")
+            download_csv = f"{RENDER_BASE_URL}/files/sdmx/{product_id}/{encoded_key}"
+            columns = list(rows[0].keys()) if rows else []
+            result["columns"] = columns
+            result["head"] = rows[:5]
+            result["download_csv"] = download_csv
+            result["_message"] = (
+                f"{len(rows)} rows — too large for context. "
+                f"Download and analyse with:\n"
+                f"  import pandas as pd\n"
+                f"  df = pd.read_csv('{download_csv}')\n"
+                f"  print(df.nlargest(10, 'value'))"
+            )
+            return result
+
         if len(rows) > MAX_SDMX_ROWS:
             result["data"] = rows[:MAX_SDMX_ROWS]
             result["_truncated"] = True
@@ -365,3 +406,97 @@ def register_sdmx_tools(registry: ToolRegistry) -> None:
             result["_truncated"] = False
 
         return result
+
+    @registry.tool()
+    async def get_sdmx_key_for_dimension(
+        key_input: SDMXKeyForDimensionInput,
+    ) -> Dict[str, Any]:
+        """
+        Return all leaf member IDs for a single dimension as a ready-to-use OR key string.
+
+        Use this before get_sdmx_data when a dimension has many codes (e.g. 162 NOC minor
+        groups, hundreds of CMA geographies). Avoids the need to call get_cube_metadata and
+        manually parse a large JSON response.
+
+        Leaf codes are codes with no children — the lowest-level members in a hierarchy.
+        For flat (non-hierarchical) codelists every code is a leaf.
+
+        Example:
+          get_sdmx_key_for_dimension(productId=98100452, dimension_position=6)
+          → {
+              "dimension_id": "Occupation_...",
+              "dimension_name": "Occupation - Minor group - NOC 2021",
+              "position": 6,
+              "leaf_count": 162,
+              "total_count": 309,
+              "or_key": "7+11+12+13+16+18+21+23+...",
+              "note": "Paste or_key at position 6 in your get_sdmx_data key."
+            }
+
+        Then use the or_key directly:
+          get_sdmx_data(productId=98100452, key="7.3.1.1.1.<or_key>.1", ...)
+        """
+        product_id = key_input.productId
+        position = key_input.dimension_position
+
+        # Fetch the DSD and extract the codelist for the requested dimension
+        structure_url = f"{SDMX_BASE_URL}structure/Data_Structure_{product_id}"
+        async with httpx.AsyncClient(timeout=TIMEOUT_MEDIUM, verify=False) as client:
+            response = await client.get(
+                structure_url, headers={"Accept": SDMX_XML_ACCEPT}
+            )
+            response.raise_for_status()
+
+        parsed = _parse_structure_xml(response.text, product_id)
+        dimensions: List[Dict[str, Any]] = parsed.get("dimensions", [])
+
+        # Find the dimension at the requested 1-based position
+        target_dim: Optional[Dict[str, Any]] = None
+        for dim in dimensions:
+            if dim.get("position") == position:
+                target_dim = dim
+                break
+
+        if target_dim is None:
+            available = sorted(d["position"] for d in dimensions)
+            raise ValueError(
+                f"No dimension at position {position} for productId {product_id}. "
+                f"Available positions: {available}. Call get_sdmx_structure to see them."
+            )
+
+        # Re-parse the XML to get the FULL codelist (structure tool truncates at DEFAULT_MEMBER_LIMIT)
+        root = ET.fromstring(response.text)
+        cl_id = target_dim.get("codelist")
+        all_codes: List[Dict[str, Any]] = []
+        if cl_id:
+            for cl in root.findall(".//str:Codelist", _NS):
+                if cl.get("id") == cl_id:
+                    for code in cl.findall("str:Code", _NS):
+                        entry: Dict[str, Any] = {"id": code.get("id", "")}
+                        parent_el = code.find("str:Parent", _NS)
+                        if parent_el is not None:
+                            pid = _find_ref_id(parent_el)
+                            if pid:
+                                entry["parent"] = pid
+                        all_codes.append(entry)
+                    break
+
+        # Leaf codes = codes that are not referenced as a parent by any other code
+        parent_ids = {c["parent"] for c in all_codes if "parent" in c}
+        leaf_codes = [c for c in all_codes if c["id"] not in parent_ids]
+
+        or_key = "+".join(c["id"] for c in leaf_codes)
+
+        return {
+            "dimension_id": target_dim.get("id"),
+            "dimension_name": target_dim.get("name", ""),
+            "position": position,
+            "leaf_count": len(leaf_codes),
+            "total_count": len(all_codes),
+            "or_key": or_key,
+            "note": (
+                f"Paste or_key at position {position} in your get_sdmx_data key. "
+                f"Leaf codes ({len(leaf_codes)}) are the lowest-level members — "
+                f"parent nodes excluded."
+            ),
+        }

@@ -42,3 +42,14 @@ class SDMXVectorInput(BaseModel):
         None,
         description="Return only the last N observations (e.g. 5 for last 5 periods).",
     )
+
+
+class SDMXKeyForDimensionInput(BaseModel):
+    productId: int
+    dimension_position: int = Field(
+        ...,
+        description=(
+            "1-based position of the dimension in the SDMX key (use get_sdmx_structure "
+            "to find positions). E.g. position=6 for the 6th dot-separated slot."
+        ),
+    )

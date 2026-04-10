@@ -45,6 +45,8 @@ SDMX_BASE_URL = "https://www150.statcan.gc.ca/t1/wds/sdmx/statcan/rest/"
 SDMX_JSON_ACCEPT = "application/vnd.sdmx.data+json;version=1.0.0-wd"
 SDMX_XML_ACCEPT = "application/vnd.sdmx.structure+xml;version=2.1"
 MAX_SDMX_ROWS = 500  # Safety cap for flattened SDMX rows
+FILE_THRESHOLD = 50  # Row count above which get_sdmx_data returns a download URL instead of inline data
+RENDER_BASE_URL = os.environ.get("RENDER_BASE_URL", "")  # e.g. https://mcp-statcan.onrender.com — set on Render
 
 # Coordinate padding configuration
 EXPECTED_COORD_DIMENSIONS = 10
