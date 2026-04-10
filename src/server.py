@@ -9,11 +9,11 @@ import sys
 
 # Use relative imports within the src package
 from . import config
-from .api.cube_tools import register_cube_tools
-from .api.vector_tools import register_vector_tools
+from .api.cube import register_cube_tools
+from .api.vector import register_vector_tools
 from .api.metadata_tools import register_metadata_tools
 from .api.composite_tools import register_composite_tools
-from .api.sdmx_tools import register_sdmx_tools
+from .api.sdmx import register_sdmx_tools
 from .db.queries import register_db_tools
 from .util.logger import log_server_debug
 from .util.registry import registry

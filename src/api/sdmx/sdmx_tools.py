@@ -14,17 +14,91 @@ from typing import Any, Dict, List, Optional
 
 import httpx
 
-from ..config import (
+from ...config import (
     MAX_SDMX_ROWS,
     SDMX_BASE_URL,
     SDMX_JSON_ACCEPT,
     SDMX_XML_ACCEPT,
     TIMEOUT_MEDIUM,
 )
-from ..models.sdmx_models import SDMXDataInput, SDMXStructureInput, SDMXVectorInput
-from ..util.registry import ToolRegistry
-from ..util.sdmx_json import flatten_sdmx_json
-from ..util.truncation import DEFAULT_MEMBER_LIMIT
+from ...models.sdmx_models import SDMXDataInput, SDMXStructureInput, SDMXVectorInput
+from ...util.registry import ToolRegistry
+from ...util.sdmx_json import flatten_sdmx_json
+from ...util.truncation import DEFAULT_MEMBER_LIMIT
+
+def _fix_or_series_keys(data: Dict[str, Any], key: str) -> None:
+    """Fix StatCan's non-standard series key encoding for all queries.
+
+    StatCan SDMX-JSON has two related bugs in series key encoding:
+
+    Bug A — Solo/single-code queries (e.g. key "7.3.1.1.1.10.2"):
+      StatCan uses the memberId as the series key index instead of the
+      positional index (0) into the values array. Codes where memberId
+      happens to equal 0 work correctly; all others produce an out-of-range
+      index and lose their label (e.g. NOC=10 → series key index 10, but
+      values has 1 entry at index 0).
+      Fix: for any dim where the current index >= len(values), reset to 0.
+
+    Bug B — OR queries (e.g. key "7.3.1.1.1.6+10+15.2"):
+      For the OR dimension, code 1 uses positional index 0 (correct), but
+      codes 2+ all use the same wrong index (the memberId of code 2), making
+      them indistinguishable. Single-value dims after the OR dim use the
+      global series index G instead of 0.
+      Fix: derive G = min(obs_key) // n_period_vals for each series, then
+      decompose G into per-dim positional indices (right-to-left for multiple
+      OR dims).
+
+    Operates in-place on the raw SDMX-JSON response dict.
+    """
+    key_parts = key.split(".")
+    or_positions: Dict[int, List[str]] = {
+        i: part.split("+")
+        for i, part in enumerate(key_parts)
+        if "+" in part
+    }
+
+    structure = data.get("structure", {})
+    obs_dims = structure.get("dimensions", {}).get("observation", [])
+    n_period_vals = len(obs_dims[0].get("values", [])) if obs_dims else 1
+    if n_period_vals < 1:
+        n_period_vals = 1
+
+    series_dims: List[Dict] = structure.get("dimensions", {}).get("series", [])
+    sorted_or_pos = sorted(or_positions.keys())
+
+    dataset = (data.get("dataSets") or [{}])[0]
+    raw_series: Dict[str, Any] = dataset.get("series", {})
+    patched: Dict[str, Any] = {}
+
+    for series_key_str, series_data in raw_series.items():
+        parts = series_key_str.split(".")
+        new_parts = list(parts)
+
+        # Bug A fix: reset any out-of-range index on non-OR dims to 0.
+        # Single-value dims should always use index 0; StatCan sometimes uses
+        # memberId or global series index G instead.
+        for dim_idx, dim in enumerate(series_dims):
+            if dim_idx in or_positions or dim_idx >= len(new_parts):
+                continue
+            val_count = len(dim.get("values", []))
+            if val_count > 0 and int(new_parts[dim_idx]) >= val_count:
+                new_parts[dim_idx] = "0"
+
+        # Bug B fix: for OR dims, replace index with G-derived positional index.
+        if or_positions:
+            obs_keys = [int(k) for k in series_data.get("observations", {}).keys()]
+            if obs_keys:
+                G = min(obs_keys) // n_period_vals
+                remaining = G
+                for pos in reversed(sorted_or_pos):
+                    n = len(or_positions[pos])
+                    new_parts[pos] = str(remaining % n)
+                    remaining //= n
+
+        patched[".".join(new_parts)] = series_data
+
+    dataset["series"] = patched
+
 
 # SDMX 2.1 XML namespaces
 _NS = {
@@ -176,8 +250,10 @@ def register_sdmx_tools(registry: ToolRegistry) -> None:
           endPeriod="2023-12"   → up to Dec 2023
 
         LIMITATION: StatCan rejects combining lastNObservations with startPeriod/endPeriod (returns 406).
-        LIMITATION: OR syntax (+) for Geography may produce incorrect Geography labels in output —
-          use wildcard (omit the dimension) to retrieve multiple geographies instead.
+        NOTE: OR syntax (+) triggers a StatCan SDMX-JSON encoding bug (non-positional series keys).
+          This is automatically corrected before rows are returned, so all OR-ed dimension labels
+          should be present. Wildcard (omit the dimension) remains the more reliable alternative
+          for large multi-code selections.
 
         Output rows contain: dimension values, "period", "value", SCALAR_FACTOR,
         UOM, VECTOR_ID, STATUS, and other SDMX attributes.
@@ -210,7 +286,9 @@ def register_sdmx_tools(registry: ToolRegistry) -> None:
             )
             response.raise_for_status()
             sdmx_url = str(response.url)
-            rows = flatten_sdmx_json(response.json())
+            response_json = response.json()
+            _fix_or_series_keys(response_json, key)
+            rows = flatten_sdmx_json(response_json)
 
         result: Dict[str, Any] = {"_sdmx_url": sdmx_url, "row_count": len(rows)}
         if len(rows) > MAX_SDMX_ROWS:
