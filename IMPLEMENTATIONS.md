@@ -2,6 +2,9 @@
 
 *Updated Mar 2, 2026*
 
+- [ ] **`save_to_table` param on SDMX tools** — add optional `save_to_table: str` to `get_sdmx_data` / `get_sdmx_vector_data`; saves rows to SQLite, returns 5-row head + table name. Eliminates batched fetches and context bloat for large dimensions. See `docs/llm-efficiency-research.md`.
+- [ ] **`get_sdmx_key_for_dimension` tool** — given `productId` + `dimension_id`, return all leaf member IDs as a ready-to-use OR key string. Eliminates manual memberId extraction scripts. See `docs/llm-efficiency-research.md`.
+- [ ] **SDMX key semantics in docstring** — add inline warning to `get_sdmx_data`: wildcard returns sparse sample for large dimensions; use explicit WDS memberIds (from `get_cube_metadata`) not SDMX codelist positions for reliable results.
 - [ ] **Full cube list pre-fetch** — download all cube list so wildcarding allow llm to find stuff from the file instead of having to call functions to search online multiple times
 - [ ] **Full cube pre-fetch** — download all cube metadata to local DB for fully offline browsing
 - [ ] **SDMX Wildcarding + Repeated calls** - 406 errors for smaller models, the LLM has to do multiple SDMX fetch data call, adding on to context bloat. The LLM needs SDMX wildcarding directions. 
@@ -18,31 +21,30 @@ Example call by Gemini Flash.
 
 ## Open Problems
 
-### LLM Data Output — Hardcoded Values in Artifacts
+### LLM Data Output — Hardcoded Values & Context Bloat
 
-**Problem observed:** When an LLM calls `get_sdmx_data` and receives 73 rows of CPI data, it hardcodes every value into the artifact (React dashboard) as literal arrays. This is error-prone, wastes context window, and prevents dynamic queries. The LLM should reference the data, not re-type it.
+**Problem observed (two variants):**
+1. When an LLM calls `get_sdmx_data` and receives 73+ rows of data, it hardcodes every value into artifacts as literal arrays — error-prone and prevents dynamic queries.
+2. When fetching large hierarchical dimensions (e.g., 162 NOC minor groups), the LLM falls back to 9+ sequential batched calls, each returning large JSON responses that consume the context window. Aggregation then has to happen mentally from context.
 
-**Two Possible candidate approaches (either/or):**
+**Case study:** See `docs/llm-efficiency-research.md` — NOC employment query for New Brunswick that required 17+ tool calls where 3 would suffice.
 
-#### Approach A — Downstream: `save_to_table`
+**Confirmed approach: Approach A (`save_to_table`) — implement this**
 
-Add an optional `save_to_table` parameter to `get_sdmx_data` and `get_sdmx_vector_data`. When provided, save all rows to SQLite and return only a 5-row head + table metadata. The LLM then uses `query_database` to get exactly the data it needs.
+Add an optional `save_to_table: str` parameter to `get_sdmx_data` and `get_sdmx_vector_data`. When provided, save all rows to SQLite and return only a 5-row head + table metadata. The LLM then uses `query_database` to aggregate, filter, and rank.
 
 - **Works for:** stdio mode (has DB tools)
-- **Doesn't help:** HTTP mode (no DB tools registered)
-- **Complexity:** Low — reuses existing `create_table_from_data` pattern from `fetch_vectors_to_database`, and adding too many tools or complex server also bloats the LLM
-- **Trade-off:** Data still gets embedded in artifacts from SQL results, but from clean targeted queries instead of raw dumps
+- **Doesn't help:** HTTP mode (no DB tools registered) — acceptable trade-off
+- **Complexity:** Low — reuses existing `create_table_from_data` pattern from `fetch_vectors_to_database`
+- **Replaces:** 9 sequential batch fetches + mental aggregation → 1 fetch + 1 SQL query
 
-#### Approach B — Upstream: URL + SDMX decoding context
+**Confirmed additional tool: `get_sdmx_key_for_dimension`**
 
-The LLM already gets `_sdmx_url` in every SDMX tool response. The missing piece: it doesn't know how to decode SDMX-JSON compact format. If the LLM had that knowledge (via tool response hints, MCP Prompts, or a decoder snippet), it could write artifacts/sandbox code that fetches the URL at runtime and decodes it — data is never hardcoded, always live.
+New tool that accepts `productId` + `dimension_id` and returns all leaf codes as a ready-to-use OR key string. Eliminates the manual pattern of: `get_cube_metadata` → parse large file in bash → extract member IDs → build `+`-joined string.
 
-- **Works for:** HTTP mode, any client with code execution (analysis sandbox, Claude Code)
-- **CORS blocker:** Browser-based artifacts cannot fetch StatCan directly (no CORS headers). Would need either:
-  - A CORS proxy endpoint on the MCP HTTP server (e.g., `/sdmx/data/...` that proxies to StatCan with CORS headers)
-  - Limiting to Python sandbox only (no CORS restriction for server-side requests)
-- **Complexity:** Higher — requires SDMX-JSON decoding context in prompts/tool hints, or a proxy endpoint
-- **Trade-off:** More powerful (live data, no hardcoding) but more moving parts
+**Approach B — Upstream: URL + SDMX decoding context** (deprioritised)
+
+The LLM already gets `_sdmx_url` in every SDMX tool response. CORS blocks browser-based direct fetching. Only useful for Python sandbox clients. Keeping as a future option but not the immediate priority.
 
 ---
 
