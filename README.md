@@ -9,125 +9,128 @@
 
 <!-- mcp-name: io.github.Aryan-Jhaveri/mcp-statcan -->
 
-MCP server for Statistics Canada's [Web Data Service (WDS)](https://www.statcan.gc.ca/eng/developers/wds) and [SDMX REST API](https://www150.statcan.gc.ca/t1/wds/sdmx/statcan/rest/). Gives any MCP client — Claude, ChatGPT, Gemini,Cursor, VS Code Copilot, and more — structured access to Canadian statistical data.
+MCP server for Statistics Canada's [Web Data Service (WDS)](https://www.statcan.gc.ca/eng/developers/wds) and [SDMX REST API](https://www150.statcan.gc.ca/t1/wds/sdmx/statcan/rest/). Gives any MCP client — Claude, Cursor, VS Code Copilot, Gemini, and more — structured access to Canadian statistical data.
 
-> **Currently Hosting on Render see [quick start](#quick-start)!**
+> **Hosted on Render — no install required for most users. See [Quick Start](#quick-start).**
 
-**‼️‼️ LLM's may fabricate information, Always double check outputs, [see known issues](#known-issues)**
+**⚠️ LLMs may fabricate data. Always verify important figures against [official Statistics Canada sources](https://www.statcan.gc.ca/).**
 
-**‼️‼️ Be critical of conclusions and results of analysis done by LLM's, [see known issues](#known-issues)**
-
-#### **Two setup modes:**
-
-| Mode | Tools available | DB/Storage? | Best for |
-|---|---|---|---|
-| **HTTP** (self-hosted) | WDS + SDMX (~15 tools) | No | Most users — data access without local storage |
-| **stdio** (full) | All tools incl. SQLite | Yes | Power users — multi-series analysis, SQL queries |
-
-💻 So it can also be Self-host locally (with SQL query features and additional SQLite database support), see [Features & Tools](#features--tools)!
-
-
+---
 
 ## Table of Contents
 
 - [Quick Start](#quick-start)
-- [Examples](#examples)
 - [Setup by Client](#setup-by-client)
+- [Examples](#examples)
 - [Features & Tools](#features--tools)
 - [Project Structure](#project-structure)
 - [Known Issues](#known-issues)
 
 ---
 
-## Examples
-
-### Chat examples
-
-| Dataset | Query | Demo | Source |
-|---|---|---|---|
-| Canada's Greenhouse Gas Emissions (2018-2022) | "Create a simple visualization for greenhouse emissions for Canada as a whole over the last 4 years" | <a href="https://claude.ai/share/7de892a1-e1d9-410f-96f7-90cd140e5dd9" target="_blank">Chat</a> | <a href="https://www150.statcan.gc.ca/t1/tbl1/en/cv.action?pid=3810009701" target="_blank">Table 38-10-0097-01</a> |
-| Canada's International Trade in Services | "Create a quick analysis for international trade in services for the last 6 months with a visualization" | <a href="https://claude.ai/share/c00eba2d-4e86-4405-878a-7ea4110cb7d3" target="_blank">Chat</a> | <a href="https://www150.statcan.gc.ca/t1/tbl1/en/cv.action?pid=1210014401" target="_blank">Table 12-10-0144-01</a> |
-| Ontario Building Construction Price Index | "Generate a visualization for Ontario's Building Price index from Q4 2023 to Q4 2024" | <a href="https://claude.ai/share/12ce906f-5a26-4e74-86d9-10451ab5bc4b" target="_blank">Chat</a> | <a href="https://www150.statcan.gc.ca/t1/tbl1/en/cv.action?pid=1810028901" target="_blank">Table 18-10-0289-01</a> |
-
-### Dashboard examples
-
-| Title | Link | Source |
-|---|---|---|
-| Canadian Unemployement Dashboard | <a href="https://claude.ai/public/artifacts/298dfc5f-8e1b-4b73-a4d0-9a68b30cdb54" target="_blank">Dashboard</a> | <ul> <li> Labour force characteristics by province, territory and economic region, annual. <ul> <li> <a href="https://www150.statcan.gc.ca/t1/tbl1/en/tv.action?pid=1410046401" target="_blank">  Table 14-10-0464-01 </a> </ul> </li>
-| Canada's Critical Minerals Economy | <a href="https://claude.ai/public/artifacts/15d289c7-f324-4ced-bcc0-53d6ac3218c9" target="_blank">Dashboard</a> | <ul> <li> Economic contribution of critical mineral production, by Natural Resources Canada prioritized group, Canada. <ul> <li> <a href="https://www150.statcan.gc.ca/t1/tbl1/en/cv.action?pid=3610070801" target="_blank"> Table 36-10-0708-01</a> </li> </li> </ul> <li> Economic contribution of critical mineral production based on the Natural Resources Satellite Account, by commodity, Canada (x 1,000,000) <ul> <li> <a href="https://www150.statcan.gc.ca/t1/tbl1/en/cv.action?pid=3610070801" target="_blank"> Table 36-10-0707-01 </a> </li> </ul>
-| Price of Everything: CPI Dashboard 2015 - 2026 | <a href="https://claude.ai/public/artifacts/61e99645-934c-4fe2-9693-88dca714a634"> Dashboard </a> | <ul> <li> Consumer Price Index, monthly, not seasonally adjusted  </li> <ul> <li> <a href="https://www150.statcan.gc.ca/t1/tbl1/en/cv.action?pid=1810000401" target="_blank"> Table 14-10-0464-01 </a> </li> </ul>
-| Canada's Biomedical & Biotech Industries | <a href="https://claude.ai/public/artifacts/749ab9ef-c7a2-4186-8a75-d94a6eb8772e" target="_blank"> Dashboard </a> | <ul> <li> Applications related to biotechnology, by industry and enterprise size </li> <ul> <li> <a href="https://www150.statcan.gc.ca/t1/tbl1/en/tv.action?pid=2710029701&request_locale=en" target="_blank"> Table 27-10-0297-01 (formerly CANSIM 358-0428) </a> </li> </ul> </ul> <ul> <li> Adoption of biotechnology, by industry and enterprise size </li> <ul> <li> <a href="https://www150.statcan.gc.ca/t1/tbl1/en/cv.action?pid=2710029601" target="_blank"> Table 27-10-0296-01 (formerly CANSIM 358-0427) </a> </li> </ul> 
----
-
 ## Quick Start
 
-#### 🚀 Use the currently hosted version (easiest if available)
-Last Hosting Update: <code> Feb 28/2026 </code>
+Pick the option that fits you. You don't need to install anything for Option 1.
 
-No installation required, connect to the public server if you the link below works 
+### Option 1 — Use the hosted server (recommended)
+
+Connect directly to the public server on Render. No `uv`, no terminal, no local setup.
 
 **Claude Desktop**
-1. Go to **Settings (⌘,) → Connectors → Add Custom Connector**
-2. Add `mcp-statcan` to **name**
-3. Add `https://mcp-statcan.onrender.com/mcp` to **Remote MCP Server URL**
-4. Restart Claude Desktop
+1. Open **Settings (⌘,) → Connectors → Add Custom Connector**
+2. Name: `mcp-statcan`
+3. URL: `https://mcp-statcan.onrender.com/mcp`
+4. Save and restart Claude Desktop
 
-Requires [`uv`](https://docs.astral.sh/uv/): 
+**Claude Code**
+```bash
+claude mcp add statcan --transport http https://mcp-statcan.onrender.com/mcp --scope global
+```
 
+> The hosted server provides all WDS + SDMX tools (~15 tools). No SQLite/DB tools — those require local setup (Option 3).
+
+---
+
+### Option 2 — Self-host HTTP (WDS + SDMX, no DB)
+
+Run a local server with the same tools as the hosted version. Useful if the hosted server is down or you need a private setup.
+
+**Step 1** — Install [`uv`](https://docs.astral.sh/uv/) if you don't have it:
 ```bash
 # macOS / Linux
 curl -LsSf https://astral.sh/uv/install.sh | sh
 
-# Windows
+# Windows (PowerShell)
 powershell -ExecutionPolicy ByPass -c "irm https://astral.sh/uv/install.ps1 | iex"
 ```
 
-### HTTP mode — WDS + SDMX, no DB (recommended)
-
-Start the server in a terminal and leave it running:
-
+**Step 2** — Start the server in a terminal and leave it running:
 ```bash
 uvx statcan-mcp-server --transport http
-# Server running at http://localhost:8000  |  /health  |  /mcp
+# Listening at http://localhost:8000
 ```
 
-Then configure your client to connect to `http://localhost:8000/mcp` — see [Setup by Client](#setup-by-client) below.
+**Step 3** — Connect your client to `http://localhost:8000/mcp` — see [Setup by Client](#setup-by-client) below.
 
-### Full mode — add SQLite DB tools
+---
 
-Run via stdio — no separate server process needed:
+### Option 3 — Full local setup (WDS + SDMX + SQLite)
 
-```bash
-uvx statcan-mcp-server
-```
+Everything from Option 2, plus database tools for storing and querying data with SQL. Runs via stdio — no separate server process.
 
-Configure your client with the stdio snippets in [Setup by Client](#setup-by-client).
+**Step 1** — Install `uv` (same as above).
+
+**Step 2** — Configure your client with the stdio snippets in [Setup by Client](#setup-by-client) below.
+
+That's it. `uvx` downloads and runs the server automatically on first use.
 
 ---
 
 ## Setup by Client
 
-| Mode | DB tools? | Tools available |
-|---|---|---|
-| **HTTP** (self-hosted, start server first) | No | WDS + SDMX (~15 tools) |
-| **stdio** (full) | Yes | All tools incl. SQLite |
+### Hosted server (Option 1)
+
+**Claude Desktop** — Settings → Connectors → Add Custom Connector
+- Name: `mcp-statcan`
+- URL: `https://mcp-statcan.onrender.com/mcp`
+
+**Claude Code**
+```bash
+claude mcp add statcan --transport http https://mcp-statcan.onrender.com/mcp --scope global
+```
+
+**Cursor** — `.cursor/mcp.json` (project) or `~/.cursor/mcp.json` (global):
+```json
+{
+  "mcpServers": {
+    "statcan": {
+      "url": "https://mcp-statcan.onrender.com/mcp"
+    }
+  }
+}
+```
+
+**VS Code (GitHub Copilot)** — `.vscode/mcp.json`:
+```json
+{
+  "servers": {
+    "statcan": {
+      "type": "http",
+      "url": "https://mcp-statcan.onrender.com/mcp"
+    }
+  }
+}
+```
 
 ---
 
-### HTTP mode — WDS + SDMX (no DB)
+### Self-hosted HTTP (Option 2)
 
-> **Before configuring your client:** start the server in a separate terminal:
-> ```bash
-> uvx statcan-mcp-server --transport http
-> ```
-> Keep it running while using your client. Verify at `http://localhost:8000/health`.
+> Start `uvx statcan-mcp-server --transport http` first, then configure your client.
 
-Most clients use [`mcp-proxy`](https://github.com/sparfenyuk/mcp-proxy) to bridge stdio ↔ HTTP. Claude Code connects natively.
+Most clients need [`mcp-proxy`](https://github.com/sparfenyuk/mcp-proxy) to bridge stdio ↔ HTTP. Claude Code connects natively.
 
-**Claude Desktop**
-
-Navigate to: Claude Desktop → Settings (⌘,) → Developer → Edit Config
-
+**Claude Desktop** — Settings → Developer → Edit Config:
 ```json
 {
   "mcpServers": {
@@ -139,18 +142,12 @@ Navigate to: Claude Desktop → Settings (⌘,) → Developer → Edit Config
 }
 ```
 
-Restart Claude Desktop after saving.
-
 **Claude Code**
-
 ```bash
 claude mcp add statcan --transport http http://localhost:8000/mcp --scope global
 ```
 
-**Cursor**
-
-In `.cursor/mcp.json` (project) or `~/.cursor/mcp.json` (global):
-
+**Cursor** — `.cursor/mcp.json` or `~/.cursor/mcp.json`:
 ```json
 {
   "mcpServers": {
@@ -162,10 +159,7 @@ In `.cursor/mcp.json` (project) or `~/.cursor/mcp.json` (global):
 }
 ```
 
-**VS Code (GitHub Copilot)**
-
-In `.vscode/mcp.json`:
-
+**VS Code (GitHub Copilot)** — `.vscode/mcp.json`:
 ```json
 {
   "servers": {
@@ -178,13 +172,7 @@ In `.vscode/mcp.json`:
 }
 ```
 
-**Google Antigravity**
-
-Open the config via the UI: **three dots (⋮) → MCP Servers → Manage MCP Servers → View raw config**, or edit directly:
-
-- macOS / Linux: `~/.gemini/antigravity/mcp_config.json`
-- Windows: `C:\Users\<you>\.gemini\antigravity\mcp_config.json`
-
+**Google Gemini (Antigravity)** — `~/.gemini/antigravity/mcp_config.json`:
 ```json
 {
   "mcpServers": {
@@ -198,14 +186,9 @@ Open the config via the UI: **three dots (⋮) → MCP Servers → Manage MCP Se
 
 ---
 
-### Full mode — WDS + SDMX + SQLite DB tools
+### Full local / stdio (Option 3)
 
-No separate server process. `uvx` downloads and runs `statcan-mcp-server` from PyPI automatically.
-
-**Claude Desktop**
-
-Navigate to: Claude Desktop → Settings (⌘,) → Developer → Edit Config
-
+**Claude Desktop** — Settings → Developer → Edit Config:
 ```json
 {
   "mcpServers": {
@@ -216,21 +199,14 @@ Navigate to: Claude Desktop → Settings (⌘,) → Developer → Edit Config
   }
 }
 ```
-
-> **Note:** Pass `--db-path` with an absolute path. Claude Desktop overrides the subprocess `HOME` env var, which breaks the default `~/.statcan-mcp/` path resolution.
-
-Restart Claude Desktop after saving.
+> Pass `--db-path` with an absolute path. Claude Desktop overrides the subprocess `HOME` env var, which breaks the default path resolution.
 
 **Claude Code**
-
 ```bash
 claude mcp add statcan --scope global -- uvx statcan-mcp-server
 ```
 
-**Cursor**
-
-In `.cursor/mcp.json` (project) or `~/.cursor/mcp.json` (global):
-
+**Cursor** — `.cursor/mcp.json` or `~/.cursor/mcp.json`:
 ```json
 {
   "mcpServers": {
@@ -242,10 +218,7 @@ In `.cursor/mcp.json` (project) or `~/.cursor/mcp.json` (global):
 }
 ```
 
-**VS Code (GitHub Copilot)**
-
-In `.vscode/mcp.json`:
-
+**VS Code (GitHub Copilot)** — `.vscode/mcp.json`:
 ```json
 {
   "servers": {
@@ -258,13 +231,7 @@ In `.vscode/mcp.json`:
 }
 ```
 
-**Google Antigravity**
-
-Open the config via the UI: **three dots (⋮) → MCP Servers → Manage MCP Servers → View raw config**, or edit directly:
-
-- macOS / Linux: `~/.gemini/antigravity/mcp_config.json`
-- Windows: `C:\Users\<you>\.gemini\antigravity\mcp_config.json`
-
+**Google Gemini (Antigravity)** — `~/.gemini/antigravity/mcp_config.json`:
 ```json
 {
   "mcpServers": {
@@ -276,43 +243,55 @@ Open the config via the UI: **three dots (⋮) → MCP Servers → Manage MCP Se
 }
 ```
 
-**Optional flags (full/stdio mode)**
+---
 
-```bash
-# Custom database path (recommended for Claude Desktop)
-uvx statcan-mcp-server --db-path /your/path/statcan_data.db
+## Examples
 
-# Environment variable alternative
-STATCAN_DB_FILE=/your/path/statcan_data.db uvx statcan-mcp-server
-```
+### Chat examples
+
+| Dataset | Query | Demo | Source |
+|---|---|---|---|
+| Canada's Greenhouse Gas Emissions | "Create a simple visualization for greenhouse emissions for Canada as a whole over the last 4 years" | <a href="https://claude.ai/share/7de892a1-e1d9-410f-96f7-90cd140e5dd9" target="_blank">Chat</a> | <a href="https://www150.statcan.gc.ca/t1/tbl1/en/cv.action?pid=3810009701" target="_blank">Table 38-10-0097-01</a> |
+| Canada's International Trade in Services | "Create a quick analysis for international trade in services for the last 6 months with a visualization" | <a href="https://claude.ai/share/c00eba2d-4e86-4405-878a-7ea4110cb7d3" target="_blank">Chat</a> | <a href="https://www150.statcan.gc.ca/t1/tbl1/en/cv.action?pid=1210014401" target="_blank">Table 12-10-0144-01</a> |
+| Ontario Building Construction Price Index | "Generate a visualization for Ontario's Building Price index from Q4 2023 to Q4 2024" | <a href="https://claude.ai/share/12ce906f-5a26-4e74-86d9-10451ab5bc4b" target="_blank">Chat</a> | <a href="https://www150.statcan.gc.ca/t1/tbl1/en/cv.action?pid=1810028901" target="_blank">Table 18-10-0289-01</a> |
+
+### Dashboard examples
+
+| Title | Link | Source |
+|---|---|---|
+| Canadian Unemployment Dashboard | <a href="https://claude.ai/public/artifacts/298dfc5f-8e1b-4b73-a4d0-9a68b30cdb54" target="_blank">Dashboard</a> | <a href="https://www150.statcan.gc.ca/t1/tbl1/en/tv.action?pid=1410046401" target="_blank">Table 14-10-0464-01</a> |
+| Canada's Critical Minerals Economy | <a href="https://claude.ai/public/artifacts/15d289c7-f324-4ced-bcc0-53d6ac3218c9" target="_blank">Dashboard</a> | <a href="https://www150.statcan.gc.ca/t1/tbl1/en/cv.action?pid=3610070801" target="_blank">Table 36-10-0708-01</a> |
+| Price of Everything: CPI Dashboard 2015–2026 | <a href="https://claude.ai/public/artifacts/61e99645-934c-4fe2-9693-88dca714a634" target="_blank">Dashboard</a> | <a href="https://www150.statcan.gc.ca/t1/tbl1/en/cv.action?pid=1810000401" target="_blank">Table 18-10-0004-01</a> |
+| Canada's Biomedical & Biotech Industries | <a href="https://claude.ai/public/artifacts/749ab9ef-c7a2-4186-8a75-d94a6eb8772e" target="_blank">Dashboard</a> | <a href="https://www150.statcan.gc.ca/t1/tbl1/en/tv.action?pid=2710029701" target="_blank">Table 27-10-0297-01</a> |
 
 ---
 
 ## Features & Tools
 
-### SDMX Tools — recommended for data fetching
+### SDMX Tools — server-side filtered data fetch
 
-Server-side filtered observations. Only the requested slice is returned — no downloading full tables.
+Only the slice you request is returned. No downloading full tables.
 
 | Tool | Description |
 |---|---|
-| `get_sdmx_structure` | Fetch dimension codelists + key syntax for a table. Call this before `get_sdmx_data`. |
-| `get_sdmx_data` | Fetch filtered observations by `productId` + `key`. Supports `lastNObservations`, `startPeriod`, `endPeriod`. |
-| `get_sdmx_vector_data` | Fetch observations for a single vectorId via SDMX. |
+| `get_sdmx_structure` | Dimension codelists + key syntax for a table. Call this before `get_sdmx_data`. |
+| `get_sdmx_data` | Filtered observations by `productId` + key. Supports `lastNObservations`, `startPeriod`, `endPeriod`. |
+| `get_sdmx_vector_data` | Observations for a single vectorId via SDMX. |
+| `get_sdmx_key_for_dimension` | Returns all leaf member IDs for a large dimension as a ready-to-paste OR key string. Use this when a dimension has >30 codes (e.g. NOC occupations, CMAs). |
 
 **Key syntax** (passed to `get_sdmx_data`):
 - `"1.2.1"` — Geography=1, Gender=2, Age=1
 - `".2.1"` — all geographies (wildcard), Gender=2, Age=1
-- `lastNObservations=12` — last 12 periods (e.g. 1 year of monthly data)
-- Limitation: `lastNObservations` cannot combine with `startPeriod`/`endPeriod` (StatCan returns 406)
+- `"1+2.2.1"` — Geography 1 or 2, Gender=2, Age=1
+
+> **Note:** Wildcard (`.`) on dimensions with >30 codes returns a sparse, unpredictable sample — not all values. Use `get_sdmx_key_for_dimension` to get the correct OR key instead.
 
 ### WDS Discovery & Metadata
 
 | Tool | Description |
 |---|---|
-| `search_cubes_by_title` | Full-text search across all StatCan tables. AND logic on multiple keywords, capped at 25 results. |
-| `get_all_cubes_list` | Paginated table inventory with dimension details (`offset`/`limit`, default 100/page). |
-| `get_all_cubes_list_lite` | Same but lighter — no dimension or footnote info. |
+| `search_cubes_by_title` | Full-text search across all StatCan tables. AND logic, capped at 25 results. |
+| `get_all_cubes_list` / `_lite` | Paginated table inventory (`offset`/`limit`, default 100/page). |
 | `get_cube_metadata` | Dimension info, member lists, date ranges. `summary=True` (default) caps members at 10 per dimension. |
 | `get_code_sets` | Decode StatCan numeric codes (frequency, UOM, scalar factor, status). |
 
@@ -320,66 +299,44 @@ Server-side filtered observations. Only the requested slice is returned — no d
 
 | Tool | Description |
 |---|---|
-| `get_series_info` | Resolve one or more `{productId, coordinate}` pairs to vectorId + metadata in a single call. Replaces the old single + bulk coord tools. |
+| `get_series_info` | Resolve `{productId, coordinate}` pairs to vectorId + metadata. |
 | `get_series_info_from_vector` | Resolve a vectorId to productId, coordinate, titles, frequency. |
 
 ### WDS Change Detection
 
 | Tool | Description |
 |---|---|
-| `get_changed_cube_list` | Tables updated on a specific date (YYYY-MM-DD). |
+| `get_changed_cube_list` | Tables updated on a specific date. |
 | `get_changed_series_list` | Series updated on a specific date. |
 | `get_changed_series_data_from_cube_pid_coord` | Data points that changed for a coordinate. |
 | `get_changed_series_data_from_vector` | Data points that changed for a vectorId. |
+| `get_bulk_vector_data_by_range` | Multiple vectors filtered by release date range. |
 
-### WDS Data Fetch
-
-| Tool | Description |
-|---|---|
-| `get_bulk_vector_data_by_range` | Fetch multiple vectors filtered by **release date** range (YYYY-MM-DDTHH:MM). Use when you want "data released between date A and date B", not a reference period range. |
-
-### Composite Tools *(local/stdio mode only)*
+### Composite & Database Tools *(local/stdio mode only)*
 
 | Tool | Description |
 |---|---|
-| `fetch_vectors_to_database` | Fetch multiple vectors by reference period range and store to SQLite in one call. Preferred workflow for multi-series analysis. |
-| `store_cube_metadata` | Fetch full cube metadata and store into `_statcan_dimensions` + `_statcan_members` tables. Use SQL to browse all members and look up vectorIds without loading them into context. |
+| `fetch_vectors_to_database` | Fetch vectors by reference period range and store to SQLite in one call. |
+| `store_cube_metadata` | Fetch full cube metadata into SQLite — browse all members and vectorIds with SQL. |
+| `query_database` | Read-only SQL against the local SQLite database. |
+| `create_table_from_data` / `insert_data` | Create or append to a table. |
+| `list_tables` / `get_table_schema` / `drop_table` | Database utilities. |
 
-### Database Tools *(local/stdio mode only)*
-
-Persistent SQLite at `~/.statcan-mcp/statcan_data.db`.
-
-| Tool | Description |
-|---|---|
-| `create_table_from_data` | Create a table and insert rows in one step. |
-| `insert_data` | Append rows to an existing table. |
-| `query_database` | Read-only SQL (`PRAGMA query_only = ON`). |
-| `list_tables` | List all tables. |
-| `get_table_schema` | Schema for a table. |
-| `drop_table` | Drop a table. |
-
----
-
-### Typical workflow (local mode)
+### Typical workflow
 
 ```
 1. search_cubes_by_title("unemployment rate")
-   → find productId, e.g. 14100287
+   → productId e.g. 14100287
 
 2. get_sdmx_structure(productId=14100287)
-   → see dimensions + codes for key construction
+   → see dimension positions + sample codes
 
-3. get_sdmx_data(productId=14100287, key=".2.1", lastNObservations=24)
+3. get_sdmx_key_for_dimension(productId=14100287, dimension_position=3)
+   → or_key = "1+2+3+..." for large dimensions
+
+4. get_sdmx_data(productId=14100287, key=".2.1", lastNObservations=24)
    → last 24 months, all geographies, seasonally adjusted
-
-4. (optional) get_series_info(items=[{productId:14100287, coordinate:"1.2.1"}])
-   → get vectorId for a specific series
-
-5. (optional) fetch_vectors_to_database(vectorIds=[...], table_name="unemployment")
-   → store for SQL analysis
 ```
-
-> **Warning:** LLMs may occasionally fabricate data when unable to retrieve actual information. Always verify important figures against [official Statistics Canada sources](https://www.statcan.gc.ca/).
 
 ---
 
@@ -388,41 +345,46 @@ Persistent SQLite at `~/.statcan-mcp/statcan_data.db`.
 ```
 src/
 ├── api/
-│   ├── cube_tools.py        # WDS cube + search tools
-│   ├── vector_tools.py      # WDS vector tools
-│   ├── sdmx_tools.py        # SDMX REST tools
-│   ├── composite_tools.py   # fetch_vectors_to_database, store_cube_metadata
-│   └── metadata_tools.py    # get_code_sets
-├── db/                      # SQLite connection, schema, queries
-├── models/                  # Pydantic input models
+│   ├── cube/
+│   │   ├── discovery.py         # search_cubes_by_title, get_all_cubes_list
+│   │   ├── metadata.py          # get_cube_metadata
+│   │   └── series.py            # get_series_info, change detection
+│   ├── vector/
+│   │   └── vector_tools.py      # vector series, bulk range fetch
+│   ├── sdmx/
+│   │   └── sdmx_tools.py        # get_sdmx_structure, get_sdmx_data, get_sdmx_key_for_dimension
+│   ├── composite_tools.py       # fetch_vectors_to_database, store_cube_metadata
+│   └── metadata_tools.py        # get_code_sets
+├── db/                          # SQLite connection, schema, queries
+├── models/                      # Pydantic input models
 ├── util/
-│   ├── registry.py          # ToolRegistry — @decorator → MCP Tool schema
-│   ├── truncation.py        # Response truncation + pagination guidance
-│   ├── sdmx_json.py         # SDMX-JSON → tabular rows
-│   ├── cache.py             # 1-hour TTL cache for cube list
-│   └── coordinate.py        # Pad WDS coordinate to 10 dimensions
-├── config.py                # BASE_URL, SDMX_BASE_URL, DB_FILE, TRANSPORT, PORT
-└── server.py                # create_server(), transport wiring, CLI entrypoint
+│   ├── registry.py              # ToolRegistry — @decorator → MCP Tool schema
+│   ├── truncation.py            # Response truncation + pagination guidance
+│   ├── sdmx_json.py             # SDMX-JSON → tabular rows
+│   └── cache.py                 # 1-hour TTL cache for cube list
+├── config.py                    # BASE_URL, SDMX_BASE_URL, DB_FILE, TRANSPORT, PORT
+└── server.py                    # create_server(), MCP Prompts, HTTP routes, CLI
 ```
 
 ---
 
 ## Known Issues
 
-- **"Unable to open database file" on Claude Desktop**: Pass `--db-path /Users/<you>/.statcan-mcp/statcan_data.db` in your config (see [Setup](#claude-desktop)). Claude Desktop overrides the subprocess `HOME` env var.
-- **SSL verification disabled**: `VERIFY_SSL = False` in all StatCan API calls. This is a known limitation — StatCan's certificate chain causes verification failures in some environments.
-- **SDMX OR-key geography labels**: Using `+` syntax for multiple geographies (e.g. `"1+2.2.1"`) produces incorrect Geography labels for series 2+. Use wildcard (omit the dimension: `".2.1"`) instead — this is a StatCan API bug.
-- **`lastNObservations` + date range**: StatCan SDMX returns 406 when combining `lastNObservations` with `startPeriod`/`endPeriod`. Use one or the other.
-- **Context overflow may cause data fabrication**: When tool results are large, the LLM's context window fills up and it may fabricate or hallucinate data values instead of fetching them. Always verify important figures against [official Statistics Canada sources](https://www.statcan.gc.ca/). Use precise SDMX queries (`lastNObservations`, specific keys) to keep responses small.
-- **Rate limits**: StatCan's API may throttle during high-demand periods.
+| Issue | Status | Workaround |
+|---|---|---|
+| **"Unable to open database file" on Claude Desktop** | Active | Pass `--db-path /Users/<you>/.statcan-mcp/statcan_data.db` in your config |
+| **SSL verification disabled** | Active | `VERIFY_SSL = False` in all API calls — StatCan cert issues made this necessary |
+| **`lastNObservations` + `startPeriod`/`endPeriod` → 406** | Active | Use one or the other, not both |
+| **OR syntax for Geography dimension unreliable** | Active | Use wildcard (`.`) for Geography instead of `+` syntax; OR works fine for other dimensions |
+| **Wildcard returns sparse/wrong data for large dimensions** | Mitigated | Use `get_sdmx_key_for_dimension` to get the full OR key for large dimensions (e.g. NOC, CMAs) |
+| **Context overflow may cause data fabrication** | Active | Use precise SDMX keys + `lastNObservations` to keep responses small; verify against [StatCan](https://www.statcan.gc.ca/) |
 
 ---
-<div align="center"> Made with ❤️❤️❤️ for Statistics Canada </div>
+
+<div align="center">Made with ❤️ for Statistics Canada</div>
 
 <div align="center">
-<p>
 <a href="https://github.com/Aryan-Jhaveri/mcp-statcan" target="_blank">GitHub</a> •
 <a href="https://github.com/Aryan-Jhaveri/mcp-statcan/issues" target="_blank">Report Bug</a> •
 <a href="https://www.statcan.gc.ca/" target="_blank">Statistics Canada</a>
-</p>
 </div>
