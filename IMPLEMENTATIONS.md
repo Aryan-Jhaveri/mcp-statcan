@@ -1,80 +1,95 @@
-# Roadmap
+# Implementation Status & Roadmap
 
-*Updated Mar 2, 2026*
-
-- [ ] **`save_to_table` param on SDMX tools** — add optional `save_to_table: str` to `get_sdmx_data` / `get_sdmx_vector_data`; saves rows to SQLite, returns 5-row head + table name. Eliminates batched fetches and context bloat for large dimensions. See `docs/llm-efficiency-research.md`.
-- [ ] **`get_sdmx_key_for_dimension` tool** — given `productId` + `dimension_id`, return all leaf member IDs as a ready-to-use OR key string. Eliminates manual memberId extraction scripts. See `docs/llm-efficiency-research.md`.
-- [ ] **SDMX key semantics in docstring** — add inline warning to `get_sdmx_data`: wildcard returns sparse sample for large dimensions; use explicit WDS memberIds (from `get_cube_metadata`) not SDMX codelist positions for reliable results.
-- [ ] **Full cube list pre-fetch** — download all cube list so wildcarding allow llm to find stuff from the file instead of having to call functions to search online multiple times
-- [ ] **Full cube pre-fetch** — download all cube metadata to local DB for fully offline browsing
-- [ ] **SDMX Wildcarding + Repeated calls** - 406 errors for smaller models, the LLM has to do multiple SDMX fetch data call, adding on to context bloat. The LLM needs SDMX wildcarding directions. 
-
-Example call by Gemini Flash. 
-{
-  "key": "1.1.3.1.1.1.1+2+3+4",
-  "productId": 37100163,
-  "startPeriod": "2023"
-}
-
+*Updated April 9, 2026*
 
 ---
 
-## Open Problems
+## What's Shipped
 
-### LLM Data Output — Hardcoded Values & Context Bloat
+### v0.5.0 — Sandbox Research Priorities (Apr 2026)
+*Branch: `feat/sandbox-research-impl` → merged to `main`*
 
-**Problem observed (two variants):**
-1. When an LLM calls `get_sdmx_data` and receives 73+ rows of data, it hardcodes every value into artifacts as literal arrays — error-prone and prevents dynamic queries.
-2. When fetching large hierarchical dimensions (e.g., 162 NOC minor groups), the LLM falls back to 9+ sequential batched calls, each returning large JSON responses that consume the context window. Aggregation then has to happen mentally from context.
+- **`get_sdmx_key_for_dimension`** — new tool: fetches full SDMX codelist for a dimension, returns all leaf codes as a ready-to-use `+`-joined OR key string. Eliminates the 9-batch-call pattern for large dimensions (e.g., 162 NOC minor groups). See `docs/llm-efficiency-research.md`.
+- **`get_sdmx_data` wildcard warning** — docstring now has an explicit `IMPORTANT — key position codes` block warning that wildcard (`.`) returns a sparse sample for dimensions with >30 codes, and points to `get_sdmx_key_for_dimension`.
+- **MCP Prompts** — `statcan-data-lookup` and `sdmx-key-builder` registered in both stdio and HTTP modes. Appear as slash commands in Claude.ai web.
+- **CSV download proxy** — `/files/sdmx/{product_id}/{key}` Starlette route on the HTTP server: stateless StatCan SDMX → flattened CSV. `get_sdmx_data` returns `download_csv` URL + 5-row head instead of inline data when `row_count > FILE_THRESHOLD` (50) and `RENDER_BASE_URL` is set. See **Known Issues** — this requires the env var to be configured on Render.
+- **`_parse_structure_xml` name field** — each dimension entry now includes the codelist's English name (used by `get_sdmx_key_for_dimension`).
 
-**Case study:** See `docs/llm-efficiency-research.md` — NOC employment query for New Brunswick that required 17+ tool calls where 3 would suffice.
+### v0.4.x — SDMX Phase 1 + HTTP Transport (Feb–Mar 2026)
 
-**Confirmed approach: Approach A (`save_to_table`) — implement this**
+- **SDMX tools** — `get_sdmx_structure`, `get_sdmx_data`, `get_sdmx_vector_data`
+- **SDMX-JSON decoder** — `flatten_sdmx_json()` in `util/sdmx_json.py`; handles annual/monthly period decoding, attribute decoding, null values
+- **OR-query series key bug fix** — `_fix_or_series_keys()` corrects StatCan's non-standard series key encoding for both solo-code (Bug A) and OR-query (Bug B) cases
+- **HTTP transport** — `--transport http` flag; Starlette + StreamableHTTPSessionManager; stateless, no DB tools, CORS open
+- **Streamable HTTP** — Render deployment at `mcp-statcan.onrender.com`
+- **3 WDS tools deregistered** — `get_data_from_cube_pid_coord_and_latest_n_periods`, `get_data_from_vectors_and_latest_n_periods`, `get_data_from_vector_by_reference_period_range` (replaced by SDMX tools; decorators commented, functions kept)
+- **Test suite** — 32 tests passing: `test_truncation.py` (17), `test_sdmx_json.py` (7), others
 
-Add an optional `save_to_table: str` parameter to `get_sdmx_data` and `get_sdmx_vector_data`. When provided, save all rows to SQLite and return only a 5-row head + table metadata. The LLM then uses `query_database` to aggregate, filter, and rank.
+### v0.3.x and earlier — WDS Foundation
 
-- **Works for:** stdio mode (has DB tools)
-- **Doesn't help:** HTTP mode (no DB tools registered) — acceptable trade-off
-- **Complexity:** Low — reuses existing `create_table_from_data` pattern from `fetch_vectors_to_database`
+- WDS cube discovery, metadata, series resolution, change detection
+- Vector tools: bulk range fetch, changed series
+- Composite tools: `fetch_vectors_to_database`, `store_cube_metadata`
+- SQLite database layer (`~/.statcan-mcp/statcan_data.db`)
+- `ToolRegistry` decorator → MCP Tool schema
+- TTL cache for cube list (1-hour)
+- stdio transport (Claude Desktop / Claude Code)
+
+---
+
+## Known Issues & Constraints
+
+### Active Constraints (won't fix soon)
+
+| Issue | Detail |
+|---|---|
+| `VERIFY_SSL = False` | All httpx calls disable SSL verification — known security risk, StatCan cert issues made this necessary |
+| `lastNObservations` + `startPeriod`/`endPeriod` → 406 | StatCan SDMX rejects combining these params; enforced with `ValueError` in both SDMX data tools |
+| SDMX Geography labels broken for OR queries | StatCan uses non-standard series key encoding for multi-series OR queries; `_fix_or_series_keys()` fixes period and non-OR dim labels, but Geography labels in series 2+ remain wrong. Workaround: use wildcard for Geography, OR for other dims. Documented in `docs/or-query-label-bug.md` |
+| Wildcard returns sparse/wrong data for large dims | Confirmed for NOC (309 codes): wildcard returned 31 misaligned rows. Always use explicit member IDs for dims with >30 codes. `get_sdmx_key_for_dimension` provides the OR key. |
+| CSV proxy requires `RENDER_BASE_URL` env var | `get_sdmx_data`'s large-response CSV redirect only activates when `RENDER_BASE_URL` is set in the environment. Must be configured on Render dashboard: `RENDER_BASE_URL=https://mcp-statcan.onrender.com` |
+
+### Stale Documentation
+
+`docs/implementation_status.md` is completely outdated — references Vega-Lite integration, ARIMA forecasting, Vector Search MCP, Deep Research MCP, and other features that have never existed in this codebase. Ignore it.
+
+---
+
+## What's Next
+
+### Priority 1 — `save_to_table` on `get_sdmx_data` / `get_sdmx_vector_data` (stdio only)
+
+Add optional `save_to_table: str` parameter. When provided: write all rows to SQLite via `create_table_from_data`, return `{table, rows, columns, head}` instead of inline data. LLM then uses `query_database` for aggregation.
+
 - **Replaces:** 9 sequential batch fetches + mental aggregation → 1 fetch + 1 SQL query
+- **Only for stdio mode** — HTTP mode has no DB tools (consistent with existing split)
+- **Location:** `src/api/sdmx/sdmx_tools.py`, `src/models/sdmx_models.py`
+- **Reuses:** `create_table_from_data` from `db/schema.py` (already used in `fetch_vectors_to_database`)
+- **Effort:** ~3 hrs
 
-**Confirmed additional tool: `get_sdmx_key_for_dimension`**
+See `docs/llm-efficiency-research.md` for the NOC case study that motivated this.
 
-New tool that accepts `productId` + `dimension_id` and returns all leaf codes as a ready-to-use OR key string. Eliminates the manual pattern of: `get_cube_metadata` → parse large file in bash → extract member IDs → build `+`-joined string.
+### Priority 2 — Set `RENDER_BASE_URL` on Render
 
-**Approach B — Upstream: URL + SDMX decoding context** (deprioritised)
+The CSV proxy is implemented but dormant until this env var is set. One-line config change on the Render dashboard. No code change needed.
 
-The LLM already gets `_sdmx_url` in every SDMX tool response. CORS blocks browser-based direct fetching. Only useful for Python sandbox clients. Keeping as a future option but not the immediate priority.
+### Priority 3 — MCP Resources
 
----
+Expose SDMX URLs and SQLite tables as addressable resources.
 
-### Phase 3 — MCP Resources & Prompts for SDMX
+- `statcan://sdmx/{productId}/{key}` → constructed SDMX URL + usage instructions (HTTP mode)
+- `statcan://table/{name}` → SQLite table reference for multi-turn dataset reuse (stdio only)
+- Register `server.list_resources()` / `server.read_resource()` handlers in `create_server()`
+- Additive — no architectural change needed
+- **Effort:** ~4 hrs
 
-Expose SDMX URL construction as MCP primitives — supplementary to tools, not a replacement.
+### Priority 4 — Full Cube List Pre-fetch
 
-- **Resource template:** `sdmx://statcan/data/{productId}/{key}` → resolves to constructed SDMX URL + usage instructions
-- **Prompt:** "SDMX data analysis" → reusable template with step-by-step URL construction guide, format notes, Python usage examples
+Download and cache the full `getAllCubesListLite` response at startup so discovery queries hit local data instead of the network. Reduces tool calls for the search → pick → fetch pattern.
 
-These are additive — registered alongside tools in `create_server()`, no architectural change needed.
-
-- [ ] Add `server.list_resources()` / `server.read_resource()` handlers
-- [ ] Add `server.list_prompts()` / `server.get_prompt()` handlers
-- [ ] SDMX URL construction prompt with Python usage examples
-
----
-
-### Phase 4 — MCP Apps / Data Visualization
-
-Return interactive HTML charts/dashboards in-chat via `ui://` resources.
-
-Additive primitive — new module `src/api/app_tools.py` registered in `create_server()`. Visualization tools query local SQLite, so they live in the stdio server only (excluded from HTTP mode, consistent with DB tools split).
-
-**Current blockers:**
-- Python MCP SDK does not yet support MCP Apps (JS SDK only, as of Feb 2026)
-- Requires HTTP transport (stdio cannot serve HTML resources back to client)
-- Limited host support — few MCP clients render `ui://` resources
-
-**Unblocked when:** Phase 2 deployed + Python SDK ships MCP Apps support.
+- Cache to SQLite on first run, refresh on TTL (aligned to StatCan's 8:30 AM ET release cadence)
+- **Location:** `util/cache.py` + `api/cube/discovery.py`
+- **Effort:** ~3 hrs
 
 ---
 
@@ -82,47 +97,60 @@ Additive primitive — new module `src/api/app_tools.py` registered in `create_s
 
 ### Quality
 
-- [ ] **Enable SSL verification** — `VERIFY_SSL = False` is a security risk
-- [ ] **CI/CD linting** — ruff + mypy on push/PR
-- [ ] **Expand tests** — mock StatCan API responses; per-tool coverage (currently only truncation + sdmx_json tested)
+- [ ] **Enable SSL verification** — needs investigation into StatCan cert issues first
+- [ ] **CI/CD linting** — ruff + mypy on push/PR (GitHub Actions)
+- [ ] **Expand tests** — see `CLAUDE.md` Testing Plan for prioritized list; `test_coordinate.py`, `test_sql_helpers.py`, `test_sdmx_structure.py` are easiest next targets (pure functions, no mocking)
+- [ ] **`docs/implementation_status.md`** — rewrite or delete (currently describes a different, non-existent server)
 
 ### Distribution
 
-- [x] **Render deployment** — covered by Phase 2 remaining items
 - [ ] **Register on Smithery.ai** — one-click install button
 - [ ] **Submit to directories** — `punkpeye/awesome-mcp-servers`, PulseMCP
 - [ ] **Multi-client config snippets** — Cursor, VS Code Copilot, Windsurf, Claude.ai Custom Connector in README
 - [ ] **Windows setup guide** — needs testing on Windows VM first
-- [ ] **Dockerfile** — for Docker MCP Catalog listing; also useful for Render (alternative to Procfile)
+- [ ] **Dockerfile** — for Docker MCP Catalog listing; also useful for Render
 
 ### Exploratory
 
+- [ ] **MCP Apps / Data Visualization** — blocked: Python SDK does not yet support MCP Apps (JS only as of Apr 2026); requires HTTP transport + host support
 - [ ] **A2A + MCP** — multi-agent system exploration
-- [ ] **Scheduled reports** — periodic LLM calls for dataset summaries
-- [ ] **Caching aligned to StatCan update schedule** — time-based invalidation at StatCan's 8:30 AM ET release cadence
+- [ ] **Caching aligned to StatCan 8:30 AM ET release cadence**
 
+---
 
 ## Architecture & Data Flow
 
-### Current
-
 ```mermaid
 flowchart TD
-    A[Claude.ai / Mobile / API / Desktop] -->|Streamable HTTP| B["Remote MCP Server (Render) stateless, no sessions"]
-    A -->|stdio - optional| DB["Local stdio server (existing, unchanged)"]
-    A -->|"direct fetch via _sdmx_url (clients with code execution)"| S[StatCan SDMX API]
+    A[Claude.ai / Claude Code / Cursor / API] -->|Streamable HTTP| B["Remote MCP Server\nmcp-statcan.onrender.com\nstateless, no sessions"]
+    A -->|stdio| DB["Local stdio server\nuvx statcan-mcp-server"]
 
     B -->|WDS proxy| D[StatCan WDS API]
-    B -->|SDMX proxy| S
-    D -->|JSON payload| A
-    S -->|filtered SDMX-JSON| A
+    B -->|SDMX proxy| S[StatCan SDMX API]
+    B -->|CSV proxy\n/files/sdmx/...| S
 
-    DB -->|DB + composite tools| E[SQLite ~/.statcan-mcp/]
-    E -->|SQL Results| A
+    DB -->|WDS + SDMX| D
+    DB -->|WDS + SDMX| S
+    DB -->|DB + composite tools| E[SQLite\n~/.statcan-mcp/statcan_data.db]
+
+    E -->|query_database| A
 
     style A fill:#210d70
     style B fill:#70190d
     style DB fill:#0d5c70
     style E fill:#700d49
     style S fill:#0d6b3a
+    style D fill:#0d6b3a
 ```
+
+### Mode Comparison
+
+| | HTTP (Render) | stdio (local) |
+|---|---|---|
+| Users | Claude.ai web, API, Cursor | Claude Desktop, Claude Code |
+| DB tools | No | Yes |
+| `save_to_table` | No | Yes (Priority 1) |
+| CSV proxy | Yes (needs `RENDER_BASE_URL`) | N/A |
+| MCP Prompts | Yes | Yes |
+| SDMX tools | Yes | Yes |
+| WDS tools | Yes | Yes |
