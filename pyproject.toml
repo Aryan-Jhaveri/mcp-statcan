@@ -21,8 +21,9 @@ requires-python = ">=3.10"
 # Core dependencies required for the server to run
 dependencies = [
     "mcp>=1.8.0,<2",
-    "httpx>=0.25.0",  
-    "pydantic>=2.0.0" 
+    "httpx>=0.25.0",
+    "pydantic>=2.0.0",
+    "typer[all]>=0.9.0",
 ]
 
 [project.urls]
@@ -40,4 +41,5 @@ dev = [
 
 [project.scripts]
 statcan-mcp-server = "src.server:main"
+statcan = "src.cli.main:main"
 
