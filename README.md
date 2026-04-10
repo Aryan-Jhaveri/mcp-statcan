@@ -381,7 +381,7 @@ src/
 
 ---
 
-<div align="center">Made with ❤️ for Statistics Canada</div>
+<div align="center">Made with ❤️❤️❤️ for Statistics Canada</div>
 
 <div align="center">
 <a href="https://github.com/Aryan-Jhaveri/mcp-statcan" target="_blank">GitHub</a> •
