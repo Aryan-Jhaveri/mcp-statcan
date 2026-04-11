@@ -3,10 +3,11 @@
 Provides server-side filtered data access via the SDMX REST API at:
   https://www150.statcan.gc.ca/t1/wds/sdmx/statcan/rest/
 
-Three tools:
-  get_sdmx_structure  — fetch Data Structure Definition (DSD) as JSON: dimensions + codelists
-  get_sdmx_data       — fetch filtered observations by productId + key
+Four tools:
+  get_sdmx_structure   — fetch Data Structure Definition (DSD) as JSON: dimensions + codelists
+  get_sdmx_data        — fetch filtered observations by productId + key
   get_sdmx_vector_data — fetch observations for a single vectorId
+  get_sdmx_rows        — fetch rows inline always (use when building artifacts/widgets)
 """
 
 import xml.etree.ElementTree as ET
@@ -348,6 +349,64 @@ def register_sdmx_tools(registry: ToolRegistry) -> None:
             result["_truncated"] = False
 
         return result
+
+    @registry.tool()
+    async def get_sdmx_rows(data_input: SDMXDataInput) -> Dict[str, Any]:
+        """
+        Fetch SDMX observations and always return rows inline — use this when you
+        need to embed data in an artifact or widget.
+
+        Unlike get_sdmx_data (which returns a download_csv URL in HTTP/Render mode),
+        this tool always returns the full row list directly. Use it when:
+          - Building a chart, table, or widget artifact that needs data embedded at
+            construction time (browser-side fetch() from artifacts is blocked by CSP)
+          - You need to sort/filter rows before embedding a small result set
+
+        Same key syntax and time parameters as get_sdmx_data — see that tool's
+        description for key construction rules and wildcard warnings.
+
+        Rows are capped at MAX_SDMX_ROWS. For large dimensions use
+        get_sdmx_key_for_dimension to build a precise OR key before calling this.
+
+        IMPORTANT: In your final response to the user, cite the _sdmx_url, table
+        productId, and key used.
+        """
+        product_id = data_input.productId
+        key = data_input.key
+
+        if data_input.lastNObservations is not None and (data_input.startPeriod or data_input.endPeriod):
+            raise ValueError(
+                "StatCan SDMX does not support combining lastNObservations with startPeriod/endPeriod. "
+                "Use lastNObservations=N for recent data, or startPeriod/endPeriod for a date range."
+            )
+
+        url = f"{SDMX_BASE_URL}data/DF_{product_id}/{key}"
+        params: Dict[str, Any] = {}
+        if data_input.lastNObservations is not None:
+            params["lastNObservations"] = data_input.lastNObservations
+        if data_input.startPeriod:
+            params["startPeriod"] = data_input.startPeriod
+        if data_input.endPeriod:
+            params["endPeriod"] = data_input.endPeriod
+
+        async with httpx.AsyncClient(timeout=TIMEOUT_MEDIUM, verify=False) as client:
+            response = await client.get(
+                url, params=params, headers={"Accept": SDMX_JSON_ACCEPT}
+            )
+            response.raise_for_status()
+            sdmx_url = str(response.url)
+            response_json = response.json()
+            _fix_or_series_keys(response_json, key)
+            rows = flatten_sdmx_json(response_json)
+
+        truncated = len(rows) > MAX_SDMX_ROWS
+        return {
+            "_sdmx_url": sdmx_url,
+            "row_count": len(rows),
+            "data": rows[:MAX_SDMX_ROWS],
+            "_truncated": truncated,
+            **({"_message": f"Capped at {MAX_SDMX_ROWS} rows (total: {len(rows)}). Narrow your key."} if truncated else {}),
+        }
 
     @registry.tool()
     async def get_sdmx_vector_data(vector_input: SDMXVectorInput) -> Dict[str, Any]:
