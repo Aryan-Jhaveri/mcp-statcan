@@ -15,7 +15,6 @@ from typing import Any, Dict, List, Optional
 import httpx
 
 from ...config import (
-    FILE_THRESHOLD,
     MAX_SDMX_ROWS,
     RENDER_BASE_URL,
     SDMX_BASE_URL,
@@ -314,8 +313,9 @@ def register_sdmx_tools(registry: ToolRegistry) -> None:
 
         result: Dict[str, Any] = {"_sdmx_url": sdmx_url, "row_count": len(rows)}
 
-        # Large-response path: return a CSV download URL instead of inline data
-        if len(rows) > FILE_THRESHOLD and RENDER_BASE_URL:
+        # HTTP/Render mode: always return a CSV download URL — never inline data.
+        # Data stays out of context; the caller fetches via script and writes to /tmp/.
+        if RENDER_BASE_URL:
             import urllib.parse
             encoded_key = urllib.parse.quote(key, safe="")
             download_csv = f"{RENDER_BASE_URL}/files/sdmx/{product_id}/{encoded_key}"
@@ -324,14 +324,17 @@ def register_sdmx_tools(registry: ToolRegistry) -> None:
             result["head"] = rows[:5]
             result["download_csv"] = download_csv
             result["_message"] = (
-                f"{len(rows)} rows — too large for context. "
-                f"Download and analyse with:\n"
-                f"  import pandas as pd\n"
-                f"  df = pd.read_csv('{download_csv}')\n"
-                f"  print(df.nlargest(10, 'value'))"
+                f"{len(rows)} rows. Fetch to /tmp/ and analyze with:\n"
+                f"  import urllib.request, csv, io\n"
+                f"  url = '{download_csv}'\n"
+                f"  with urllib.request.urlopen(url) as r: raw = r.read().decode()\n"
+                f"  with open('/tmp/statcan_{product_id}.csv', 'w') as f: f.write(raw)\n"
+                f"  rows = list(csv.DictReader(io.StringIO(raw)))\n"
+                f"  print(len(rows), 'rows. Columns:', list(rows[0].keys()) if rows else [])"
             )
             return result
 
+        # stdio/local mode: inline data with truncation guard
         if len(rows) > MAX_SDMX_ROWS:
             result["data"] = rows[:MAX_SDMX_ROWS]
             result["_truncated"] = True

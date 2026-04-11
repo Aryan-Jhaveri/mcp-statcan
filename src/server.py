@@ -5,6 +5,7 @@ from mcp.types import (
     ImageContent,
     EmbeddedResource,
     Prompt,
+    PromptArgument,
     PromptMessage,
     TextContent,
     Tool,
@@ -93,16 +94,88 @@ def create_server(http_mode: bool = False):
         "statcan-data-lookup": Prompt(
             name="statcan-data-lookup",
             description=(
-                "Step-by-step guide for finding and fetching Statistics Canada data. "
-                "Covers table discovery, SDMX structure, key construction, and data fetch."
+                "End-to-end workflow for finding and analyzing Statistics Canada data. "
+                "Claude Code (bash): statcan CLI + awk pipelines. "
+                "Claude.ai web: MCP tools for discovery, Python script fetches data to /tmp/ — never floods context."
             ),
+            arguments=[
+                PromptArgument(
+                    name="topic",
+                    description="Data topic to search for (e.g. 'labour force', 'consumer price index')",
+                    required=False,
+                ),
+                PromptArgument(
+                    name="analysis_goal",
+                    description="What you want to learn from the data (e.g. 'trend over last 5 years', 'compare provinces')",
+                    required=False,
+                ),
+            ],
         ),
         "sdmx-key-builder": Prompt(
             name="sdmx-key-builder",
             description=(
-                "Guide for building a precise SDMX key for get_sdmx_data. "
+                "Guide for building a precise SDMX key for get_sdmx_data or statcan download --key. "
                 "Explains wildcard vs explicit member IDs, OR syntax, and dimension positions."
             ),
+        ),
+        "statcan-download": Prompt(
+            name="statcan-download",
+            description=(
+                "Download a Statistics Canada table to CSV and analyze it. "
+                "Claude Code (bash): statcan CLI + awk. "
+                "Claude.ai web: Python script fetches to /tmp/ — data never enters context."
+            ),
+            arguments=[
+                PromptArgument(
+                    name="product_id",
+                    description="StatCan table productId (e.g. 14100287 or 14-10-0287-01)",
+                    required=True,
+                ),
+                PromptArgument(
+                    name="last_n",
+                    description="Number of most recent periods to download (default: 12)",
+                    required=False,
+                ),
+                PromptArgument(
+                    name="output_path",
+                    description="Output CSV path (default: /tmp/statcan_<product_id>.csv)",
+                    required=False,
+                ),
+            ],
+        ),
+        "statcan-vector-pipeline": Prompt(
+            name="statcan-vector-pipeline",
+            description=(
+                "Download one or more StatCan vector IDs to CSV and compare series with awk. "
+                "Requires Claude Code (bash sandbox) with the statcan CLI installed."
+            ),
+            arguments=[
+                PromptArgument(
+                    name="vector_ids",
+                    description="Space-separated vectorIds (e.g. 'v41690973 v41690974')",
+                    required=True,
+                ),
+                PromptArgument(
+                    name="output_path",
+                    description="Output CSV path (default: /tmp/statcan_vectors.csv)",
+                    required=False,
+                ),
+            ],
+        ),
+        "statcan-explore": Prompt(
+            name="statcan-explore",
+            description=(
+                "Sample and inspect a Statistics Canada table before committing to a full download. "
+                "Claude Code (bash): statcan CLI. "
+                "Claude.ai web: Python script samples to /tmp/ — see column layout without flooding context."
+            ),
+            arguments=[
+                PromptArgument(
+                    name="product_id",
+                    description="StatCan table productId to explore",
+                    required=True,
+                ),
+            ],
         ),
     }
 
@@ -112,78 +185,317 @@ def create_server(http_mode: bool = False):
 
     @server.get_prompt()
     async def get_prompt(name: str, arguments: dict | None = None) -> GetPromptResult:
+        if name not in _PROMPTS:
+            raise ValueError(f"Unknown prompt: {name}")
+
+        args = arguments or {}
+        render_base = config.RENDER_BASE_URL or "https://mcp-statcan.onrender.com"
+
         if name == "statcan-data-lookup":
-            return GetPromptResult(
-                description=_PROMPTS[name].description,
-                messages=[
-                    PromptMessage(
-                        role="user",
-                        content=TextContent(
-                            type="text",
-                            text="""Statistics Canada data lookup workflow:
-
-Step 1 — Find the table:
-  search_cubes_by_title(keywords=["labour", "force"]) → pick productId
-
-Step 2 — Understand the dimensions:
-  get_sdmx_structure(productId=...) → see dimension positions + sample codes
-  Note: codes are truncated to 10 per dimension; use get_sdmx_key_for_dimension for full lists.
-
-Step 3 — For dimensions with >30 codes (e.g. NOC occupations, CMA geographies):
-  get_sdmx_key_for_dimension(productId=..., dimension_position=N)
-  → returns or_key (all leaf codes joined with +) ready to paste into the key
-
-Step 4 — Fetch the data:
-  get_sdmx_data(productId=..., key="1.3.1.<or_key>.1", lastNObservations=5)
-
-WARNING: Wildcard (omitting a dimension position) returns a SPARSE SAMPLE for large
-dimensions — do NOT use wildcard for dimensions with more than ~30 codes.
-Always use explicit member IDs or get_sdmx_key_for_dimension for reliable results.
-
-IMPORTANT: Always cite the _sdmx_url, productId, and table title in your final answer.""",
-                        ),
-                    )
-                ],
+            topic = args.get("topic", "<your topic>")
+            goal = args.get("analysis_goal", "<your analysis goal>")
+            first_kw = topic if topic.startswith("<") else topic.split()[0]
+            text = (
+                f"Statistics Canada data lookup\n"
+                f"Topic: {topic}\n"
+                f"Analysis goal: {goal}\n"
+                "\n"
+                "━━━ Claude Code (bash sandbox) ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n"
+                "\n"
+                "Step 1 — Find the table:\n"
+                f'  statcan search "{topic}" --max-results 10\n'
+                "  → Note the Product ID of the best match.\n"
+                "\n"
+                "Step 2 — Explore structure before downloading:\n"
+                "  statcan metadata <product-id>\n"
+                "  statcan download <product-id> --last 3 --output /tmp/sample.csv\n"
+                "  head -2 /tmp/sample.csv    # see column names and dimension positions\n"
+                "\n"
+                "Step 3 — Download data:\n"
+                "  statcan download <product-id> --last 12 --output /tmp/data.csv\n"
+                "\n"
+                "Step 4 — Analyze without loading the CSV into context:\n"
+                "  head -2 /tmp/data.csv                                     # column layout\n"
+                "  awk -F',' 'NR>1 {print $1}' /tmp/data.csv | sort -u       # unique dim values\n"
+                "  awk -F',' 'NR>1 && $1==\"Canada\"' /tmp/data.csv \\\n"
+                "      | sort -t',' -rn -k N | head -10                      # top 10 by value\n"
+                "  awk -F',' 'NR>1 && $1==\"Canada\" {print $period_col, $value_col}' \\\n"
+                "      /tmp/data.csv | sort                                   # time series\n"
+                "\n"
+                "Only the analysis output reaches the context window — not the raw CSV rows.\n"
+                f"Adapt these patterns for: {goal}\n"
+                "\n"
+                "━━━ Claude.ai web (Python script) ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n"
+                "\n"
+                "Use MCP tools for discovery only — fetch data via script so it lands\n"
+                "in /tmp/, not the context window.\n"
+                "\n"
+                "Step 1 — Find the table:\n"
+                f'  search_cubes_by_title(keywords=["{first_kw}"])\n'
+                "  → Note the productId.\n"
+                "\n"
+                "Step 2 — Understand structure (small payload, no data):\n"
+                "  get_sdmx_structure(productId=<id>)\n"
+                "  → Read dimension positions and member codes. Build your key.\n"
+                "  → For any dimension with >30 codes:\n"
+                "  get_sdmx_key_for_dimension(productId=<id>, dimension_position=N)\n"
+                "  → Paste the returned or_key at that dot-position.\n"
+                "\n"
+                "Step 3 — Fetch to /tmp/ via script:\n"
+                "\n"
+                "  import urllib.request, csv, io\n"
+                f'  url = "{render_base}/files/sdmx/<product-id>/<key>?lastNObservations=12"\n'
+                "  out = \"/tmp/statcan_<product-id>.csv\"\n"
+                "  with urllib.request.urlopen(url) as r:\n"
+                "      raw = r.read().decode()\n"
+                "  with open(out, \"w\") as f:\n"
+                "      f.write(raw)\n"
+                "  rows = list(csv.DictReader(io.StringIO(raw)))\n"
+                "  cols = list(rows[0].keys()) if rows else []\n"
+                "  print(\"Rows:\", len(rows), \"Cols:\", len(cols))\n"
+                "  print(\"Columns:\", cols)\n"
+                "  for r in rows[:3]: print(r)\n"
+                "\n"
+                "Step 4 — Analyze from /tmp/ in a follow-up script:\n"
+                "\n"
+                "  import csv\n"
+                "  with open(\"/tmp/statcan_<product-id>.csv\") as f:\n"
+                "      rows = list(csv.DictReader(f))\n"
+                "  # filter, sort, aggregate — print only the summary\n"
+                f"  # Goal: {goal}\n"
+                "\n"
+                "Data stays in /tmp/ — only analysis output reaches the context window.\n"
+                "WARNING: Never use wildcard (.) for dimensions with >30 codes — use or_key instead."
             )
-        if name == "sdmx-key-builder":
-            return GetPromptResult(
-                description=_PROMPTS[name].description,
-                messages=[
-                    PromptMessage(
-                        role="user",
-                        content=TextContent(
-                            type="text",
-                            text="""SDMX key construction guide for get_sdmx_data:
 
-KEY FORMAT: dot-separated codes, one per dimension position (left to right).
-  "1.2.1"     = position-1 code 1, position-2 code 2, position-3 code 1
-  "1+2.2.1"   = position-1 code 1 OR 2, position-2 code 2, position-3 code 1
-  ".2.1"      = wildcard position-1 (all values), position-2 code 2, position-3 code 1
-
-WHICH CODES TO USE:
-  - Use member IDs from get_cube_metadata() or SDMX codelist code IDs
-  - WDS memberIds == SDMX codelist codes — same numbers, no translation needed
-  - Do NOT use the positional index of a code within get_sdmx_structure() output
-
-WILDCARD WARNING:
-  Wildcard (.) on a large dimension (>30 codes) returns only a sparse, unpredictable sample.
-  For NOC (309 codes), wildcard returned 31 rows; the correct full fetch needs 162 IDs.
-  Use get_sdmx_key_for_dimension(productId, dimension_position) to get the full OR key.
-
-OR KEY USAGE:
-  or_key from get_sdmx_key_for_dimension = "7+11+12+13+..." → paste at the right position:
-  key = f"7.3.1.1.1.{or_key}.1"
-
-TIME PARAMETERS (use only one, not both):
-  lastNObservations=N  → last N periods per series
-  startPeriod="YYYY"   → from year (or "YYYY-MM" for monthly)
-  endPeriod="YYYY-MM"  → up to this period
-  Combining lastNObservations + startPeriod/endPeriod → 406 error from StatCan.""",
-                        ),
-                    )
-                ],
+        elif name == "sdmx-key-builder":
+            text = (
+                "SDMX key construction guide for get_sdmx_data and statcan download --key:\n"
+                "\n"
+                "KEY FORMAT: dot-separated codes, one per dimension position (left to right).\n"
+                '  "1.2.1"     = position-1 code 1, position-2 code 2, position-3 code 1\n'
+                '  "1+2.2.1"   = position-1 code 1 OR 2, position-2 code 2, position-3 code 1\n'
+                '  ".2.1"      = wildcard position-1 (all values), position-2 code 2, position-3 code 1\n'
+                "\n"
+                "WHICH CODES TO USE:\n"
+                "  - Use member IDs from get_cube_metadata() or SDMX codelist code IDs\n"
+                "  - WDS memberIds == SDMX codelist codes — same numbers, no translation needed\n"
+                "  - Do NOT use the positional index of a code within get_sdmx_structure() output\n"
+                "\n"
+                "WILDCARD WARNING:\n"
+                "  Wildcard (.) on a large dimension (>30 codes) returns only a sparse, unpredictable sample.\n"
+                "  For NOC (309 codes), wildcard returned 31 rows; the correct full fetch needs 162 IDs.\n"
+                "  Use get_sdmx_key_for_dimension(productId, dimension_position) to get the full OR key.\n"
+                "\n"
+                "OR KEY USAGE:\n"
+                '  or_key from get_sdmx_key_for_dimension = "7+11+12+13+..." → paste at the right position:\n'
+                '  key = f"7.3.1.1.1.{or_key}.1"\n'
+                "\n"
+                "TIME PARAMETERS (use only one, not both):\n"
+                "  lastNObservations=N  → last N periods per series\n"
+                '  startPeriod="YYYY"   → from year (or "YYYY-MM" for monthly)\n'
+                '  endPeriod="YYYY-MM"  → up to this period\n'
+                "  Combining lastNObservations + startPeriod/endPeriod → 406 error from StatCan.\n"
+                "\n"
+                "CLI USAGE (statcan download --key):\n"
+                '  statcan download <product-id> --key "1.2.1+2.1" --last 12 --output /tmp/data.csv\n'
+                "  statcan download <product-id> --last 5 --dry-run   # preview SDMX URL before fetching\n"
+                "\n"
+                "CSV DOWNLOAD URL (Claude.ai Python script / curl):\n"
+                f"  {render_base}/files/sdmx/<product-id>/<key>?lastNObservations=12\n"
+                f"  {render_base}/files/sdmx/<product-id>/<key>?startPeriod=2020&endPeriod=2024\n"
+                "\n"
+                "  import urllib.request, csv, io\n"
+                f'  url = "{render_base}/files/sdmx/<product-id>/<key>?lastNObservations=12"\n'
+                "  with urllib.request.urlopen(url) as r:\n"
+                "      raw = r.read().decode()\n"
+                "  with open(\"/tmp/data.csv\", \"w\") as f: f.write(raw)\n"
+                "  rows = list(csv.DictReader(io.StringIO(raw)))\n"
+                "  print(len(rows), \"rows. Columns:\", list(rows[0].keys()) if rows else [])"
             )
-        raise ValueError(f"Unknown prompt: {name}")
+
+        elif name == "statcan-download":
+            pid = args.get("product_id", "<product-id>")
+            last_n = args.get("last_n", "12")
+            out = args.get("output_path", f"/tmp/statcan_{pid}.csv")
+            text = (
+                f"Download Statistics Canada table {pid}\n"
+                "\n"
+                "━━━ Claude Code (bash sandbox) ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n"
+                "\n"
+                "# 1. Download data\n"
+                f"statcan download {pid} --last {last_n} --output {out}\n"
+                "\n"
+                "# 2. Inspect column layout (note column numbers for filtering)\n"
+                f"head -2 {out}\n"
+                "\n"
+                "# 3. Row count\n"
+                f"awk 'NR>1' {out} | wc -l\n"
+                "\n"
+                "# 4. Unique values in first dimension (e.g. Geography)\n"
+                f"awk -F',' 'NR>1 {{print $1}}' {out} | sort -u\n"
+                "\n"
+                "# 5. Unique values in second dimension (e.g. Sex, Industry)\n"
+                f"awk -F',' 'NR>1 {{print $2}}' {out} | sort -u\n"
+                "\n"
+                "# 6. Filter to one dimension value\n"
+                f"awk -F',' 'NR>1 && $1==\"Canada\"' {out}\n"
+                "\n"
+                "# 7. Top 10 by value (replace N with value column number from step 2)\n"
+                f"awk -F',' 'NR>1' {out} | sort -t',' -rn -k N | head -10\n"
+                "\n"
+                "# 8. Time series for one geography (replace col numbers from step 2)\n"
+                f"awk -F',' 'NR>1 && $1==\"Canada\" {{print $period_col, $value_col}}' {out} | sort -k1\n"
+                "\n"
+                "# 9. Latest period per vector (dedup by VECTOR_ID column)\n"
+                f"sort -t',' -k period_col,period_col -r {out} | awk -F',' '!seen[$vector_col]++'\n"
+                "\n"
+                "# 10. Count non-empty values (exclude suppressed observations)\n"
+                f"awk -F',' 'NR>1 && $value_col!=\"\"' {out} | wc -l\n"
+                "\n"
+                "Replace period_col, value_col, vector_col with actual column numbers from step 2.\n"
+                "\n"
+                "━━━ Claude.ai web (Python script) ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n"
+                "\n"
+                "Step 1 — Get the table structure to build a key:\n"
+                f"  get_sdmx_structure(productId={pid})\n"
+                "  → For large dimensions (>30 codes):\n"
+                f"  get_sdmx_key_for_dimension(productId={pid}, dimension_position=N)\n"
+                "\n"
+                "Step 2 — Fetch to /tmp/ via script (data never enters context):\n"
+                "\n"
+                "  import urllib.request, csv, io\n"
+                f'  url = "{render_base}/files/sdmx/{pid}/<key>?lastNObservations={last_n}"\n'
+                f'  out = "{out}"\n'
+                "  with urllib.request.urlopen(url) as r:\n"
+                "      raw = r.read().decode()\n"
+                "  with open(out, \"w\") as f:\n"
+                "      f.write(raw)\n"
+                "  rows = list(csv.DictReader(io.StringIO(raw)))\n"
+                "  cols = list(rows[0].keys()) if rows else []\n"
+                "  print(\"Rows:\", len(rows), \"Cols:\", len(cols))\n"
+                "  print(\"Columns:\", cols)\n"
+                "  for r in rows[:3]: print(r)\n"
+                "\n"
+                "Step 3 — Analyze from /tmp/ in a follow-up script:\n"
+                "\n"
+                "  import csv\n"
+                f'  with open("{out}") as f:\n'
+                "      rows = list(csv.DictReader(f))\n"
+                "  # filter, sort, aggregate — print only the summary, not all rows\n"
+                "  top10 = sorted(rows, key=lambda r: float(r.get(\"value\",\"0\") or 0), reverse=True)[:10]\n"
+                "  for r in top10: print(r.get(\"period\"), r.get(\"value\"))\n"
+                "\n"
+                f"Data stays in {out} — only analysis output reaches the context window."
+            )
+
+        elif name == "statcan-vector-pipeline":
+            vids = args.get("vector_ids", "<v41690973 v41690974>")
+            out = args.get("output_path", "/tmp/statcan_vectors.csv")
+            text = (
+                f"Multi-series vector pipeline: {vids}\n"
+                "\n"
+                "# 1. Download vectors\n"
+                f"statcan vector {vids} --last 12 --output {out}\n"
+                "\n"
+                "# 2. Inspect column layout (VECTOR_ID and period columns are key)\n"
+                f"head -2 {out}\n"
+                "\n"
+                "# 3. Unique vector IDs in the result\n"
+                f"awk -F',' 'NR>1 {{print $vector_col}}' {out} | sort -u\n"
+                "\n"
+                "# 4. Row count per vector\n"
+                f"awk -F',' 'NR>1 {{print $vector_col}}' {out} | sort | uniq -c | sort -rn\n"
+                "\n"
+                "# 5. Time series for each vector (period + value)\n"
+                f"awk -F',' 'NR>1 {{print $vector_col, $period_col, $value_col}}' {out} | sort -k1,1 -k2,2\n"
+                "\n"
+                "# 6. Latest observation per vector\n"
+                f"sort -t',' -k period_col,period_col -r {out} | awk -F',' '!seen[$vector_col]++'\n"
+                "\n"
+                "# 7. Cross-series at a specific period (replace YYYY with target year)\n"
+                f"awk -F',' 'NR>1 && $period_col==\"YYYY\"' {out}\n"
+                "\n"
+                "# 8. Period-over-period change per vector\n"
+                f"awk -F',' 'NR>1 {{print $vector_col, $period_col, $value_col}}' {out} \\\n"
+                "    | sort -k1,1 -k2,2 \\\n"
+                "    | awk '{if (prev_vec==$1) print $1, $2, $3-prev_val; prev_vec=$1; prev_val=$3}'\n"
+                "\n"
+                "Replace vector_col, period_col, value_col with actual column numbers from step 2."
+            )
+
+        else:  # statcan-explore
+            pid = args.get("product_id", "<product-id>")
+            sample_out = f"/tmp/explore_{pid}.csv"
+            text = (
+                f"Explore Statistics Canada table {pid} before full download\n"
+                "\n"
+                "━━━ Claude Code (bash sandbox) ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n"
+                "\n"
+                "# 1. Check table structure (dimensions, member counts)\n"
+                f"statcan metadata {pid}\n"
+                "\n"
+                "# 2. Sample 3 most recent periods to see column layout\n"
+                f"statcan download {pid} --last 3 --output {sample_out}\n"
+                f"head -2 {sample_out}             # column names and positions\n"
+                f"awk 'NR>1' {sample_out} | wc -l  # rows in 3-period sample\n"
+                "\n"
+                "# 3. Unique values in each dimension (adapt column numbers from step 2)\n"
+                f"awk -F',' 'NR>1 {{print $1}}' {sample_out} | sort -u   # dim 1 (e.g. Geography)\n"
+                f"awk -F',' 'NR>1 {{print $2}}' {sample_out} | sort -u   # dim 2 (e.g. Sex)\n"
+                f"awk -F',' 'NR>1 {{print $3}}' {sample_out} | sort -u   # dim 3 (e.g. Industry)\n"
+                "\n"
+                "# 4. Estimate full dataset size\n"
+                "#    rows_per_3_periods = result from step 2\n"
+                "#    series_count = rows_per_3_periods / 3\n"
+                "#    full_rows(last N) = series_count × N\n"
+                "#    Use --key to narrow the query if size would be too large.\n"
+                "\n"
+                "# 5. Preview SDMX URL without downloading\n"
+                f"statcan download {pid} --last 5 --dry-run\n"
+                "\n"
+                "# 6. Download with a focused key after exploring\n"
+                f"statcan download {pid} --key \"1.1.1\" --last 24 --output /tmp/data_{pid}.csv\n"
+                "\n"
+                "━━━ Claude.ai web (Python script) ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n"
+                "\n"
+                "Step 1 — Check structure without fetching data (MCP tool):\n"
+                f"  get_sdmx_structure(productId={pid})\n"
+                "  → Count dimensions and codes. Note large dims (>30 codes).\n"
+                "  → For large dims, call get_sdmx_key_for_dimension to get a narrow key first.\n"
+                "\n"
+                "Step 2 — Sample 3 periods to see column layout:\n"
+                "\n"
+                "  import urllib.request, csv, io\n"
+                "  key = \"<narrow-key>\"   # from Step 1 — avoid wildcards on large dims\n"
+                f'  url = "{render_base}/files/sdmx/{pid}/<key>?lastNObservations=3"\n'
+                f'  out = "{sample_out}"\n'
+                "  with urllib.request.urlopen(url) as r:\n"
+                "      raw = r.read().decode()\n"
+                "  with open(out, \"w\") as f:\n"
+                "      f.write(raw)\n"
+                "  rows = list(csv.DictReader(io.StringIO(raw)))\n"
+                "  cols = list(rows[0].keys()) if rows else []\n"
+                "  print(\"Columns:\", cols)\n"
+                "  print(\"Sample rows (3 periods):\", len(rows))\n"
+                "  print(\"Estimated series:\", len(rows) // 3)\n"
+                "  print(\"Projected rows for 12 periods: ~\", (len(rows) // 3) * 12)\n"
+                "  for r in rows[:2]: print(r)\n"
+                "\n"
+                "Step 3 — Estimate size and decide.\n"
+                "  If projected rows are too large, narrow the key further.\n"
+                "  Then use statcan-download to fetch the full dataset."
+            )
+
+        return GetPromptResult(
+            description=_PROMPTS[name].description,
+            messages=[
+                PromptMessage(
+                    role="user",
+                    content=TextContent(type="text", text=text),
+                )
+            ],
+        )
 
     log_server_debug("Returning server instance from create_server.")
     return server
