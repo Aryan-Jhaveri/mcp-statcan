@@ -1,4 +1,4 @@
-<a href="https://www.statcan.gc.ca/en/start" target="_blank"><img src="assets/StatCan-Header.png" alt="Statistics Canada MCP Server"></a>
+<a href="https://www.statcan.gc.ca/en/start" target="_blank"><img src="assets/StatCan-Header.jpg" alt="Statistics Canada MCP Server"></a>
 
 # Statistics Canada MCP Server
 
