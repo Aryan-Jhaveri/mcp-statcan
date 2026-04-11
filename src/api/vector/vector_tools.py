@@ -191,12 +191,11 @@ def register_vector_tools(registry: ToolRegistry):
         async with httpx.AsyncClient(base_url=BASE_URL, timeout=TIMEOUT_LARGE, verify=False) as client: # Longer timeout
             log_ssl_warning("SSL verification disabled for get_bulk_vector_data_by_range.")
             
-            # Explicitly set Accept header to avoid 406 errors
-            headers = {"Accept": "application/json", "Content-Type": "application/json"}
-
             # StatCan WDS expects an array of per-vector objects:
             # [{"vectorId": 123, "startDataPointReleaseDate": "...", "endDataPointReleaseDate": "..."}]
             # NOT a single flat object with a vectorIds array.
+            # Do NOT set explicit Accept/Content-Type headers — httpx sets Content-Type: application/json
+            # automatically when json= is used, and a strict Accept header can itself trigger 406.
             per_vector = {}
             if bulk_range_input.startDataPointReleaseDate:
                 per_vector["startDataPointReleaseDate"] = bulk_range_input.startDataPointReleaseDate
@@ -204,7 +203,7 @@ def register_vector_tools(registry: ToolRegistry):
                 per_vector["endDataPointReleaseDate"] = bulk_range_input.endDataPointReleaseDate
             post_data = [{"vectorId": vid, **per_vector} for vid in bulk_range_input.vectorIds]
             try:
-                response = await client.post("/getBulkVectorDataByRange", json=post_data, headers=headers)
+                response = await client.post("/getBulkVectorDataByRange", json=post_data)
                 response.raise_for_status()
                 result_list = response.json() # API returns a list of status/object wrappers
 
