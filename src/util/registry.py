@@ -105,14 +105,12 @@ class ToolRegistry:
             model_class = type_hints[params[0].name]
             try:
                 model_inst = model_class(**arguments)
-                if inspect.iscoroutinefunction(handler):
-                    return await handler(model_inst)
-                else:
-                    return handler(model_inst)
             except Exception as e:
-                # Fallback: maybe arguments *is* the model fields if flattened?
-                # But the code above expects "arguments" to be the dict matching model fields
                 raise ValueError(f"Argument validation failed for {name}: {e}")
+            if inspect.iscoroutinefunction(handler):
+                return await handler(model_inst)
+            else:
+                return handler(model_inst)
 
         # Standard Argument Unpacking
         if inspect.iscoroutinefunction(handler):
