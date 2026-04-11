@@ -191,8 +191,6 @@ def create_server(http_mode: bool = False):
 
         args = arguments or {}
         render_base = config.RENDER_BASE_URL or "https://mcp-statcan.onrender.com"
-        from urllib.parse import urlparse as _urlparse
-        _render_netloc = _urlparse(render_base).netloc
 
         if name == "statcan-data-lookup":
             topic = args.get("topic", "<your topic>")
@@ -244,32 +242,19 @@ def create_server(http_mode: bool = False):
                 "  get_sdmx_key_for_dimension(productId=<id>, dimension_position=N)\n"
                 "  → Paste the returned or_key at that dot-position.\n"
                 "\n"
-                "Step 3 — Fetch to local file via script:\n"
+                "Step 3 — Fetch rows inline via MCP tool:\n"
+                "  get_sdmx_rows(productId=<product-id>, key=\"<key>\", lastNObservations=12)\n"
+                "  → Returns rows directly in the tool response — no external fetch needed.\n"
+                "  → Rows are capped at 500. Use a narrow key if you need fewer.\n"
                 "\n"
-                "  import urllib.request, csv, io\n"
-                "  from urllib.parse import urlparse\n"
-                f'  url = "{render_base}/files/sdmx/<product-id>/<key>?lastNObservations=12"\n'
-                f'  assert urlparse(url).netloc == "{_render_netloc}", "Unexpected URL domain"\n'
-                "  out = \"./statcan_<product-id>.csv\"\n"
-                "  with urllib.request.urlopen(url) as r:\n"
-                "      raw = r.read().decode()\n"
-                "  with open(out, \"w\") as f:\n"
-                "      f.write(raw)\n"
-                "  rows = list(csv.DictReader(io.StringIO(raw)))\n"
+                "Step 4 — Analyze the returned rows:\n"
+                "  result = get_sdmx_rows(...)  # rows are in result[\"data\"]\n"
+                "  rows = result[\"data\"]\n"
                 "  cols = list(rows[0].keys()) if rows else []\n"
-                "  print(\"Rows:\", len(rows), \"Cols:\", len(cols))\n"
-                "  print(\"Columns:\", cols)\n"
-                "  for r in rows[:3]: print(r)\n"
-                "\n"
-                "Step 4 — Analyze from local file in a follow-up script:\n"
-                "\n"
-                "  import csv\n"
-                "  with open(\"./statcan_<product-id>.csv\") as f:\n"
-                "      rows = list(csv.DictReader(f))\n"
-                "  # filter, sort, aggregate — print only the summary\n"
+                "  top10 = sorted(rows, key=lambda r: float(r.get(\"value\",\"0\") or 0), reverse=True)[:10]\n"
+                "  for r in top10: print(r.get(\"period\"), r.get(\"value\"))\n"
                 f"  # Goal: {goal}\n"
                 "\n"
-                "Data stays in the local file — only analysis output reaches the context window.\n"
                 "WARNING: Never use wildcard (.) for dimensions with >30 codes — use or_key instead."
             )
 
@@ -306,19 +291,15 @@ def create_server(http_mode: bool = False):
                 '  statcan download <product-id> --key "1.2.1+2.1" --last 12 --output ./data.csv\n'
                 "  statcan download <product-id> --last 5 --dry-run   # preview SDMX URL before fetching\n"
                 "\n"
-                "CSV DOWNLOAD URL (Claude.ai Python script / curl):\n"
-                f"  {render_base}/files/sdmx/<product-id>/<key>?lastNObservations=12\n"
-                f"  {render_base}/files/sdmx/<product-id>/<key>?startPeriod=2020&endPeriod=2024\n"
+                "INLINE ROWS VIA MCP TOOL (Claude.ai — use this instead of curl):\n"
+                "  get_sdmx_rows(productId=<product-id>, key=\"<key>\", lastNObservations=12)\n"
+                "  get_sdmx_rows(productId=<product-id>, key=\"<key>\", startPeriod=\"2020\", endPeriod=\"2024\")\n"
+                "  → Returns rows directly — no external URL fetch needed.\n"
+                "  → Rows are capped at 500. result[\"data\"] is the list of dicts.\n"
                 "\n"
-                "  import urllib.request, csv, io\n"
-                "  from urllib.parse import urlparse\n"
-                f'  url = "{render_base}/files/sdmx/<product-id>/<key>?lastNObservations=12"\n'
-                f'  assert urlparse(url).netloc == "{_render_netloc}", "Unexpected URL domain"\n'
-                "  with urllib.request.urlopen(url) as r:\n"
-                "      raw = r.read().decode()\n"
-                "  with open(\"./data.csv\", \"w\") as f: f.write(raw)\n"
-                "  rows = list(csv.DictReader(io.StringIO(raw)))\n"
-                "  print(len(rows), \"rows. Columns:\", list(rows[0].keys()) if rows else [])"
+                "CLI (curl / statcan CLI):\n"
+                f"  {render_base}/files/sdmx/<product-id>/<key>?lastNObservations=12\n"
+                f"  statcan download <product-id> --key \"<key>\" --last 12 --output ./data.csv"
             )
 
         elif name == "statcan-download":
@@ -370,33 +351,17 @@ def create_server(http_mode: bool = False):
                 "  → For large dimensions (>30 codes):\n"
                 f"  get_sdmx_key_for_dimension(productId={pid}, dimension_position=N)\n"
                 "\n"
-                "Step 2 — Fetch to local file via script (data never enters context):\n"
+                "Step 2 — Fetch rows inline via MCP tool:\n"
+                f"  get_sdmx_rows(productId={pid}, key=\"<key>\", lastNObservations={last_n})\n"
+                "  → Returns rows directly in the tool response — no external fetch needed.\n"
+                "  → Rows are capped at 500. result[\"data\"] is the list of dicts.\n"
                 "\n"
-                "  import urllib.request, csv, io\n"
-                "  from urllib.parse import urlparse\n"
-                f'  url = "{render_base}/files/sdmx/{_safe_pid}/<key>?lastNObservations={last_n}"\n'
-                f'  assert urlparse(url).netloc == "{_render_netloc}", "Unexpected URL domain"\n'
-                f'  out = "{out}"\n'
-                "  with urllib.request.urlopen(url) as r:\n"
-                "      raw = r.read().decode()\n"
-                "  with open(out, \"w\") as f:\n"
-                "      f.write(raw)\n"
-                "  rows = list(csv.DictReader(io.StringIO(raw)))\n"
+                "Step 3 — Analyze the returned rows:\n"
+                "  rows = result[\"data\"]\n"
                 "  cols = list(rows[0].keys()) if rows else []\n"
-                "  print(\"Rows:\", len(rows), \"Cols:\", len(cols))\n"
-                "  print(\"Columns:\", cols)\n"
-                "  for r in rows[:3]: print(r)\n"
-                "\n"
-                "Step 3 — Analyze from local file in a follow-up script:\n"
-                "\n"
-                "  import csv\n"
-                f'  with open("{out}") as f:\n'
-                "      rows = list(csv.DictReader(f))\n"
-                "  # filter, sort, aggregate — print only the summary, not all rows\n"
+                "  print(\"Rows:\", len(rows), \"Cols:\", cols)\n"
                 "  top10 = sorted(rows, key=lambda r: float(r.get(\"value\",\"0\") or 0), reverse=True)[:10]\n"
-                "  for r in top10: print(r.get(\"period\"), r.get(\"value\"))\n"
-                "\n"
-                f"Data stays in {out} — only analysis output reaches the context window."
+                "  for r in top10: print(r.get(\"period\"), r.get(\"value\"))"
             )
 
         elif name == "statcan-vector-pipeline":
@@ -475,29 +440,20 @@ def create_server(http_mode: bool = False):
                 "  → Count dimensions and codes. Note large dims (>30 codes).\n"
                 "  → For large dims, call get_sdmx_key_for_dimension to get a narrow key first.\n"
                 "\n"
-                "Step 2 — Sample 3 periods to see column layout:\n"
-                "\n"
-                "  import urllib.request, csv, io\n"
-                "  from urllib.parse import urlparse\n"
-                "  key = \"<narrow-key>\"   # from Step 1 — avoid wildcards on large dims\n"
-                f'  url = "{render_base}/files/sdmx/{_safe_pid}/<key>?lastNObservations=3"\n'
-                f'  assert urlparse(url).netloc == "{_render_netloc}", "Unexpected URL domain"\n'
-                f'  out = "{sample_out}"\n'
-                "  with urllib.request.urlopen(url) as r:\n"
-                "      raw = r.read().decode()\n"
-                "  with open(out, \"w\") as f:\n"
-                "      f.write(raw)\n"
-                "  rows = list(csv.DictReader(io.StringIO(raw)))\n"
+                "Step 2 — Sample 3 periods to see column layout (MCP tool):\n"
+                f"  get_sdmx_rows(productId={pid}, key=\"<narrow-key>\", lastNObservations=3)\n"
+                "  → key from Step 1 — avoid wildcards on large dims.\n"
+                "  → Returns rows in result[\"data\"].\n"
+                "  rows = result[\"data\"]\n"
                 "  cols = list(rows[0].keys()) if rows else []\n"
                 "  print(\"Columns:\", cols)\n"
                 "  print(\"Sample rows (3 periods):\", len(rows))\n"
                 "  print(\"Estimated series:\", len(rows) // 3)\n"
                 "  print(\"Projected rows for 12 periods: ~\", (len(rows) // 3) * 12)\n"
-                "  for r in rows[:2]: print(r)\n"
                 "\n"
                 "Step 3 — Estimate size and decide.\n"
                 "  If projected rows are too large, narrow the key further.\n"
-                "  Then use statcan-download to fetch the full dataset."
+                "  Then call get_sdmx_rows with lastNObservations=12 for the full fetch."
             )
 
         return GetPromptResult(

@@ -323,7 +323,7 @@ For the complete CLI reference see [cli.md](cli.md).
 
 | Title | Link | Source |
 |---|---|---|
-| Canadian Unemployment Dashboard | <a href="https://claude.ai/public/artifacts/298dfc5f-8e1b-4b73-a4d0-9a68b30cdb54" target="_blank">Dashboard</a> | <a href="https://www150.statcan.gc.ca/t1/tbl1/en/tv.action?pid=1410046401" target="_blank">Table 14-10-0464-01</a> |
+| Canadian Unemployment Dashboard | <a href="https://claude.ai/share/50d72d90-ec98-463e-88ec-85032edc9c29" target="_blank">Chat Link</a> | <a href="https://www150.statcan.gc.ca/t1/tbl1/en/tv.action?pid=1410028701&pickMembers%5B0%5D=1.1&pickMembers%5B1%5D=3.1&pickMembers%5B2%5D=4.1&pickMembers%5B3%5D=5.1&cubeTimeFrame.startMonth=04&cubeTimeFrame.startYear=2023&cubeTimeFrame.endMonth=03&cubeTimeFrame.endYear=2026&referencePeriods=20230401%2C20260301" target="_blank">Table 14-10-0287-01.</a> |
 | Canada's Critical Minerals Economy | <a href="https://claude.ai/public/artifacts/15d289c7-f324-4ced-bcc0-53d6ac3218c9" target="_blank">Dashboard</a> | <a href="https://www150.statcan.gc.ca/t1/tbl1/en/cv.action?pid=3610070801" target="_blank">Table 36-10-0708-01</a> |
 | Price of Everything: CPI Dashboard 2015–2026 | <a href="https://claude.ai/public/artifacts/61e99645-934c-4fe2-9693-88dca714a634" target="_blank">Dashboard</a> | <a href="https://www150.statcan.gc.ca/t1/tbl1/en/cv.action?pid=1810000401" target="_blank">Table 18-10-0004-01</a> |
 | Canada's Biomedical & Biotech Industries | <a href="https://claude.ai/public/artifacts/749ab9ef-c7a2-4186-8a75-d94a6eb8772e" target="_blank">Dashboard</a> | <a href="https://www150.statcan.gc.ca/t1/tbl1/en/tv.action?pid=2710029701" target="_blank">Table 27-10-0297-01</a> |

@@ -325,13 +325,13 @@ def register_sdmx_tools(registry: ToolRegistry) -> None:
             result["head"] = rows[:5]
             result["download_csv"] = download_csv
             result["_message"] = (
-                f"{len(rows)} rows. Fetch to /tmp/ and analyze with:\n"
-                f"  import urllib.request, csv, io\n"
-                f"  url = '{download_csv}'\n"
-                f"  with urllib.request.urlopen(url) as r: raw = r.read().decode()\n"
-                f"  with open('/tmp/statcan_{product_id}.csv', 'w') as f: f.write(raw)\n"
-                f"  rows = list(csv.DictReader(io.StringIO(raw)))\n"
-                f"  print(len(rows), 'rows. Columns:', list(rows[0].keys()) if rows else [])"
+                f"{len(rows)} rows available. To get inline rows for analysis or artifact "
+                f"embedding, call get_sdmx_rows with the same parameters: "
+                f"productId={product_id}, key='{key}'"
+                + (f", lastNObservations={data_input.lastNObservations}" if data_input.lastNObservations is not None else "")
+                + (f", startPeriod='{data_input.startPeriod}'" if data_input.startPeriod else "")
+                + (f", endPeriod='{data_input.endPeriod}'" if data_input.endPeriod else "")
+                + ". It returns rows directly via the MCP connection — no external fetch required."
             )
             return result
 
