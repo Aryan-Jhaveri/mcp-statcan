@@ -14,6 +14,7 @@ import argparse
 import asyncio
 import contextlib
 import os
+import re
 import sys
 
 # Use relative imports within the src package
@@ -96,7 +97,7 @@ def create_server(http_mode: bool = False):
             description=(
                 "End-to-end workflow for finding and analyzing Statistics Canada data. "
                 "Claude Code (bash): statcan CLI + awk pipelines. "
-                "Claude.ai web: MCP tools for discovery, Python script fetches data to /tmp/ — never floods context."
+                "Claude.ai web: MCP tools for discovery, Python script fetches data to a local file — never floods context."
             ),
             arguments=[
                 PromptArgument(
@@ -123,7 +124,7 @@ def create_server(http_mode: bool = False):
             description=(
                 "Download a Statistics Canada table to CSV and analyze it. "
                 "Claude Code (bash): statcan CLI + awk. "
-                "Claude.ai web: Python script fetches to /tmp/ — data never enters context."
+                "Claude.ai web: Python script fetches to a local file — data never enters context."
             ),
             arguments=[
                 PromptArgument(
@@ -138,7 +139,7 @@ def create_server(http_mode: bool = False):
                 ),
                 PromptArgument(
                     name="output_path",
-                    description="Output CSV path (default: /tmp/statcan_<product_id>.csv)",
+                    description="Output CSV path (default: ./statcan_<product_id>.csv)",
                     required=False,
                 ),
             ],
@@ -157,7 +158,7 @@ def create_server(http_mode: bool = False):
                 ),
                 PromptArgument(
                     name="output_path",
-                    description="Output CSV path (default: /tmp/statcan_vectors.csv)",
+                    description="Output CSV path (default: ./statcan_vectors.csv)",
                     required=False,
                 ),
             ],
@@ -167,7 +168,7 @@ def create_server(http_mode: bool = False):
             description=(
                 "Sample and inspect a Statistics Canada table before committing to a full download. "
                 "Claude Code (bash): statcan CLI. "
-                "Claude.ai web: Python script samples to /tmp/ — see column layout without flooding context."
+                "Claude.ai web: Python script samples to a local file — see column layout without flooding context."
             ),
             arguments=[
                 PromptArgument(
@@ -190,6 +191,8 @@ def create_server(http_mode: bool = False):
 
         args = arguments or {}
         render_base = config.RENDER_BASE_URL or "https://mcp-statcan.onrender.com"
+        from urllib.parse import urlparse as _urlparse
+        _render_netloc = _urlparse(render_base).netloc
 
         if name == "statcan-data-lookup":
             topic = args.get("topic", "<your topic>")
@@ -208,19 +211,19 @@ def create_server(http_mode: bool = False):
                 "\n"
                 "Step 2 — Explore structure before downloading:\n"
                 "  statcan metadata <product-id>\n"
-                "  statcan download <product-id> --last 3 --output /tmp/sample.csv\n"
-                "  head -2 /tmp/sample.csv    # see column names and dimension positions\n"
+                "  statcan download <product-id> --last 3 --output ./sample.csv\n"
+                "  head -2 ./sample.csv    # see column names and dimension positions\n"
                 "\n"
                 "Step 3 — Download data:\n"
-                "  statcan download <product-id> --last 12 --output /tmp/data.csv\n"
+                "  statcan download <product-id> --last 12 --output ./data.csv\n"
                 "\n"
                 "Step 4 — Analyze without loading the CSV into context:\n"
-                "  head -2 /tmp/data.csv                                     # column layout\n"
-                "  awk -F',' 'NR>1 {print $1}' /tmp/data.csv | sort -u       # unique dim values\n"
-                "  awk -F',' 'NR>1 && $1==\"Canada\"' /tmp/data.csv \\\n"
+                "  head -2 ./data.csv                                     # column layout\n"
+                "  awk -F',' 'NR>1 {print $1}' ./data.csv | sort -u       # unique dim values\n"
+                "  awk -F',' 'NR>1 && $1==\"Canada\"' ./data.csv \\\n"
                 "      | sort -t',' -rn -k N | head -10                      # top 10 by value\n"
                 "  awk -F',' 'NR>1 && $1==\"Canada\" {print $period_col, $value_col}' \\\n"
-                "      /tmp/data.csv | sort                                   # time series\n"
+                "      ./data.csv | sort                                   # time series\n"
                 "\n"
                 "Only the analysis output reaches the context window — not the raw CSV rows.\n"
                 f"Adapt these patterns for: {goal}\n"
@@ -228,7 +231,7 @@ def create_server(http_mode: bool = False):
                 "━━━ Claude.ai web (Python script) ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n"
                 "\n"
                 "Use MCP tools for discovery only — fetch data via script so it lands\n"
-                "in /tmp/, not the context window.\n"
+                "in a local file, not the context window.\n"
                 "\n"
                 "Step 1 — Find the table:\n"
                 f'  search_cubes_by_title(keywords=["{first_kw}"])\n'
@@ -241,11 +244,13 @@ def create_server(http_mode: bool = False):
                 "  get_sdmx_key_for_dimension(productId=<id>, dimension_position=N)\n"
                 "  → Paste the returned or_key at that dot-position.\n"
                 "\n"
-                "Step 3 — Fetch to /tmp/ via script:\n"
+                "Step 3 — Fetch to local file via script:\n"
                 "\n"
                 "  import urllib.request, csv, io\n"
+                "  from urllib.parse import urlparse\n"
                 f'  url = "{render_base}/files/sdmx/<product-id>/<key>?lastNObservations=12"\n'
-                "  out = \"/tmp/statcan_<product-id>.csv\"\n"
+                f'  assert urlparse(url).netloc == "{_render_netloc}", "Unexpected URL domain"\n'
+                "  out = \"./statcan_<product-id>.csv\"\n"
                 "  with urllib.request.urlopen(url) as r:\n"
                 "      raw = r.read().decode()\n"
                 "  with open(out, \"w\") as f:\n"
@@ -256,15 +261,15 @@ def create_server(http_mode: bool = False):
                 "  print(\"Columns:\", cols)\n"
                 "  for r in rows[:3]: print(r)\n"
                 "\n"
-                "Step 4 — Analyze from /tmp/ in a follow-up script:\n"
+                "Step 4 — Analyze from local file in a follow-up script:\n"
                 "\n"
                 "  import csv\n"
-                "  with open(\"/tmp/statcan_<product-id>.csv\") as f:\n"
+                "  with open(\"./statcan_<product-id>.csv\") as f:\n"
                 "      rows = list(csv.DictReader(f))\n"
                 "  # filter, sort, aggregate — print only the summary\n"
                 f"  # Goal: {goal}\n"
                 "\n"
-                "Data stays in /tmp/ — only analysis output reaches the context window.\n"
+                "Data stays in the local file — only analysis output reaches the context window.\n"
                 "WARNING: Never use wildcard (.) for dimensions with >30 codes — use or_key instead."
             )
 
@@ -298,7 +303,7 @@ def create_server(http_mode: bool = False):
                 "  Combining lastNObservations + startPeriod/endPeriod → 406 error from StatCan.\n"
                 "\n"
                 "CLI USAGE (statcan download --key):\n"
-                '  statcan download <product-id> --key "1.2.1+2.1" --last 12 --output /tmp/data.csv\n'
+                '  statcan download <product-id> --key "1.2.1+2.1" --last 12 --output ./data.csv\n'
                 "  statcan download <product-id> --last 5 --dry-run   # preview SDMX URL before fetching\n"
                 "\n"
                 "CSV DOWNLOAD URL (Claude.ai Python script / curl):\n"
@@ -306,10 +311,12 @@ def create_server(http_mode: bool = False):
                 f"  {render_base}/files/sdmx/<product-id>/<key>?startPeriod=2020&endPeriod=2024\n"
                 "\n"
                 "  import urllib.request, csv, io\n"
+                "  from urllib.parse import urlparse\n"
                 f'  url = "{render_base}/files/sdmx/<product-id>/<key>?lastNObservations=12"\n'
+                f'  assert urlparse(url).netloc == "{_render_netloc}", "Unexpected URL domain"\n'
                 "  with urllib.request.urlopen(url) as r:\n"
                 "      raw = r.read().decode()\n"
-                "  with open(\"/tmp/data.csv\", \"w\") as f: f.write(raw)\n"
+                "  with open(\"./data.csv\", \"w\") as f: f.write(raw)\n"
                 "  rows = list(csv.DictReader(io.StringIO(raw)))\n"
                 "  print(len(rows), \"rows. Columns:\", list(rows[0].keys()) if rows else [])"
             )
@@ -317,7 +324,8 @@ def create_server(http_mode: bool = False):
         elif name == "statcan-download":
             pid = args.get("product_id", "<product-id>")
             last_n = args.get("last_n", "12")
-            out = args.get("output_path", f"/tmp/statcan_{pid}.csv")
+            _safe_pid = re.sub(r"[^a-zA-Z0-9\-]", "_", str(pid))
+            out = args.get("output_path", f"./statcan_{_safe_pid}.csv")
             text = (
                 f"Download Statistics Canada table {pid}\n"
                 "\n"
@@ -362,10 +370,12 @@ def create_server(http_mode: bool = False):
                 "  → For large dimensions (>30 codes):\n"
                 f"  get_sdmx_key_for_dimension(productId={pid}, dimension_position=N)\n"
                 "\n"
-                "Step 2 — Fetch to /tmp/ via script (data never enters context):\n"
+                "Step 2 — Fetch to local file via script (data never enters context):\n"
                 "\n"
                 "  import urllib.request, csv, io\n"
-                f'  url = "{render_base}/files/sdmx/{pid}/<key>?lastNObservations={last_n}"\n'
+                "  from urllib.parse import urlparse\n"
+                f'  url = "{render_base}/files/sdmx/{_safe_pid}/<key>?lastNObservations={last_n}"\n'
+                f'  assert urlparse(url).netloc == "{_render_netloc}", "Unexpected URL domain"\n'
                 f'  out = "{out}"\n'
                 "  with urllib.request.urlopen(url) as r:\n"
                 "      raw = r.read().decode()\n"
@@ -377,7 +387,7 @@ def create_server(http_mode: bool = False):
                 "  print(\"Columns:\", cols)\n"
                 "  for r in rows[:3]: print(r)\n"
                 "\n"
-                "Step 3 — Analyze from /tmp/ in a follow-up script:\n"
+                "Step 3 — Analyze from local file in a follow-up script:\n"
                 "\n"
                 "  import csv\n"
                 f'  with open("{out}") as f:\n'
@@ -391,7 +401,7 @@ def create_server(http_mode: bool = False):
 
         elif name == "statcan-vector-pipeline":
             vids = args.get("vector_ids", "<v41690973 v41690974>")
-            out = args.get("output_path", "/tmp/statcan_vectors.csv")
+            out = args.get("output_path", "./statcan_vectors.csv")
             text = (
                 f"Multi-series vector pipeline: {vids}\n"
                 "\n"
@@ -426,7 +436,8 @@ def create_server(http_mode: bool = False):
 
         else:  # statcan-explore
             pid = args.get("product_id", "<product-id>")
-            sample_out = f"/tmp/explore_{pid}.csv"
+            _safe_pid = re.sub(r"[^a-zA-Z0-9\-]", "_", str(pid))
+            sample_out = f"./explore_{_safe_pid}.csv"
             text = (
                 f"Explore Statistics Canada table {pid} before full download\n"
                 "\n"
@@ -455,7 +466,7 @@ def create_server(http_mode: bool = False):
                 f"statcan download {pid} --last 5 --dry-run\n"
                 "\n"
                 "# 6. Download with a focused key after exploring\n"
-                f"statcan download {pid} --key \"1.1.1\" --last 24 --output /tmp/data_{pid}.csv\n"
+                f"statcan download {pid} --key \"1.1.1\" --last 24 --output ./data_{_safe_pid}.csv\n"
                 "\n"
                 "━━━ Claude.ai web (Python script) ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n"
                 "\n"
@@ -467,8 +478,10 @@ def create_server(http_mode: bool = False):
                 "Step 2 — Sample 3 periods to see column layout:\n"
                 "\n"
                 "  import urllib.request, csv, io\n"
+                "  from urllib.parse import urlparse\n"
                 "  key = \"<narrow-key>\"   # from Step 1 — avoid wildcards on large dims\n"
-                f'  url = "{render_base}/files/sdmx/{pid}/<key>?lastNObservations=3"\n'
+                f'  url = "{render_base}/files/sdmx/{_safe_pid}/<key>?lastNObservations=3"\n'
+                f'  assert urlparse(url).netloc == "{_render_netloc}", "Unexpected URL domain"\n'
                 f'  out = "{sample_out}"\n'
                 "  with urllib.request.urlopen(url) as r:\n"
                 "      raw = r.read().decode()\n"

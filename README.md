@@ -205,10 +205,10 @@ Claude.ai (web) has no bash sandbox — it can't run shell commands. Instead, it
 
 2. Python script (data never enters context):
    url = "https://mcp-statcan.onrender.com/files/sdmx/<pid>/<key>?lastNObservations=12"
-   → fetch → write to /tmp/statcan_<pid>.csv → print summary only
+   → validate URL domain → write to ./statcan_<pid>.csv → print summary only
 
-3. Follow-up script (analysis from /tmp/):
-   rows = list(csv.DictReader(open("/tmp/statcan_<pid>.csv")))
+3. Follow-up script (analysis from local file):
+   rows = list(csv.DictReader(open("./statcan_<pid>.csv")))
    → filter / sort / aggregate → print only the result
 ```
 
@@ -218,8 +218,8 @@ Claude.ai (web) has no bash sandbox — it can't run shell commands. Instead, it
 
 ```bash
 statcan search "labour force"
-statcan download 14-10-0287-01 --last 12 --output /tmp/lfs.csv
-awk -F',' 'NR>1 && $1=="Canada"' /tmp/lfs.csv | sort -t',' -rn -k5 | head -10
+statcan download 14-10-0287-01 --last 12 --output ./lfs.csv
+awk -F',' 'NR>1 && $1=="Canada"' ./lfs.csv | sort -t',' -rn -k5 | head -10
 ```
 
 ---
@@ -230,7 +230,7 @@ The server ships five prompts accessible as slash commands in supported clients.
 
 | Prompt | What it teaches |
 |---|---|
-| `/statcan-data-lookup` | End-to-end: search → structure → build key → fetch to /tmp/ → analyze |
+| `/statcan-data-lookup` | End-to-end: search → structure → build key → fetch to local file → analyze |
 | `/sdmx-key-builder` | SDMX key syntax: wildcards, OR keys, time parameters, download URL format |
 | `/statcan-download` | Download a specific table: CLI commands + Python script alternative |
 | `/statcan-explore` | Sample before committing: 3-period fetch, column layout, size estimate |
@@ -399,15 +399,15 @@ These tools are not available on the hosted Render server — SQLite is per-proc
 4. get_sdmx_data(productId=14100287, key=".2.1", lastNObservations=24)
    → returns download_csv URL
 
-5. Python script: fetch URL → /tmp/statcan_14100287.csv → analyze → print summary
+5. Python script: validate URL domain → write to ./statcan_14100287.csv → analyze → print summary
 ```
 
 **Claude Code (bash sandbox):**
 ```bash
 statcan search "unemployment rate"
 statcan metadata 14100287
-statcan download 14-10-0287-01 --last 24 --output /tmp/lfs.csv
-awk -F',' 'NR>1 && $1=="Canada"' /tmp/lfs.csv | sort -t',' -rn -k5 | head -10
+statcan download 14-10-0287-01 --last 24 --output ./lfs.csv
+awk -F',' 'NR>1 && $1=="Canada"' ./lfs.csv | sort -t',' -rn -k5 | head -10
 ```
 
 ---
