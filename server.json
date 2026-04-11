@@ -21,5 +21,12 @@
       }
     }
   ],
-  "websiteUrl": "https://github.com/Aryan-Jhaveri/mcp-statcan"
+  "websiteUrl": "https://github.com/Aryan-Jhaveri/mcp-statcan",
+  "icons": [
+    {
+      "uri": "https://raw.githubusercontent.com/Aryan-Jhaveri/mcp-statcan/main/assets/Flag.jpg",
+      "mimeType": "image/jpeg",
+      "sizes": ["206x109"]
+    }
+  ]
 }
