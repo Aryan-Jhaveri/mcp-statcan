@@ -35,7 +35,7 @@ class VectorRangeInput(BaseModel):
     limit: Optional[int] = Field(None, description=f"Max rows to return. Default {DEFAULT_TRUNCATION_LIMIT}. Set higher to get more rows.")
 
 class BulkVectorRangeInput(BaseModel):
-    vectorIds: List[str] # API uses strings for vector IDs here
+    vectorIds: List[int] = Field(..., description="List of integer vector IDs (e.g. [42076, 41690973]).")
     startDataPointReleaseDate: Optional[str] = None # YYYY-MM-DDTHH:MM
     endDataPointReleaseDate: Optional[str] = None # YYYY-MM-DDTHH:MM
     offset: Optional[int] = Field(0, description="Number of rows to skip (for pagination). Default 0.")

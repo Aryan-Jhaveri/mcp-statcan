@@ -192,10 +192,17 @@ def register_vector_tools(registry: ToolRegistry):
             log_ssl_warning("SSL verification disabled for get_bulk_vector_data_by_range.")
             
             # Explicitly set Accept header to avoid 406 errors
-            headers = {"Accept": "application/json"}
-            
-            # API expects a single JSON object
-            post_data = bulk_range_input.model_dump(exclude_none=True)
+            headers = {"Accept": "application/json", "Content-Type": "application/json"}
+
+            # StatCan WDS expects an array of per-vector objects:
+            # [{"vectorId": 123, "startDataPointReleaseDate": "...", "endDataPointReleaseDate": "..."}]
+            # NOT a single flat object with a vectorIds array.
+            per_vector = {}
+            if bulk_range_input.startDataPointReleaseDate:
+                per_vector["startDataPointReleaseDate"] = bulk_range_input.startDataPointReleaseDate
+            if bulk_range_input.endDataPointReleaseDate:
+                per_vector["endDataPointReleaseDate"] = bulk_range_input.endDataPointReleaseDate
+            post_data = [{"vectorId": vid, **per_vector} for vid in bulk_range_input.vectorIds]
             try:
                 response = await client.post("/getBulkVectorDataByRange", json=post_data, headers=headers)
                 response.raise_for_status()
