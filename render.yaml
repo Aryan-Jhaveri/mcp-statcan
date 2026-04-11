@@ -9,5 +9,7 @@ services:
         value: http
       - key: PORT
         generateValue: false
+      - key: RENDER_BASE_URL
+        value: https://mcp-statcan.onrender.com
     healthCheckPath: /health
     plan: free
