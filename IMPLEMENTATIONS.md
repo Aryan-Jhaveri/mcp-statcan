@@ -9,7 +9,8 @@
 ### v0.5.0 — Sandbox Research Priorities (Apr 2026)
 *Branch: `feat/sandbox-research-impl` → merged to `main`*
 
-- **`get_sdmx_key_for_dimension`** — new tool: fetches full SDMX codelist for a dimension, returns all leaf codes as a ready-to-use `+`-joined OR key string. Eliminates the 9-batch-call pattern for large dimensions (e.g., 162 NOC minor groups). See `docs/llm-efficiency-research.md`.
+- **`get_sdmx_key_for_dimension`** — new tool: fetches full SDMX codelist for a dimension, returns all leaf codes as a ready-to-use `+`-joined OR key string. Eliminates the 9-batch-call pattern for large dimensions (e.g., 162 NOC minor groups). 
+
 - **`get_sdmx_data` wildcard warning** — docstring now has an explicit `IMPORTANT — key position codes` block warning that wildcard (`.`) returns a sparse sample for dimensions with >30 codes, and points to `get_sdmx_key_for_dimension`.
 - **MCP Prompts** — `statcan-data-lookup` and `sdmx-key-builder` registered in both stdio and HTTP modes. Appear as slash commands in Claude.ai web.
 - **CSV download proxy** — `/files/sdmx/{product_id}/{key}` Starlette route on the HTTP server: stateless StatCan SDMX → flattened CSV. `get_sdmx_data` returns `download_csv` URL + 5-row head instead of inline data when `row_count > FILE_THRESHOLD` (50) and `RENDER_BASE_URL` is set. See **Known Issues** — this requires the env var to be configured on Render.
@@ -45,13 +46,9 @@
 |---|---|
 | `VERIFY_SSL = False` | All httpx calls disable SSL verification — known security risk, StatCan cert issues made this necessary |
 | `lastNObservations` + `startPeriod`/`endPeriod` → 406 | StatCan SDMX rejects combining these params; enforced with `ValueError` in both SDMX data tools |
-| SDMX Geography labels broken for OR queries | StatCan uses non-standard series key encoding for multi-series OR queries; `_fix_or_series_keys()` fixes period and non-OR dim labels, but Geography labels in series 2+ remain wrong. Workaround: use wildcard for Geography, OR for other dims. Documented in `docs/or-query-label-bug.md` |
+| SDMX Geography labels broken for OR queries | StatCan uses non-standard series key encoding for multi-series OR queries; `_fix_or_series_keys()` fixes period and non-OR dim labels, but Geography labels in series 2+ remain wrong. Workaround: use wildcard for Geography, OR for other dims. 
 | Wildcard returns sparse/wrong data for large dims | Confirmed for NOC (309 codes): wildcard returned 31 misaligned rows. Always use explicit member IDs for dims with >30 codes. `get_sdmx_key_for_dimension` provides the OR key. |
 | CSV proxy requires `RENDER_BASE_URL` env var | `get_sdmx_data`'s large-response CSV redirect only activates when `RENDER_BASE_URL` is set in the environment. Must be configured on Render dashboard: `RENDER_BASE_URL=https://mcp-statcan.onrender.com` |
-
-### Stale Documentation
-
-`docs/implementation_status.md` is completely outdated — references Vega-Lite integration, ARIMA forecasting, Vector Search MCP, Deep Research MCP, and other features that have never existed in this codebase. Ignore it.
 
 ---
 
@@ -66,8 +63,6 @@ Add optional `save_to_table: str` parameter. When provided: write all rows to SQ
 - **Location:** `src/api/sdmx/sdmx_tools.py`, `src/models/sdmx_models.py`
 - **Reuses:** `create_table_from_data` from `db/schema.py` (already used in `fetch_vectors_to_database`)
 - **Effort:** ~3 hrs
-
-See `docs/llm-efficiency-research.md` for the NOC case study that motivated this.
 
 ### Priority 2 — Set `RENDER_BASE_URL` on Render
 
@@ -100,7 +95,6 @@ Download and cache the full `getAllCubesListLite` response at startup so discove
 - [ ] **Enable SSL verification** — needs investigation into StatCan cert issues first
 - [ ] **CI/CD linting** — ruff + mypy on push/PR (GitHub Actions)
 - [ ] **Expand tests** — see `CLAUDE.md` Testing Plan for prioritized list; `test_coordinate.py`, `test_sql_helpers.py`, `test_sdmx_structure.py` are easiest next targets (pure functions, no mocking)
-- [ ] **`docs/implementation_status.md`** — rewrite or delete (currently describes a different, non-existent server)
 
 ### Distribution
 
