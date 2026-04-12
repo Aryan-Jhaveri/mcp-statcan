@@ -224,7 +224,6 @@ hr.section { border: none; border-top: 1px solid #CCCCCC; margin: 14px 0; }
     <a href="/">Home</a>
     <a href="/health">Status</a>
     <a href="https://github.com/Aryan-Jhaveri/mcp-statcan">GitHub</a>
-    <a href="https://pypi.org/project/mcp-statcan/">PyPI</a>
     <a href="https://www150.statcan.gc.ca/n1/en/type/data">StatCan</a>
   </div>
 
