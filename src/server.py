@@ -17,6 +17,67 @@ import os
 import re
 import sys
 
+
+def _patch_session_with_icons() -> None:
+    """Inject StatCan flag icon into the MCP serverInfo on every initialize response.
+
+    The MCP Python SDK (≤1.12.4) constructs Implementation(name, version) only;
+    it has no API for icons.  Implementation allows extra fields (extra="allow"),
+    so we patch ServerSession._received_request to include the icon directly.
+    This lets MCP clients (e.g. Claude.ai) display the flag instead of a fallback
+    avatar when the server is added as a custom URL.
+    """
+    from mcp.server.session import (
+        ServerSession,
+        InitializationState,
+        SUPPORTED_PROTOCOL_VERSIONS,
+    )
+    from mcp import types as _t
+
+    _ICONS = [
+        {
+            "src": "https://raw.githubusercontent.com/Aryan-Jhaveri/mcp-statcan/main/assets/Flag.jpg",
+            "mimeType": "image/jpeg",
+            "sizes": ["206x109"],
+        }
+    ]
+
+    async def _received_request_with_icons(self, responder):  # type: ignore[override]
+        match responder.request.root:
+            case _t.InitializeRequest(params=params):
+                requested_version = params.protocolVersion
+                self._initialization_state = InitializationState.Initializing
+                self._client_params = params
+                with responder:
+                    await responder.respond(
+                        _t.ServerResult(
+                            _t.InitializeResult(
+                                protocolVersion=(
+                                    requested_version
+                                    if requested_version in SUPPORTED_PROTOCOL_VERSIONS
+                                    else _t.LATEST_PROTOCOL_VERSION
+                                ),
+                                capabilities=self._init_options.capabilities,
+                                serverInfo=_t.Implementation(
+                                    name=self._init_options.server_name,
+                                    version=self._init_options.server_version,
+                                    icons=_ICONS,
+                                ),
+                                instructions=self._init_options.instructions,
+                            )
+                        )
+                    )
+            case _:
+                if self._initialization_state != InitializationState.Initialized:
+                    raise RuntimeError(
+                        "Received request before initialization was complete"
+                    )
+
+    ServerSession._received_request = _received_request_with_icons  # type: ignore[method-assign]
+
+
+_patch_session_with_icons()
+
 # Use relative imports within the src package
 from . import config
 from .api.cube import register_cube_tools
