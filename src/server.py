@@ -91,94 +91,7 @@ def create_server(http_mode: bool = False):
             return [TextContent(type="text", text=f"Error: {str(e)}")]
 
     # ── MCP Prompts ────────────────────────────────────────────────────────
-    _PROMPTS = {
-        "statcan-data-lookup": Prompt(
-            name="statcan-data-lookup",
-            description=(
-                "End-to-end workflow for finding and analyzing Statistics Canada data. "
-                "Claude Code (bash): statcan CLI + awk pipelines. "
-                "Claude.ai web: MCP tools for discovery, Python script fetches data to a local file — never floods context."
-            ),
-            arguments=[
-                PromptArgument(
-                    name="topic",
-                    description="Data topic to search for (e.g. 'labour force', 'consumer price index')",
-                    required=False,
-                ),
-                PromptArgument(
-                    name="analysis_goal",
-                    description="What you want to learn from the data (e.g. 'trend over last 5 years', 'compare provinces')",
-                    required=False,
-                ),
-            ],
-        ),
-        "sdmx-key-builder": Prompt(
-            name="sdmx-key-builder",
-            description=(
-                "Guide for building a precise SDMX key for get_sdmx_data or statcan download --key. "
-                "Explains wildcard vs explicit member IDs, OR syntax, and dimension positions."
-            ),
-        ),
-        "statcan-download": Prompt(
-            name="statcan-download",
-            description=(
-                "Download a Statistics Canada table to CSV and analyze it. "
-                "Claude Code (bash): statcan CLI + awk. "
-                "Claude.ai web: Python script fetches to a local file — data never enters context."
-            ),
-            arguments=[
-                PromptArgument(
-                    name="product_id",
-                    description="StatCan table productId (e.g. 14100287 or 14-10-0287-01)",
-                    required=True,
-                ),
-                PromptArgument(
-                    name="last_n",
-                    description="Number of most recent periods to download (default: 12)",
-                    required=False,
-                ),
-                PromptArgument(
-                    name="output_path",
-                    description="Output CSV path (default: ./statcan_<product_id>.csv)",
-                    required=False,
-                ),
-            ],
-        ),
-        "statcan-vector-pipeline": Prompt(
-            name="statcan-vector-pipeline",
-            description=(
-                "Download one or more StatCan vector IDs to CSV and compare series with awk. "
-                "Requires Claude Code (bash sandbox) with the statcan CLI installed."
-            ),
-            arguments=[
-                PromptArgument(
-                    name="vector_ids",
-                    description="Space-separated vectorIds (e.g. 'v41690973 v41690974')",
-                    required=True,
-                ),
-                PromptArgument(
-                    name="output_path",
-                    description="Output CSV path (default: ./statcan_vectors.csv)",
-                    required=False,
-                ),
-            ],
-        ),
-        "statcan-explore": Prompt(
-            name="statcan-explore",
-            description=(
-                "Sample and inspect a Statistics Canada table before committing to a full download. "
-                "Claude Code (bash): statcan CLI. "
-                "Claude.ai web: Python script samples to a local file — see column layout without flooding context."
-            ),
-            arguments=[
-                PromptArgument(
-                    name="product_id",
-                    description="StatCan table productId to explore",
-                    required=True,
-                ),
-            ],
-        ),
-    }
+    from .prompts import _PROMPTS, get_prompt_text
 
     @server.list_prompts()
     async def list_prompts() -> list[Prompt]:
@@ -190,73 +103,17 @@ def create_server(http_mode: bool = False):
             raise ValueError(f"Unknown prompt: {name}")
 
         args = arguments or {}
-        render_base = config.RENDER_BASE_URL or "https://mcp-statcan.onrender.com"
+        text = get_prompt_text(name, args)
 
-        if name == "statcan-data-lookup":
-            topic = args.get("topic", "<your topic>")
-            goal = args.get("analysis_goal", "<your analysis goal>")
-            first_kw = topic if topic.startswith("<") else topic.split()[0]
-            text = (
-                f"Statistics Canada data lookup\n"
-                f"Topic: {topic}\n"
-                f"Analysis goal: {goal}\n"
-                "\n"
-                "━━━ Claude Code (bash sandbox) ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n"
-                "\n"
-                "Step 1 — Find the table:\n"
-                f'  statcan search "{topic}" --max-results 10\n'
-                "  → Note the Product ID of the best match.\n"
-                "\n"
-                "Step 2 — Explore structure before downloading:\n"
-                "  statcan metadata <product-id>\n"
-                "  statcan download <product-id> --last 3 --output ./sample.csv\n"
-                "  head -2 ./sample.csv    # see column names and dimension positions\n"
-                "\n"
-                "Step 3 — Download data:\n"
-                "  statcan download <product-id> --last 12 --output ./data.csv\n"
-                "\n"
-                "Step 4 — Analyze without loading the CSV into context:\n"
-                "  head -2 ./data.csv                                     # column layout\n"
-                "  awk -F',' 'NR>1 {print $1}' ./data.csv | sort -u       # unique dim values\n"
-                "  awk -F',' 'NR>1 && $1==\"Canada\"' ./data.csv \\\n"
-                "      | sort -t',' -rn -k N | head -10                      # top 10 by value\n"
-                "  awk -F',' 'NR>1 && $1==\"Canada\" {print $period_col, $value_col}' \\\n"
-                "      ./data.csv | sort                                   # time series\n"
-                "\n"
-                "Only the analysis output reaches the context window — not the raw CSV rows.\n"
-                f"Adapt these patterns for: {goal}\n"
-                "\n"
-                "━━━ Claude.ai web (Python script) ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n"
-                "\n"
-                "Use MCP tools for discovery only — fetch data via script so it lands\n"
-                "in a local file, not the context window.\n"
-                "\n"
-                "Step 1 — Find the table:\n"
-                f'  search_cubes_by_title(keywords=["{first_kw}"])\n'
-                "  → Note the productId.\n"
-                "\n"
-                "Step 2 — Understand structure (small payload, no data):\n"
-                "  get_sdmx_structure(productId=<id>)\n"
-                "  → Read dimension positions and member codes. Build your key.\n"
-                "  → For any dimension with >30 codes:\n"
-                "  get_sdmx_key_for_dimension(productId=<id>, dimension_position=N)\n"
-                "  → Paste the returned or_key at that dot-position.\n"
-                "\n"
-                "Step 3 — Fetch rows inline via MCP tool:\n"
-                "  get_sdmx_rows(productId=<product-id>, key=\"<key>\", lastNObservations=12)\n"
-                "  → Returns rows directly in the tool response — no external fetch needed.\n"
-                "  → Rows are capped at 500. Use a narrow key if you need fewer.\n"
-                "\n"
-                "Step 4 — Analyze the returned rows:\n"
-                "  result = get_sdmx_rows(...)  # rows are in result[\"data\"]\n"
-                "  rows = result[\"data\"]\n"
-                "  cols = list(rows[0].keys()) if rows else []\n"
-                "  top10 = sorted(rows, key=lambda r: float(r.get(\"value\",\"0\") or 0), reverse=True)[:10]\n"
-                "  for r in top10: print(r.get(\"period\"), r.get(\"value\"))\n"
-                f"  # Goal: {goal}\n"
-                "\n"
-                "WARNING: Never use wildcard (.) for dimensions with >30 codes — use or_key instead."
-            )
+        return GetPromptResult(
+            description=_PROMPTS[name].description,
+            messages=[
+                PromptMessage(
+                    role="user",
+                    content=TextContent(type="text", text=text),
+                )
+            ],
+        )
 
         elif name == "sdmx-key-builder":
             text = (
@@ -495,6 +352,8 @@ def _run_http(host: str, port: int):
         print(f"HTTP transport requires uvicorn and starlette: {e}", file=sys.stderr)
         sys.exit(1)
 
+    from .landing import landing_page
+
     log_server_debug(f"Starting StatCan MCP Server on HTTP {host}:{port}...")
     server = create_server(http_mode=True)
 
@@ -561,6 +420,7 @@ def _run_http(host: str, port: int):
 
     app = Starlette(
         routes=[
+            Route("/", landing_page),
             Route("/health", health),
             Route("/files/sdmx/{product_id}/{key:path}", sdmx_csv),
             Mount("/mcp", app=handle_mcp),
