@@ -245,8 +245,8 @@ def register_vector_tools(registry: ToolRegistry):
 
         *** IMPORTANT: release date vs reference period ***
         - Use THIS tool when you want: "data released between date A and date B"
-        - Use get_data_from_vector_by_reference_period_range (or fetch_vectors_to_database)
-          when you want: "data for the time period YYYY to YYYY"
+        - Use get_sdmx_vector_data (startPeriod/endPeriod) when you want: "data for the time period YYYY to YYYY"
+          get_sdmx_vector_data is more reliable and filters by reference period, not release date.
 
         *** LARGE RESPONSE WARNING ***
         This tool can return hundreds of flattened data points. If the response
@@ -277,22 +277,24 @@ def register_vector_tools(registry: ToolRegistry):
                 "SSL verification disabled for get_bulk_vector_data_by_range."
             )
 
-            # StatCan WDS expects a single object for bulk requests:
-            # {"vectorIds": [123, 456], "startDataPointReleaseDate": "...", "endDataPointReleaseDate": "..."}
-            post_data = {"vectorIds": bulk_range_input.vectorIds}
+            # StatCan WDS expects an array of per-vector objects:
+            # [{"vectorId": 123, "startDataPointReleaseDate": "...", "endDataPointReleaseDate": "..."}]
+            # NOT a single flat object with a vectorIds array.
+            # Do NOT set explicit Accept/Content-Type headers — httpx sets Content-Type: application/json
+            # automatically when json= is used, and a strict Accept header can itself trigger 406.
+            per_vector: Dict[str, Any] = {}
             if bulk_range_input.startDataPointReleaseDate:
-                post_data["startDataPointReleaseDate"] = (
+                per_vector["startDataPointReleaseDate"] = (
                     bulk_range_input.startDataPointReleaseDate
                 )
             if bulk_range_input.endDataPointReleaseDate:
-                post_data["endDataPointReleaseDate"] = (
+                per_vector["endDataPointReleaseDate"] = (
                     bulk_range_input.endDataPointReleaseDate
                 )
-
-            headers = {"Accept": "application/json", "Content-Type": "application/json"}
+            post_data = [{"vectorId": vid, **per_vector} for vid in bulk_range_input.vectorIds]
             try:
                 response = await client.post(
-                    "/getBulkVectorDataByRange", json=post_data, headers=headers
+                    "/getBulkVectorDataByRange", json=post_data
                 )
                 response.raise_for_status()
                 result_list = (
