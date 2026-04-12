@@ -229,7 +229,7 @@ hr.section { border: none; border-top: 1px solid #CCCCCC; margin: 14px 0; }
 
   <!-- STATUS BAR -->
   <div id="statusbar">
-    SERVER STATUS: ONLINE &nbsp;|&nbsp; VERSION 0.7.2 &nbsp;|&nbsp; TOOLS: 18 REGISTERED
+    SERVER STATUS: ONLINE &nbsp;|&nbsp; VERSION 0.7.5 &nbsp;|&nbsp; TOOLS: 18 REGISTERED
   </div>
 
   <!-- CONTENT -->
@@ -239,14 +239,14 @@ hr.section { border: none; border-top: 1px solid #CCCCCC; margin: 14px 0; }
       <span class="badge blue">MCP SDK</span>
       <span class="badge green">SDMX REST</span>
       <span class="badge green">WDS REST</span>
-      <span class="badge gold">v0.7.2</span>
+      <span class="badge gold">v0.7.5</span>
       <span class="badge">Python 3.11+</span>
       <span class="badge">Stateless HTTP</span>
     </div>
 
     <div class="news-box">
       <strong>Announcements:</strong><br>
-      <span class="new-badge">NEW</span> v0.7.2 &mdash; SDMX <tt>get_sdmx_rows</tt> for inline row fetching without context flood<br>
+      <span class="new-badge">NEW</span> v0.7.5 &mdash; SDMX <tt>get_sdmx_rows</tt> for inline row fetching without context flood<br>
       <span class="new-badge">NEW</span> <tt>statcan</tt> CLI (Track 1) &mdash; download tables without an LLM client<br>
       &bull; Listed on the
       <a href="https://github.com/modelcontextprotocol/servers">MCP server registry</a>
@@ -387,7 +387,7 @@ hr.section { border: none; border-top: 1px solid #CCCCCC; margin: 14px 0; }
 
   <!-- FOOTER -->
   <div id="footer">
-    <strong>Statistics Canada MCP Server</strong> &mdash; v0.7.2<br>
+    <strong>Statistics Canada MCP Server</strong> &mdash; v0.7.5<br>
     &copy; 2025 Aryan Jhaveri &nbsp;|&nbsp;
     <a href="https://github.com/Aryan-Jhaveri/mcp-statcan/blob/main/LICENSE">MIT Licence</a>
     &nbsp;|&nbsp;
