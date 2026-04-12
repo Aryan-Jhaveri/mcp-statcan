@@ -21,11 +21,11 @@ MCP server and CLI for Statistics Canada's [Web Data Service (WDS)](https://www.
 ## Table of Contents
 
 - [Quick Start](#quick-start)
+- [Examples](#examples)
 - [Setup by Client](#setup-by-client)
 - [How Claude.ai Uses This Server](#how-claudeai-uses-this-server)
 - [MCP Prompts](#mcp-prompts)
 - [statcan CLI](#statcan-cli)
-- [Examples](#examples)
 - [Features & Tools](#features--tools)
 - [Project Structure](#project-structure)
 - [Known Issues](#known-issues)
@@ -99,6 +99,27 @@ uvx statcan-mcp-server        # installs the package
 statcan search "labour force"
 statcan download 14-10-0287-01 --last 12 --output lfs.csv
 ```
+
+---
+
+## Examples
+
+### Chat examples
+
+| Dataset | Query | Demo | Source |
+|---|---|---|---|
+| Canada's Greenhouse Gas Emissions | "Create a simple visualization for greenhouse emissions for Canada as a whole over the last 4 years" | <a href="https://claude.ai/share/7de892a1-e1d9-410f-96f7-90cd140e5dd9" target="_blank">Chat</a> | <a href="https://www150.statcan.gc.ca/t1/tbl1/en/cv.action?pid=3810009701" target="_blank">Table 38-10-0097-01</a> |
+| Canada's International Trade in Services | "Create a quick analysis for international trade in services for the last 6 months with a visualization" | <a href="https://claude.ai/share/c00eba2d-4e86-4405-878a-7ea4110cb7d3" target="_blank">Chat</a> | <a href="https://www150.statcan.gc.ca/t1/tbl1/en/cv.action?pid=1210014401" target="_blank">Table 12-10-0144-01</a> |
+| Ontario Building Construction Price Index | "Generate a visualization for Ontario's Building Price index from Q4 2023 to Q4 2024" | <a href="https://claude.ai/share/12ce906f-5a26-4e74-86d9-10451ab5bc4b" target="_blank">Chat</a> | <a href="https://www150.statcan.gc.ca/t1/tbl1/en/cv.action?pid=1810028901" target="_blank">Table 18-10-0289-01</a> |
+
+### Dashboard examples
+
+| Title | Link | Source |
+|---|---|---|
+| Canadian Unemployment Dashboard | <a href="https://claude.ai/share/50d72d90-ec98-463e-88ec-85032edc9c29" target="_blank">Chat Link</a> | <a href="https://www150.statcan.gc.ca/t1/tbl1/en/tv.action?pid=1410028701&pickMembers%5B0%5D=1.1&pickMembers%5B1%5D=3.1&pickMembers%5B2%5D=4.1&pickMembers%5B3%5D=5.1&cubeTimeFrame.startMonth=04&cubeTimeFrame.startYear=2023&cubeTimeFrame.endMonth=03&cubeTimeFrame.endYear=2026&referencePeriods=20230401%2C20260301" target="_blank">Table 14-10-0287-01.</a> |
+| Canada's Critical Minerals Economy | <a href="https://claude.ai/public/artifacts/15d289c7-f324-4ced-bcc0-53d6ac3218c9" target="_blank">Dashboard</a> | <a href="https://www150.statcan.gc.ca/t1/tbl1/en/cv.action?pid=3610070801" target="_blank">Table 36-10-0708-01</a> |
+| Price of Everything: CPI Dashboard 2015–2026 | <a href="https://claude.ai/public/artifacts/61e99645-934c-4fe2-9693-88dca714a634" target="_blank">Dashboard</a> | <a href="https://www150.statcan.gc.ca/t1/tbl1/en/cv.action?pid=1810000401" target="_blank">Table 18-10-0004-01</a> |
+| Canada's Biomedical & Biotech Industries | <a href="https://claude.ai/public/artifacts/749ab9ef-c7a2-4186-8a75-d94a6eb8772e" target="_blank">Dashboard</a> | <a href="https://www150.statcan.gc.ca/t1/tbl1/en/tv.action?pid=2710029701" target="_blank">Table 27-10-0297-01</a> |
 
 ---
 
@@ -306,27 +327,6 @@ statcan download $PID --last 12 --output cpi.csv
 ```
 
 For the complete CLI reference see [cli.md](cli.md).
-
----
-
-## Examples
-
-### Chat examples
-
-| Dataset | Query | Demo | Source |
-|---|---|---|---|
-| Canada's Greenhouse Gas Emissions | "Create a simple visualization for greenhouse emissions for Canada as a whole over the last 4 years" | <a href="https://claude.ai/share/7de892a1-e1d9-410f-96f7-90cd140e5dd9" target="_blank">Chat</a> | <a href="https://www150.statcan.gc.ca/t1/tbl1/en/cv.action?pid=3810009701" target="_blank">Table 38-10-0097-01</a> |
-| Canada's International Trade in Services | "Create a quick analysis for international trade in services for the last 6 months with a visualization" | <a href="https://claude.ai/share/c00eba2d-4e86-4405-878a-7ea4110cb7d3" target="_blank">Chat</a> | <a href="https://www150.statcan.gc.ca/t1/tbl1/en/cv.action?pid=1210014401" target="_blank">Table 12-10-0144-01</a> |
-| Ontario Building Construction Price Index | "Generate a visualization for Ontario's Building Price index from Q4 2023 to Q4 2024" | <a href="https://claude.ai/share/12ce906f-5a26-4e74-86d9-10451ab5bc4b" target="_blank">Chat</a> | <a href="https://www150.statcan.gc.ca/t1/tbl1/en/cv.action?pid=1810028901" target="_blank">Table 18-10-0289-01</a> |
-
-### Dashboard examples
-
-| Title | Link | Source |
-|---|---|---|
-| Canadian Unemployment Dashboard | <a href="https://claude.ai/share/50d72d90-ec98-463e-88ec-85032edc9c29" target="_blank">Chat Link</a> | <a href="https://www150.statcan.gc.ca/t1/tbl1/en/tv.action?pid=1410028701&pickMembers%5B0%5D=1.1&pickMembers%5B1%5D=3.1&pickMembers%5B2%5D=4.1&pickMembers%5B3%5D=5.1&cubeTimeFrame.startMonth=04&cubeTimeFrame.startYear=2023&cubeTimeFrame.endMonth=03&cubeTimeFrame.endYear=2026&referencePeriods=20230401%2C20260301" target="_blank">Table 14-10-0287-01.</a> |
-| Canada's Critical Minerals Economy | <a href="https://claude.ai/public/artifacts/15d289c7-f324-4ced-bcc0-53d6ac3218c9" target="_blank">Dashboard</a> | <a href="https://www150.statcan.gc.ca/t1/tbl1/en/cv.action?pid=3610070801" target="_blank">Table 36-10-0708-01</a> |
-| Price of Everything: CPI Dashboard 2015–2026 | <a href="https://claude.ai/public/artifacts/61e99645-934c-4fe2-9693-88dca714a634" target="_blank">Dashboard</a> | <a href="https://www150.statcan.gc.ca/t1/tbl1/en/cv.action?pid=1810000401" target="_blank">Table 18-10-0004-01</a> |
-| Canada's Biomedical & Biotech Industries | <a href="https://claude.ai/public/artifacts/749ab9ef-c7a2-4186-8a75-d94a6eb8772e" target="_blank">Dashboard</a> | <a href="https://www150.statcan.gc.ca/t1/tbl1/en/tv.action?pid=2710029701" target="_blank">Table 27-10-0297-01</a> |
 
 ---
 
