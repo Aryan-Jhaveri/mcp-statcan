@@ -95,31 +95,30 @@ def register_cube_discovery_tools(registry: ToolRegistry):
         max_results = search_input.max_results
         log_search_progress(f"Searching for cubes with title containing: '{search_term}'")
 
-        try:
-            all_cubes_lite = await get_cached_cubes_list_lite(_fetch_all_cubes_list_lite_raw)
+        all_cubes_lite = await get_cached_cubes_list_lite(_fetch_all_cubes_list_lite_raw)
 
-            search_terms = search_term.lower().split()
-            matching_cubes = []
-            for cube in all_cubes_lite:
-                title_en = (cube.get("cubeTitleEn", "") or "").lower()
-                title_fr = (cube.get("cubeTitleFr", "") or "").lower()
+        search_terms = search_term.lower().split()
+        matching_cubes = []
+        for cube in all_cubes_lite:
+            title_en = (cube.get("cubeTitleEn", "") or "").lower()
+            title_fr = (cube.get("cubeTitleFr", "") or "").lower()
 
-                match_en = all(term in title_en for term in search_terms)
-                match_fr = all(term in title_fr for term in search_terms)
+            match_en = all(term in title_en for term in search_terms)
+            match_fr = all(term in title_fr for term in search_terms)
 
-                if match_en or match_fr:
-                    matching_cubes.append(cube)
+            if match_en or match_fr:
+                matching_cubes.append(cube)
 
-            elapsed = time.time() - start_time
-            total_found = len(matching_cubes)
-            log_search_progress(f"Found {total_found} cubes matching keywords '{search_terms}' in {elapsed:.2f}s")
+        elapsed = time.time() - start_time
+        total_found = len(matching_cubes)
+        log_search_progress(f"Found {total_found} cubes matching keywords '{search_terms}' in {elapsed:.2f}s")
 
-            if total_found > max_results:
-                return {
-                    "data": matching_cubes[:max_results],
-                    "total_matches": total_found,
-                    "showing": max_results,
-                    "message": f"Showing {max_results} of {total_found} matches. Increase max_results to see more.",
-                }
-            return matching_cubes
+        if total_found > max_results:
+            return {
+                "data": matching_cubes[:max_results],
+                "total_matches": total_found,
+                "showing": max_results,
+                "message": f"Showing {max_results} of {total_found} matches. Increase max_results to see more.",
+            }
+        return matching_cubes
 
