@@ -252,10 +252,10 @@ hr.section { border: none; border-top: 1px solid #CCCCCC; margin: 14px 0; }
 
     <div class="news-box">
       <strong>Announcements:</strong><br>
-      <span class="new-badge">NEW</span> v0.7.5 &mdash; SDMX <tt>get_sdmx_rows</tt> for inline row fetching without context flood<br>
-      <span class="new-badge">NEW</span> <tt>statcan</tt> CLI (Track 1) &mdash; download tables without an LLM client<br>
-      &bull; Listed on the
-      <a href="https://github.com/modelcontextprotocol/servers">MCP server registry</a>
+      <span class="new-badge">NEW</span> v0.7.9 — automated CI/CD: version bumps on push, landing announcement workflow<br>
+      <span class="new-badge">NEW</span> v0.7.8 — tool-level request logging and /.well-known/mcp.json discovery<br>
+      <span class="new-badge">NEW</span> v0.7.5 — SDMX get_sdmx_rows for inline data without context flood<br>
+      &bull; Listed on the MCP server registry<br>
     </div>
 
     <div class="abstract">
