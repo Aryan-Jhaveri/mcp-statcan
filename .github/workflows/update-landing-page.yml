@@ -1,0 +1,65 @@
+name: Update GitHub Pages index.html
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "src/landing.py"
+      - "pyproject.toml"
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Generate index.html from landing.py
+        run: |
+          python3 - <<'PY'
+          import re
+
+          with open("src/landing.py") as f:
+              source = f.read()
+
+          with open("pyproject.toml") as f:
+              version = re.search(r'^version = "(.+?)"', f.read(), re.M).group(1)
+
+          start = source.index('_HTML_TEMPLATE = """') + len('_HTML_TEMPLATE = """')
+          end = source.rindex('"""')
+          html = source[start:end].replace("%%VERSION%%", version)
+
+          with open("index.html", "w") as f:
+              f.write(html)
+
+          print(f"Generated index.html (v{version}, {len(html)} bytes)")
+          PY
+
+      - name: Open PR if changed
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          if git diff --quiet index.html; then
+            echo "No changes to index.html — skipping PR."
+            exit 0
+          fi
+
+          BRANCH="pages-update-${GITHUB_RUN_ID}"
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git checkout -b "$BRANCH"
+          git add index.html
+          git commit -m "chore(pages): regenerate index.html from landing.py"
+          git push origin "$BRANCH"
+          gh pr create \
+            --title "chore(pages): regenerate index.html from landing.py" \
+            --body "Automated regeneration of the GitHub Pages static landing page.
+
+          Triggered by a change to \`src/landing.py\` or \`pyproject.toml\`." \
+            --base main
