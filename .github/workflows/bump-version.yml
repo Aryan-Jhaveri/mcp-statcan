@@ -1,0 +1,77 @@
+name: Bump Version
+
+on:
+  workflow_dispatch:
+    inputs:
+      bump:
+        description: "Version component to increment"
+        required: true
+        default: patch
+        type: choice
+        options: [patch, minor, major]
+
+jobs:
+  bump:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Compute new version
+        id: ver
+        run: |
+          current=$(python3 -c "
+          import re
+          with open('pyproject.toml') as f:
+              print(re.search(r'^version = \"(.+?)\"', f.read(), re.M).group(1))
+          ")
+          IFS='.' read -r maj min pat <<< "$current"
+          case "${{ inputs.bump }}" in
+            major) new="$((maj+1)).0.0" ;;
+            minor) new="${maj}.$((min+1)).0" ;;
+            *)     new="${maj}.${min}.$((pat+1))" ;;
+          esac
+          echo "current=$current" >> "$GITHUB_OUTPUT"
+          echo "new=$new"         >> "$GITHUB_OUTPUT"
+
+      - name: Update pyproject.toml
+        run: |
+          sed -i 's/^version = ".*"/version = "${{ steps.ver.outputs.new }}"/' pyproject.toml
+
+      - name: Update server.json
+        run: |
+          python3 - <<'PY'
+          import json
+          v = "${{ steps.ver.outputs.new }}"
+          with open("server.json") as f:
+              d = json.load(f)
+          d["version"] = v
+          d["packages"][0]["version"] = v
+          with open("server.json", "w") as f:
+              json.dump(d, f, indent=2)
+              f.write("\n")
+          PY
+
+      - name: Create PR
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git checkout -b bump-${{ steps.ver.outputs.new }}
+          git add pyproject.toml server.json
+          git commit -m "chore: bump version to ${{ steps.ver.outputs.new }}"
+          git push origin bump-${{ steps.ver.outputs.new }}
+          gh pr create \
+            --title "chore: bump version to ${{ steps.ver.outputs.new }}" \
+            --body "Automated version bump: \`${{ steps.ver.outputs.current }}\` → \`${{ steps.ver.outputs.new }}\`
+
+          Triggered by @${{ github.actor }} via workflow dispatch.
+
+          Merging this PR will automatically publish \`${{ steps.ver.outputs.new }}\` to PyPI and the MCP Registry." \
+            --base main
