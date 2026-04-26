@@ -235,7 +235,7 @@ hr.section { border: none; border-top: 1px solid #CCCCCC; margin: 14px 0; }
 
   <!-- STATUS BAR -->
   <div id="statusbar">
-    SERVER STATUS: ONLINE &nbsp;|&nbsp; VERSION %%VERSION%% &nbsp;|&nbsp; TOOLS: 18 REGISTERED
+    SERVER STATUS: ONLINE &nbsp;|&nbsp; VERSION %%VERSION%% &nbsp;|&nbsp; TOOLS: 17 REGISTERED
   </div>
 
   <!-- CONTENT -->
@@ -316,8 +316,13 @@ hr.section { border: none; border-top: 1px solid #CCCCCC; margin: 14px 0; }
     </div>
 
     <!-- TOOL INVENTORY -->
-    <h2>Registered Tools (18)</h2>
-    <p>All tools are available over the <tt>/mcp</tt> endpoint.</p>
+    <h2>Registered Tools (17)</h2>
+    <p>
+      All tools below are exposed over the <tt>/mcp</tt> endpoint. The hosted HTTP server
+      runs in <em>stateless</em> mode &mdash; composite and SQLite database tools are intentionally
+      omitted here. To use those, run the server locally over stdio
+      (<tt>pip install statcan-mcp-server</tt>).
+    </p>
 
     <table class="tools">
       <tr>
@@ -342,7 +347,6 @@ hr.section { border: none; border-top: 1px solid #CCCCCC; margin: 14px 0; }
       <tr class="odd"><td class="tool-name">get_sdmx_rows</td><td class="category">SDMX</td><td>Inline tabular rows (up to 500) returned directly in the tool response</td></tr>
       <tr class="even"><td class="tool-name">get_sdmx_vector_data</td><td class="category">SDMX</td><td>Single vectorId observations via SDMX</td></tr>
       <tr class="odd"><td class="tool-name">get_sdmx_key_for_dimension</td><td class="category">SDMX</td><td>Returns the full OR-key for a large dimension (avoids wildcard sampling errors)</td></tr>
-      <tr class="even"><td class="tool-name">get_sdmx_key_for_dimension</td><td class="category">SDMX</td><td>Returns full codelist OR key for a single dimension position</td></tr>
     </table>
 
     <hr class="section">
