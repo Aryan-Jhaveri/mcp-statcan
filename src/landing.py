@@ -250,13 +250,7 @@ hr.section { border: none; border-top: 1px solid #CCCCCC; margin: 14px 0; }
       <span class="badge">Stateless HTTP</span>
     </div>
 
-    <div class="news-box">
-      <strong>Announcements:</strong><br>
-      <span class="new-badge">NEW</span> v0.7.5 &mdash; SDMX <tt>get_sdmx_rows</tt> for inline row fetching without context flood<br>
-      <span class="new-badge">NEW</span> <tt>statcan</tt> CLI (Track 1) &mdash; download tables without an LLM client<br>
-      &bull; Listed on the
-      <a href="https://github.com/modelcontextprotocol/servers">MCP server registry</a>
-    </div>
+
 
     <div class="abstract">
       <strong>Abstract.</strong>
