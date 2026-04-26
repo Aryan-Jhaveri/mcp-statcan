@@ -3,9 +3,13 @@ name: Bump Version
 on:
   workflow_dispatch:
     inputs:
+      version:
+        description: "Exact version to set (e.g. 1.0.0). Overrides 'bump' if provided."
+        required: false
+        type: string
       bump:
-        description: "Version component to increment"
-        required: true
+        description: "Increment patch/minor/major. Used only when 'version' is empty."
+        required: false
         default: patch
         type: choice
         options: [patch, minor, major]
@@ -30,12 +34,16 @@ jobs:
           with open('pyproject.toml') as f:
               print(re.search(r'^version = \"(.+?)\"', f.read(), re.M).group(1))
           ")
-          IFS='.' read -r maj min pat <<< "$current"
-          case "${{ inputs.bump }}" in
-            major) new="$((maj+1)).0.0" ;;
-            minor) new="${maj}.$((min+1)).0" ;;
-            *)     new="${maj}.${min}.$((pat+1))" ;;
-          esac
+          if [ -n "${{ inputs.version }}" ]; then
+            new="${{ inputs.version }}"
+          else
+            IFS='.' read -r maj min pat <<< "$current"
+            case "${{ inputs.bump }}" in
+              major) new="$((maj+1)).0.0" ;;
+              minor) new="${maj}.$((min+1)).0" ;;
+              *)     new="${maj}.${min}.$((pat+1))" ;;
+            esac
+          fi
           echo "current=$current" >> "$GITHUB_OUTPUT"
           echo "new=$new"         >> "$GITHUB_OUTPUT"
 
