@@ -1,0 +1,156 @@
+name: Update Landing Announcement
+
+on:
+  workflow_dispatch:
+    inputs:
+      action:
+        description: >
+          auto   = generate from recent feat/fix commits since last version bump |
+          update = set custom entries (see 'content') |
+          clear  = remove the announcement section entirely
+        required: true
+        default: auto
+        type: choice
+        options: [auto, update, clear]
+      content:
+        description: >
+          For 'update' only. Pipe-separated entries, one per line.
+          Prefix an entry with "NEW:" for the red badge.
+          Example: NEW: v0.8.0 — rate limiting | v0.7.8 — CI/CD workflows
+        required: false
+        type: string
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build announcement entries
+        id: entries
+        run: |
+          python3 - <<'PY'
+          import subprocess, os, sys, json
+
+          action = "${{ inputs.action }}"
+          content = """${{ inputs.content }}"""
+
+          if action == "clear":
+              print("ENTRIES=")
+              with open(os.environ["GITHUB_OUTPUT"], "a") as f:
+                  f.write("entries=\n")
+              sys.exit(0)
+
+          if action == "update":
+              raw = [e.strip() for e in content.split("|") if e.strip()]
+              with open(os.environ["GITHUB_OUTPUT"], "a") as f:
+                  f.write("entries=" + "|||".join(raw) + "\n")
+              sys.exit(0)
+
+          # auto: grab feat/fix commits since the last version bump
+          log = subprocess.check_output(
+              ["git", "log", "--format=%s", "--no-merges"],
+              text=True
+          ).splitlines()
+
+          # find last bump commit index as boundary
+          boundary = next(
+              (i for i, m in enumerate(log) if m.startswith("chore: bump version")),
+              len(log)
+          )
+          recent = log[:boundary]
+
+          entries = []
+          for msg in recent:
+              for prefix in ("feat: ", "fix: "):
+                  if msg.startswith(prefix):
+                      # strip scope like feat(foo): → feat:
+                      clean = msg.split(":", 1)[1].strip().split("\n")[0]
+                      # collapse PR suffixes like "(#20)"
+                      import re
+                      clean = re.sub(r"\s*\(#\d+\)$", "", clean)
+                      entries.append("NEW: " + clean)
+                      break
+
+          entries = entries[:5]  # cap at 5
+
+          with open(os.environ["GITHUB_OUTPUT"], "a") as f:
+              f.write("entries=" + "|||".join(entries) + "\n")
+          PY
+
+      - name: Patch landing.py
+        run: |
+          python3 - <<'PY'
+          import re
+
+          action = "${{ inputs.action }}"
+          raw_entries = "${{ steps.entries.outputs.entries }}"
+
+          with open("src/landing.py") as f:
+              source = f.read()
+
+          NEWS_BOX_RE = re.compile(
+              r'    <div class="news-box">.*?    </div>',
+              re.DOTALL
+          )
+
+          if action == "clear" or not raw_entries.strip():
+              new_source = NEWS_BOX_RE.sub("", source)
+          else:
+              entries = [e.strip() for e in raw_entries.split("|||") if e.strip()]
+              lines = []
+              for entry in entries:
+                  if entry.upper().startswith("NEW:"):
+                      text = entry[4:].strip()
+                      lines.append(f'      <span class="new-badge">NEW</span> {text}<br>')
+                  else:
+                      lines.append(f'      &bull; {entry}<br>')
+
+              box = (
+                  '    <div class="news-box">\n'
+                  '      <strong>Announcements:</strong><br>\n'
+                  + "\n".join(lines) + "\n"
+                  '    </div>'
+              )
+              new_source = NEWS_BOX_RE.sub(box, source)
+
+          with open("src/landing.py", "w") as f:
+              f.write(new_source)
+
+          print("landing.py updated")
+          PY
+
+      - name: Open PR
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          ACTION="${{ inputs.action }}"
+          BRANCH="landing-announcement-${GITHUB_RUN_ID}"
+
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git checkout -b "$BRANCH"
+          git add src/landing.py
+
+          if ! git diff --cached --quiet; then
+            git commit -m "feat(landing): update announcement section [${ACTION}]"
+            git push origin "$BRANCH"
+            gh pr create \
+              --title "feat(landing): update announcement section [${ACTION}]" \
+              --body "Automated update to the landing page announcement section.
+
+          **Action**: \`${ACTION}\`
+          **Triggered by**: @${{ github.actor }}
+
+          Review the diff and merge to deploy." \
+              --base main
+          else
+            echo "No changes to landing.py — nothing to PR."
+          fi
