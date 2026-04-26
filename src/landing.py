@@ -1,6 +1,12 @@
 """Landing page served at / for the HTTP deployment."""
 
-_HTML = """<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+from importlib.metadata import version as _pkg_version, PackageNotFoundError as _PNF
+try:
+    _SERVER_VERSION = _pkg_version("statcan-mcp-server")
+except _PNF:
+    _SERVER_VERSION = "dev"
+
+_HTML_TEMPLATE = """<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
   "http://www.w3.org/TR/html4/loose.dtd">
 <html lang="en">
 <head>
@@ -229,7 +235,7 @@ hr.section { border: none; border-top: 1px solid #CCCCCC; margin: 14px 0; }
 
   <!-- STATUS BAR -->
   <div id="statusbar">
-    SERVER STATUS: ONLINE &nbsp;|&nbsp; VERSION 0.7.5 &nbsp;|&nbsp; TOOLS: 18 REGISTERED
+    SERVER STATUS: ONLINE &nbsp;|&nbsp; VERSION %%VERSION%% &nbsp;|&nbsp; TOOLS: 18 REGISTERED
   </div>
 
   <!-- CONTENT -->
@@ -239,7 +245,7 @@ hr.section { border: none; border-top: 1px solid #CCCCCC; margin: 14px 0; }
       <span class="badge blue">MCP SDK</span>
       <span class="badge green">SDMX REST</span>
       <span class="badge green">WDS REST</span>
-      <span class="badge gold">v0.7.5</span>
+      <span class="badge gold">v%%VERSION%%</span>
       <span class="badge">Python 3.11+</span>
       <span class="badge">Stateless HTTP</span>
     </div>
@@ -387,7 +393,7 @@ hr.section { border: none; border-top: 1px solid #CCCCCC; margin: 14px 0; }
 
   <!-- FOOTER -->
   <div id="footer">
-    <strong>Statistics Canada MCP Server</strong> &mdash; v0.7.5<br>
+    <strong>Statistics Canada MCP Server</strong> &mdash; v%%VERSION%%<br>
     &copy; 2025 Aryan Jhaveri &nbsp;|&nbsp;
     <a href="https://github.com/Aryan-Jhaveri/mcp-statcan/blob/main/LICENSE">MIT Licence</a>
     &nbsp;|&nbsp;
@@ -400,6 +406,8 @@ hr.section { border: none; border-top: 1px solid #CCCCCC; margin: 14px 0; }
 </div><!-- /wrapper -->
 </body>
 </html>"""
+
+_HTML = _HTML_TEMPLATE.replace("%%VERSION%%", _SERVER_VERSION)
 
 
 async def landing_page(request) -> object:
