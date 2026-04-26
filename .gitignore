@@ -1,0 +1,71 @@
+NOTES.md
+# python bytecode files
+__pycache__/
+*.py[cod]
+*$py.class
+Notes.md
+NOTES.md
+NOTES.MD
+
+# python virtual environment
+venv/
+env/
+.env
+
+# distribution / packaging
+dist/
+build/
+*.egg-info/
+
+# database
+temp_statcan_data.db
+
+# os specific files
+.ds_store
+.ds_store?
+._*
+.spotlight-v100
+.trashes
+ehthumbs.db
+thumbs.db
+
+# python bytecode files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# python virtual environment
+venv/
+env/
+.env
+
+# distribution / packaging
+dist/
+build/
+*.egg-info/
+
+# database
+temp_statcan_data.db
+
+# os specific files
+.ds_store
+.ds_store?
+._*
+.spotlight-v100
+.trashes
+ehthumbs.db
+thumbs.db
+mcp-server-management-guide.txt
+
+.gitignore
+.claude/
+
+uv.lock
+claude.md
+prompt.md
+# tests/ — intentionally tracked
+
+cli.md
+docs/
+
+~/src/api/cube_tools.py
