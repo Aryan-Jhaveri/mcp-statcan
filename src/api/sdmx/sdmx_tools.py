@@ -13,8 +13,6 @@ Four tools:
 import xml.etree.ElementTree as ET
 from typing import Any, Dict, List, Optional
 
-import httpx
-
 from ...config import (
     MAX_SDMX_ROWS,
     RENDER_BASE_URL,
@@ -23,6 +21,7 @@ from ...config import (
     SDMX_XML_ACCEPT,
     TIMEOUT_MEDIUM,
 )
+from ..client import make_sdmx_get
 from ...models.sdmx_models import (
     SDMXDataInput,
     SDMXKeyForDimensionInput,
@@ -233,10 +232,7 @@ def register_sdmx_tools(registry: ToolRegistry) -> None:
         product_id = structure_input.productId
         url = f"{SDMX_BASE_URL}structure/Data_Structure_{product_id}"
 
-        async with httpx.AsyncClient(timeout=TIMEOUT_MEDIUM, verify=False) as client:
-            response = await client.get(url, headers={"Accept": SDMX_XML_ACCEPT})
-            response.raise_for_status()
-
+        response = await make_sdmx_get(url, headers={"Accept": SDMX_XML_ACCEPT})
         result = _parse_structure_xml(response.text, product_id)
         result["_sdmx_url"] = url
         return result
@@ -302,15 +298,11 @@ def register_sdmx_tools(registry: ToolRegistry) -> None:
         if data_input.endPeriod:
             params["endPeriod"] = data_input.endPeriod
 
-        async with httpx.AsyncClient(timeout=TIMEOUT_MEDIUM, verify=False) as client:
-            response = await client.get(
-                url, params=params, headers={"Accept": SDMX_JSON_ACCEPT}
-            )
-            response.raise_for_status()
-            sdmx_url = str(response.url)
-            response_json = response.json()
-            _fix_or_series_keys(response_json, key)
-            rows = flatten_sdmx_json(response_json)
+        response = await make_sdmx_get(url, params=params, headers={"Accept": SDMX_JSON_ACCEPT})
+        sdmx_url = str(response.url)
+        response_json = response.json()
+        _fix_or_series_keys(response_json, key)
+        rows = flatten_sdmx_json(response_json)
 
         result: Dict[str, Any] = {"_sdmx_url": sdmx_url, "row_count": len(rows)}
 
@@ -389,15 +381,11 @@ def register_sdmx_tools(registry: ToolRegistry) -> None:
         if data_input.endPeriod:
             params["endPeriod"] = data_input.endPeriod
 
-        async with httpx.AsyncClient(timeout=TIMEOUT_MEDIUM, verify=False) as client:
-            response = await client.get(
-                url, params=params, headers={"Accept": SDMX_JSON_ACCEPT}
-            )
-            response.raise_for_status()
-            sdmx_url = str(response.url)
-            response_json = response.json()
-            _fix_or_series_keys(response_json, key)
-            rows = flatten_sdmx_json(response_json)
+        response = await make_sdmx_get(url, params=params, headers={"Accept": SDMX_JSON_ACCEPT})
+        sdmx_url = str(response.url)
+        response_json = response.json()
+        _fix_or_series_keys(response_json, key)
+        rows = flatten_sdmx_json(response_json)
 
         truncated = len(rows) > MAX_SDMX_ROWS
         return {
@@ -447,13 +435,9 @@ def register_sdmx_tools(registry: ToolRegistry) -> None:
         if vector_input.endPeriod:
             params["endPeriod"] = vector_input.endPeriod
 
-        async with httpx.AsyncClient(timeout=TIMEOUT_MEDIUM, verify=False) as client:
-            response = await client.get(
-                url, params=params, headers={"Accept": SDMX_JSON_ACCEPT}
-            )
-            response.raise_for_status()
-            sdmx_url = str(response.url)
-            rows = flatten_sdmx_json(response.json())
+        response = await make_sdmx_get(url, params=params, headers={"Accept": SDMX_JSON_ACCEPT})
+        sdmx_url = str(response.url)
+        rows = flatten_sdmx_json(response.json())
 
         result: Dict[str, Any] = {"_sdmx_url": sdmx_url, "row_count": len(rows)}
         if len(rows) > MAX_SDMX_ROWS:
@@ -503,12 +487,7 @@ def register_sdmx_tools(registry: ToolRegistry) -> None:
 
         # Fetch the DSD and extract the codelist for the requested dimension
         structure_url = f"{SDMX_BASE_URL}structure/Data_Structure_{product_id}"
-        async with httpx.AsyncClient(timeout=TIMEOUT_MEDIUM, verify=False) as client:
-            response = await client.get(
-                structure_url, headers={"Accept": SDMX_XML_ACCEPT}
-            )
-            response.raise_for_status()
-
+        response = await make_sdmx_get(structure_url, headers={"Accept": SDMX_XML_ACCEPT})
         parsed = _parse_structure_xml(response.text, product_id)
         dimensions: List[Dict[str, Any]] = parsed.get("dimensions", [])
 

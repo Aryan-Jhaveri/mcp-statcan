@@ -4,7 +4,7 @@ from typing import Dict, Any
 
 import httpx
 
-from ...config import BASE_URL, TIMEOUT_MEDIUM
+from ...config import BASE_URL, TIMEOUT_MEDIUM, VERIFY_SSL
 from ...models.api_models import CubeMetadataInput
 from ...util.logger import log_ssl_warning
 from ...util.registry import ToolRegistry
@@ -39,7 +39,7 @@ def register_cube_metadata_tools(registry: ToolRegistry):
         IMPORTANT: In your final response to the user, you MUST cite the source of your data.
         For cubes, this means including the ProductId (pid) and the Title.
         """
-        async with httpx.AsyncClient(base_url=BASE_URL, timeout=TIMEOUT_MEDIUM, verify=False) as client:
+        async with httpx.AsyncClient(base_url=BASE_URL, timeout=TIMEOUT_MEDIUM, verify=VERIFY_SSL) as client:
             log_ssl_warning("SSL verification disabled for get_cube_metadata.")
             post_data = [{"productId": metadata_input.productId}]
             try:

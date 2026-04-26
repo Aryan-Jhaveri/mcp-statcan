@@ -5,7 +5,7 @@ from typing import Dict, Any, List, Union
 
 import httpx
 
-from ...config import BASE_URL, TIMEOUT_MEDIUM, TIMEOUT_LARGE
+from ...config import BASE_URL, TIMEOUT_MEDIUM, TIMEOUT_LARGE, VERIFY_SSL
 from ...models.api_models import (
     CubeCoordInput,
     CubeCoordLatestNInput,
@@ -58,7 +58,7 @@ def register_cube_series_tools(registry: ToolRegistry):
         IMPORTANT: In your final response to the user, you MUST cite the source of your data.
         For cube data, this means including the ProductId (pid), Coordinate, and Reference Period.
         """
-        async with httpx.AsyncClient(base_url=BASE_URL, timeout=TIMEOUT_MEDIUM, verify=False) as client:
+        async with httpx.AsyncClient(base_url=BASE_URL, timeout=TIMEOUT_MEDIUM, verify=VERIFY_SSL) as client:
             log_ssl_warning("SSL verification disabled for get_data_from_cube_pid_coord_and_latest_n_periods.")
             padded_coord = pad_coordinate(input_data.coordinate)
             post_data = [{
@@ -98,7 +98,7 @@ def register_cube_series_tools(registry: ToolRegistry):
         IMPORTANT: In your final response to the user, you MUST cite the source of your data.
         For series info, this means including the ProductId (pid) and Coordinate.
         """
-        async with httpx.AsyncClient(base_url=BASE_URL, timeout=TIMEOUT_MEDIUM, verify=False) as client:
+        async with httpx.AsyncClient(base_url=BASE_URL, timeout=TIMEOUT_MEDIUM, verify=VERIFY_SSL) as client:
             log_ssl_warning("SSL verification disabled for get_series_info_from_cube_pid_coord.")
             padded_coord = pad_coordinate(input_data.coordinate)
             post_data = [{
@@ -137,7 +137,7 @@ def register_cube_series_tools(registry: ToolRegistry):
         IMPORTANT: In your final response to the user, you MUST cite the source of your data.
         For changed series data, this means including the VectorId, ProductId (pid), and Coordinate.
         """
-        async with httpx.AsyncClient(base_url=BASE_URL, timeout=TIMEOUT_MEDIUM, verify=False) as client:
+        async with httpx.AsyncClient(base_url=BASE_URL, timeout=TIMEOUT_MEDIUM, verify=VERIFY_SSL) as client:
             log_ssl_warning("SSL verification disabled for get_changed_series_data_from_cube_pid_coord.")
             padded_coord = pad_coordinate(input_data.coordinate)
             post_data = [{
@@ -178,7 +178,7 @@ def register_cube_series_tools(registry: ToolRegistry):
         if lang not in ['en', 'fr']:
             raise ValueError("Invalid language code. Use 'en' or 'fr'.")
 
-        async with httpx.AsyncClient(base_url=BASE_URL, timeout=TIMEOUT_MEDIUM, verify=False) as client:
+        async with httpx.AsyncClient(base_url=BASE_URL, timeout=TIMEOUT_MEDIUM, verify=VERIFY_SSL) as client:
             log_ssl_warning("SSL verification disabled for get_full_table_download_csv.")
             try:
                 response = await client.get(f"/getFullTableDownloadCSV/{productId}/{lang}")
@@ -214,7 +214,7 @@ def register_cube_series_tools(registry: ToolRegistry):
         For full table downloads, this means including the ProductId (pid).
         """
         productId = product_input.productId
-        async with httpx.AsyncClient(base_url=BASE_URL, timeout=TIMEOUT_MEDIUM, verify=False) as client:
+        async with httpx.AsyncClient(base_url=BASE_URL, timeout=TIMEOUT_MEDIUM, verify=VERIFY_SSL) as client:
             log_ssl_warning("SSL verification disabled for get_full_table_download_sdmx.")
             try:
                 response = await client.get(f"/getFullTableDownloadSDMX/{productId}")
@@ -245,7 +245,7 @@ def register_cube_series_tools(registry: ToolRegistry):
         if not input_data.items:
             raise ValueError("items list cannot be empty.")
 
-        async with httpx.AsyncClient(base_url=BASE_URL, timeout=TIMEOUT_MEDIUM, verify=False) as client:
+        async with httpx.AsyncClient(base_url=BASE_URL, timeout=TIMEOUT_MEDIUM, verify=VERIFY_SSL) as client:
             log_ssl_warning("SSL verification disabled for get_series_info_from_cube_pid_coord_bulk.")
             post_data = [
                 {"productId": item.productId, "coordinate": pad_coordinate(item.coordinate)}
@@ -311,7 +311,7 @@ def register_cube_series_tools(registry: ToolRegistry):
         if not input_data.items:
             raise ValueError("items list cannot be empty.")
 
-        async with httpx.AsyncClient(base_url=BASE_URL, timeout=TIMEOUT_MEDIUM, verify=False) as client:
+        async with httpx.AsyncClient(base_url=BASE_URL, timeout=TIMEOUT_MEDIUM, verify=VERIFY_SSL) as client:
             log_ssl_warning("SSL verification disabled for get_series_info.")
             post_data = [
                 {"productId": item.productId, "coordinate": pad_coordinate(item.coordinate)}
@@ -368,7 +368,7 @@ def register_cube_series_tools(registry: ToolRegistry):
         except ValueError:
             raise ValueError(f"Invalid date format for get_changed_cube_list. Expected YYYY-MM-DD, got {date}")
 
-        async with httpx.AsyncClient(base_url=BASE_URL, timeout=TIMEOUT_MEDIUM, verify=False) as client:
+        async with httpx.AsyncClient(base_url=BASE_URL, timeout=TIMEOUT_MEDIUM, verify=VERIFY_SSL) as client:
             log_ssl_warning("SSL verification disabled for get_changed_cube_list.")
             try:
                 response = await client.get(f"/getChangedCubeList/{date}")
