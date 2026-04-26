@@ -13,9 +13,12 @@ from mcp.types import (
 import argparse
 import asyncio
 import contextlib
+import logging
 import os
 import re
 import sys
+
+_access_logger = logging.getLogger("statcan.access")
 
 
 def _patch_session_with_icons() -> None:
@@ -135,6 +138,7 @@ def create_server(http_mode: bool = False):
 
     @server.call_tool()
     async def call_tool(name: str, arguments: dict) -> list[TextContent | ImageContent | EmbeddedResource]:
+        _access_logger.info("tool_call tool=%s", name)
         try:
             result = await registry.call_tool(name, arguments)
 
@@ -266,6 +270,33 @@ def _run_http(host: str, port: int):
             headers={"Content-Disposition": f'attachment; filename="sdmx_{product_id}.csv"'},
         )
 
+    async def well_known_mcp(request: Request) -> JSONResponse:
+        from importlib.metadata import version as _pkg_version
+        base = config.RENDER_BASE_URL.rstrip("/")
+        return JSONResponse({
+            "name": "Statistics Canada MCP Server",
+            "description": "Canadian statistical data via WDS and SDMX APIs — no API key required",
+            "version": _pkg_version("statcan-mcp-server"),
+            "endpointUrl": f"{base}/mcp/" if base else "/mcp/",
+            "authentication": {"type": "none"},
+            "repository": "https://github.com/Aryan-Jhaveri/mcp-statcan",
+            "license": "MIT",
+        })
+
+    async def robots_txt(request: Request) -> Response:
+        return Response(
+            content=(
+                "User-agent: *\n"
+                "Disallow: /mcp/\n"
+                "Disallow: /files/\n"
+                "Allow: /\n"
+                "Allow: /health\n"
+                "Allow: /.well-known/\n"
+                "Crawl-delay: 10\n"
+            ),
+            media_type="text/plain",
+        )
+
     @contextlib.asynccontextmanager
     async def lifespan(app):
         async with session_manager.run():
@@ -275,6 +306,8 @@ def _run_http(host: str, port: int):
         routes=[
             Route("/", landing_page),
             Route("/health", health),
+            Route("/robots.txt", robots_txt),
+            Route("/.well-known/mcp.json", well_known_mcp),
             Route("/files/sdmx/{product_id}/{key:path}", sdmx_csv),
             Mount("/mcp", app=handle_mcp),
         ],
