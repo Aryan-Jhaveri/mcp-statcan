@@ -1,6 +1,12 @@
 name: Bump Version
 
 on:
+  push:
+    branches: [main]
+    paths:
+      - "src/**"
+      - "pyproject.toml"
+      - "server.json"
   workflow_dispatch:
     inputs:
       version:
@@ -16,6 +22,10 @@ on:
 
 jobs:
   bump:
+    # Skip when the push is itself a version bump commit to prevent loops
+    if: |
+      github.event_name == 'workflow_dispatch' ||
+      !startsWith(github.event.head_commit.message, 'chore: bump version')
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -79,7 +89,7 @@ jobs:
             --title "chore: bump version to ${{ steps.ver.outputs.new }}" \
             --body "Automated version bump: \`${{ steps.ver.outputs.current }}\` → \`${{ steps.ver.outputs.new }}\`
 
-          Triggered by @${{ github.actor }} via workflow dispatch.
+          Triggered automatically on push to main.
 
           Merging this PR will automatically publish \`${{ steps.ver.outputs.new }}\` to PyPI and the MCP Registry." \
             --base main
