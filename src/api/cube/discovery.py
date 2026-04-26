@@ -5,7 +5,7 @@ from typing import Dict, Any, List, Union
 
 import httpx
 
-from ...config import BASE_URL, TIMEOUT_LARGE
+from ...config import BASE_URL, TIMEOUT_LARGE, VERIFY_SSL
 from ...models.api_models import CubeListInput, CubeSearchInput
 from ...util.cache import get_cached_cubes_list_lite
 from ...util.logger import log_ssl_warning, log_search_progress, log_data_validation_warning
@@ -18,7 +18,7 @@ def register_cube_discovery_tools(registry: ToolRegistry):
 
     async def _fetch_all_cubes_list_lite_raw() -> List[Dict[str, Any]]:
         """Raw API fetch for cache use — returns full unpaginated list."""
-        async with httpx.AsyncClient(base_url=BASE_URL, timeout=TIMEOUT_LARGE, verify=False) as client:
+        async with httpx.AsyncClient(base_url=BASE_URL, timeout=TIMEOUT_LARGE, verify=VERIFY_SSL) as client:
             response = await client.get("/getAllCubesListLite")
             response.raise_for_status()
             return response.json()
@@ -36,7 +36,7 @@ def register_cube_discovery_tools(registry: ToolRegistry):
         IMPORTANT: In your final response to the user, you MUST cite the source of your data.
         For cubes, this means including the ProductId (pid) and the Title.
         """
-        async with httpx.AsyncClient(base_url=BASE_URL, timeout=TIMEOUT_LARGE, verify=False) as client:
+        async with httpx.AsyncClient(base_url=BASE_URL, timeout=TIMEOUT_LARGE, verify=VERIFY_SSL) as client:
             log_ssl_warning("SSL verification disabled for get_all_cubes_list.")
             try:
                 response = await client.get("/getAllCubesList")
@@ -61,7 +61,7 @@ def register_cube_discovery_tools(registry: ToolRegistry):
         IMPORTANT: In your final response to the user, you MUST cite the source of your data.
         For cubes, this means including the ProductId (pid) and the Title.
         """
-        async with httpx.AsyncClient(base_url=BASE_URL, timeout=TIMEOUT_LARGE, verify=False) as client:
+        async with httpx.AsyncClient(base_url=BASE_URL, timeout=TIMEOUT_LARGE, verify=VERIFY_SSL) as client:
             log_ssl_warning("SSL verification disabled for get_all_cubes_list_lite.")
             try:
                 response = await client.get("/getAllCubesListLite")
@@ -123,6 +123,3 @@ def register_cube_discovery_tools(registry: ToolRegistry):
                 }
             return matching_cubes
 
-        except Exception as e:
-            log_data_validation_warning(f"Unexpected error during cube search: {e}")
-            raise

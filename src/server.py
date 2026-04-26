@@ -245,7 +245,7 @@ def _run_http(host: str, port: int):
 
         params = {k: v for k, v in request.query_params.items()}
         try:
-            async with _httpx.AsyncClient(timeout=_cfg.TIMEOUT_MEDIUM, verify=False) as client:
+            async with _httpx.AsyncClient(timeout=_cfg.TIMEOUT_MEDIUM, verify=_cfg.VERIFY_SSL) as client:
                 resp = await client.get(
                     url, params=params,
                     headers={"Accept": _cfg.SDMX_JSON_ACCEPT},

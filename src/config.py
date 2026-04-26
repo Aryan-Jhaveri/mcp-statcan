@@ -38,11 +38,12 @@ BASE_URL = "https://www150.statcan.gc.ca/t1/wds/rest"
 TIMEOUT_SMALL = 30.0  # For simple queries
 TIMEOUT_MEDIUM = 60.0  # For list endpoints
 TIMEOUT_LARGE = 120.0  # For bulk data endpoints
-VERIFY_SSL = False  # WARNING: Security risk!
+# Set STATCAN_VERIFY_SSL=false to disable verification on broken trust stores.
+VERIFY_SSL = os.environ.get("STATCAN_VERIFY_SSL", "true").lower() != "false"
 
 # SDMX REST API configuration
 SDMX_BASE_URL = "https://www150.statcan.gc.ca/t1/wds/sdmx/statcan/rest/"
-SDMX_JSON_ACCEPT = "application/vnd.sdmx.data+json;version=1.0.0-wd"
+SDMX_JSON_ACCEPT = "application/json"
 SDMX_XML_ACCEPT = "application/vnd.sdmx.structure+xml;version=2.1"
 MAX_SDMX_ROWS = 500  # Safety cap for flattened SDMX rows (stdio/local mode only)
 # In HTTP/Render mode (RENDER_BASE_URL set), get_sdmx_data ALWAYS returns a download_csv URL —

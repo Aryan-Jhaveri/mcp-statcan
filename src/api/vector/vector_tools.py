@@ -39,47 +39,30 @@ def register_vector_tools(registry: ToolRegistry):
         For series info, this means including the VectorId, ProductId (pid), and Coordinate.
         """
         async with httpx.AsyncClient(
-            base_url=BASE_URL, timeout=TIMEOUT_MEDIUM, verify=False
+            base_url=BASE_URL, timeout=TIMEOUT_MEDIUM, verify=VERIFY_SSL
         ) as client:
             log_ssl_warning(
                 "SSL verification disabled for get_series_info_from_vector."
             )
-            # API expects a list containing one object
             post_data = [vector_input.model_dump()]
-            try:
-                response = await client.post("/getSeriesInfoFromVector", json=post_data)
-                response.raise_for_status()  # Raise exception for 4xx/5xx errors
-                result_list = response.json()
-                if (
-                    result_list
-                    and isinstance(result_list, list)
-                    and len(result_list) > 0
-                    and result_list[0].get("status") == "SUCCESS"
-                ):
-                    return result_list[0].get("object", {})
-                else:
-                    api_message = (
-                        result_list[0].get("object")
-                        if (
-                            result_list
-                            and isinstance(result_list, list)
-                            and len(result_list) > 0
-                        )
-                        else "Unknown API Error or Malformed Response"
-                    )
-                    raise ValueError(
-                        f"API did not return SUCCESS status for vectorId {vector_input.vectorId}: {api_message}"
-                    )
-            except httpx.RequestError as exc:
-                raise Exception(
-                    f"Network error calling get_series_info_from_vector: {exc}"
-                )
-            except (
-                ValueError
-            ) as exc:  # Catch JSON decoding errors or our own ValueErrors
-                raise ValueError(
-                    f"Error processing response for get_series_info_from_vector: {exc}"
-                )
+            response = await client.post("/getSeriesInfoFromVector", json=post_data)
+            response.raise_for_status()
+            result_list = response.json()
+            if (
+                result_list
+                and isinstance(result_list, list)
+                and len(result_list) > 0
+                and result_list[0].get("status") == "SUCCESS"
+            ):
+                return result_list[0].get("object", {})
+            api_message = (
+                result_list[0].get("object")
+                if result_list and isinstance(result_list, list) and len(result_list) > 0
+                else "Unknown API Error or Malformed Response"
+            )
+            raise ValueError(
+                f"API did not return SUCCESS status for vectorId {vector_input.vectorId}: {api_message}"
+            )
 
     # @registry.tool()  # Deregistered: replaced by get_sdmx_vector_data (server-side filtering)
     async def get_data_from_vectors_and_latest_n_periods(
@@ -101,7 +84,7 @@ def register_vector_tools(registry: ToolRegistry):
         For vector data, this means including the VectorId and Reference Period.
         """
         async with httpx.AsyncClient(
-            base_url=BASE_URL, timeout=TIMEOUT_MEDIUM, verify=False
+            base_url=BASE_URL, timeout=TIMEOUT_MEDIUM, verify=VERIFY_SSL
         ) as client:
             log_ssl_warning(
                 "SSL verification disabled for get_data_from_vectors_and_latest_n_periods."
@@ -177,7 +160,7 @@ def register_vector_tools(registry: ToolRegistry):
         For vector data, this means including the VectorId and Reference Period.
         """
         async with httpx.AsyncClient(
-            base_url=BASE_URL, timeout=TIMEOUT_LARGE, verify=False
+            base_url=BASE_URL, timeout=TIMEOUT_LARGE, verify=VERIFY_SSL
         ) as client:  # Longer timeout
             log_ssl_warning(
                 "SSL verification disabled for get_data_from_vector_by_reference_period_range."
@@ -271,7 +254,7 @@ def register_vector_tools(registry: ToolRegistry):
         For vector data, this means including the VectorId and Release Time.
         """
         async with httpx.AsyncClient(
-            base_url=BASE_URL, timeout=TIMEOUT_LARGE, verify=False
+            base_url=BASE_URL, timeout=TIMEOUT_LARGE, verify=VERIFY_SSL
         ) as client:  # Longer timeout
             log_ssl_warning(
                 "SSL verification disabled for get_bulk_vector_data_by_range."
@@ -382,7 +365,7 @@ def register_vector_tools(registry: ToolRegistry):
         For changed series data, this means including the VectorId.
         """
         async with httpx.AsyncClient(
-            base_url=BASE_URL, timeout=TIMEOUT_MEDIUM, verify=False
+            base_url=BASE_URL, timeout=TIMEOUT_MEDIUM, verify=VERIFY_SSL
         ) as client:
             log_ssl_warning(
                 "SSL verification disabled for get_changed_series_data_from_vector."
@@ -450,7 +433,7 @@ def register_vector_tools(registry: ToolRegistry):
             )
 
         async with httpx.AsyncClient(
-            base_url=BASE_URL, timeout=TIMEOUT_MEDIUM, verify=False
+            base_url=BASE_URL, timeout=TIMEOUT_MEDIUM, verify=VERIFY_SSL
         ) as client:
             log_ssl_warning("SSL verification disabled for get_changed_series_list.")
             try:
