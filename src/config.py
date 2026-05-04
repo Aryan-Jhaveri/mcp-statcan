@@ -45,10 +45,7 @@ VERIFY_SSL = os.environ.get("STATCAN_VERIFY_SSL", "true").lower() != "false"
 SDMX_BASE_URL = "https://www150.statcan.gc.ca/t1/wds/sdmx/statcan/rest/"
 SDMX_JSON_ACCEPT = "application/json"
 SDMX_XML_ACCEPT = "application/vnd.sdmx.structure+xml;version=2.1"
-MAX_SDMX_ROWS = 500  # Safety cap for flattened SDMX rows (stdio/local mode only)
-# In HTTP/Render mode (RENDER_BASE_URL set), get_sdmx_data ALWAYS returns a download_csv URL —
-# data never enters context inline regardless of row count.
-RENDER_BASE_URL = os.environ.get("RENDER_BASE_URL", "")  # e.g. https://mcp-statcan.onrender.com — set on Render
+MAX_SDMX_ROWS = 500  # Safety cap for flattened SDMX rows
 
 # Coordinate padding configuration
 EXPECTED_COORD_DIMENSIONS = 10

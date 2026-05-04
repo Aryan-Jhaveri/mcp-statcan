@@ -94,8 +94,6 @@ _PROMPTS = {
 
 
 def get_prompt_text(name: str, args: dict) -> str:
-    render_base = config.RENDER_BASE_URL or "https://mcp-statcan.onrender.com"
-
     if name == "statcan-data-lookup":
         topic = args.get("topic", "<your topic>")
         goal = args.get("analysis_goal", "<your analysis goal>")
@@ -201,9 +199,8 @@ def get_prompt_text(name: str, args: dict) -> str:
             "  → Returns rows directly — no external URL fetch needed.\n"
             '  → Rows are capped at 500. result["data"] is the list of dicts.\n'
             "\n"
-            "CLI (curl / statcan CLI):\n"
-            f"  {render_base}/files/sdmx/<product-id>/<key>?lastNObservations=12\n"
-            f'  statcan download <product-id> --key "<key>" --last 12 --output ./data.csv'
+            "CLI (statcan CLI):\n"
+            '  statcan download <product-id> --key "<key>" --last 12 --output ./data.csv'
         )
 
     elif name == "statcan-download":

@@ -15,7 +15,6 @@ from typing import Any, Dict, List, Optional
 
 from ...config import (
     MAX_SDMX_ROWS,
-    RENDER_BASE_URL,
     SDMX_BASE_URL,
     SDMX_JSON_ACCEPT,
     SDMX_XML_ACCEPT,
@@ -272,9 +271,8 @@ def register_sdmx_tools(registry: ToolRegistry) -> None:
         Output rows contain: dimension values, "period", "value", SCALAR_FACTOR,
         UOM, VECTOR_ID, STATUS, and other SDMX attributes.
 
-        Large responses: when row_count > 50 and RENDER_BASE_URL is configured, a download_csv
-        URL is returned instead of inline data. Use it in a Python analysis tool:
-          import pandas as pd; df = pd.read_csv(result["download_csv"])
+        Rows are returned inline, capped at MAX_SDMX_ROWS (500). For larger result sets,
+        narrow the key or use startPeriod/endPeriod/lastNObservations.
 
         IMPORTANT: In your final response to the user, you MUST cite the source of your data.
         This means including the _sdmx_url, table information and productId/key in your response.
@@ -306,28 +304,6 @@ def register_sdmx_tools(registry: ToolRegistry) -> None:
 
         result: Dict[str, Any] = {"_sdmx_url": sdmx_url, "row_count": len(rows)}
 
-        # HTTP/Render mode: always return a CSV download URL — never inline data.
-        # Data stays out of context; the caller fetches via script and writes to /tmp/.
-        if RENDER_BASE_URL:
-            import urllib.parse
-            encoded_key = urllib.parse.quote(key, safe="")
-            download_csv = f"{RENDER_BASE_URL}/files/sdmx/{product_id}/{encoded_key}"
-            columns = list(rows[0].keys()) if rows else []
-            result["columns"] = columns
-            result["head"] = rows[:5]
-            result["download_csv"] = download_csv
-            result["_message"] = (
-                f"{len(rows)} rows available. To get inline rows for analysis or artifact "
-                f"embedding, call get_sdmx_rows with the same parameters: "
-                f"productId={product_id}, key='{key}'"
-                + (f", lastNObservations={data_input.lastNObservations}" if data_input.lastNObservations is not None else "")
-                + (f", startPeriod='{data_input.startPeriod}'" if data_input.startPeriod else "")
-                + (f", endPeriod='{data_input.endPeriod}'" if data_input.endPeriod else "")
-                + ". It returns rows directly via the MCP connection — no external fetch required."
-            )
-            return result
-
-        # stdio/local mode: inline data with truncation guard
         if len(rows) > MAX_SDMX_ROWS:
             result["data"] = rows[:MAX_SDMX_ROWS]
             result["_truncated"] = True
@@ -348,11 +324,9 @@ def register_sdmx_tools(registry: ToolRegistry) -> None:
         Fetch SDMX observations and always return rows inline — use this when you
         need to embed data in an artifact or widget.
 
-        Unlike get_sdmx_data (which returns a download_csv URL in HTTP/Render mode),
-        this tool always returns the full row list directly. Use it when:
-          - Building a chart, table, or widget artifact that needs data embedded at
-            construction time (browser-side fetch() from artifacts is blocked by CSP)
-          - You need to sort/filter rows before embedding a small result set
+        Use this tool when you need rows embedded directly in an artifact or widget:
+          - Building a chart, table, or widget artifact that needs data at construction time
+          - Sorting/filtering a small result set before embedding
 
         Same key syntax and time parameters as get_sdmx_data — see that tool's
         description for key construction rules and wildcard warnings.
