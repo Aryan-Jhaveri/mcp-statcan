@@ -281,8 +281,6 @@ hr.section { border: none; border-top: 1px solid #CCCCCC; margin: 14px 0; }
       https://mcp-statcan.onrender.com/mcp<br><br>
       <span class="label">Health Check</span><br>
       https://mcp-statcan.onrender.com/health<br><br>
-      <span class="label">SDMX CSV Proxy</span><br>
-      https://mcp-statcan.onrender.com/files/sdmx/{product_id}/{key}?lastNObservations=12
     </div>
 
     <h3>Claude Desktop (<tt>claude_desktop_config.json</tt>)</h3>

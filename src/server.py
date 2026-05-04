@@ -227,52 +227,9 @@ def _run_http(host: str, port: int):
     async def health(request: Request) -> JSONResponse:
         return JSONResponse({"status": "ok"})
 
-    async def sdmx_csv(request: Request) -> Response:
-        """Stateless SDMX → CSV proxy. Fetches StatCan SDMX, returns flattened CSV."""
-        import csv
-        import io
-        import urllib.parse
-
-        import httpx as _httpx
-
-        from . import config as _cfg
-        from .util.sdmx_json import flatten_sdmx_json as _flatten
-        from .api.sdmx.sdmx_tools import _fix_or_series_keys
-
-        product_id = request.path_params["product_id"]
-        key = urllib.parse.unquote(request.path_params["key"])
-        url = f"{_cfg.SDMX_BASE_URL}data/DF_{product_id}/{key}"
-
-        params = {k: v for k, v in request.query_params.items()}
-        try:
-            async with _httpx.AsyncClient(timeout=_cfg.TIMEOUT_MEDIUM, verify=_cfg.VERIFY_SSL) as client:
-                resp = await client.get(
-                    url, params=params,
-                    headers={"Accept": _cfg.SDMX_JSON_ACCEPT},
-                )
-                resp.raise_for_status()
-                data = resp.json()
-                _fix_or_series_keys(data, key)
-                rows = _flatten(data)
-        except Exception as exc:
-            return JSONResponse({"error": str(exc)}, status_code=502)
-
-        if not rows:
-            return Response(content="", media_type="text/csv")
-
-        buf = io.StringIO()
-        writer = csv.DictWriter(buf, fieldnames=list(rows[0].keys()))
-        writer.writeheader()
-        writer.writerows(rows)
-        return Response(
-            content=buf.getvalue(),
-            media_type="text/csv",
-            headers={"Content-Disposition": f'attachment; filename="sdmx_{product_id}.csv"'},
-        )
-
     async def well_known_mcp(request: Request) -> JSONResponse:
         from importlib.metadata import version as _pkg_version
-        base = config.RENDER_BASE_URL.rstrip("/")
+        base = os.environ.get("RENDER_BASE_URL", "").rstrip("/")
         return JSONResponse({
             "name": "Statistics Canada MCP Server",
             "description": "Canadian statistical data via WDS and SDMX APIs — no API key required",
@@ -288,7 +245,6 @@ def _run_http(host: str, port: int):
             content=(
                 "User-agent: *\n"
                 "Disallow: /mcp/\n"
-                "Disallow: /files/\n"
                 "Allow: /\n"
                 "Allow: /health\n"
                 "Allow: /.well-known/\n"
@@ -308,7 +264,6 @@ def _run_http(host: str, port: int):
             Route("/health", health),
             Route("/robots.txt", robots_txt),
             Route("/.well-known/mcp.json", well_known_mcp),
-            Route("/files/sdmx/{product_id}/{key:path}", sdmx_csv),
             Mount("/mcp", app=handle_mcp),
         ],
         lifespan=lifespan,
