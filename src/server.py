@@ -200,6 +200,9 @@ def _run_http(host: str, port: int):
     try:
         import uvicorn
         from mcp.server.streamable_http_manager import StreamableHTTPSessionManager
+        from mcp.server.auth.routes import create_auth_routes
+        from mcp.server.auth.settings import ClientRegistrationOptions, RevocationOptions
+        from pydantic import AnyHttpUrl
         from starlette.applications import Starlette
         from starlette.middleware.cors import CORSMiddleware
         from starlette.requests import Request
@@ -210,6 +213,7 @@ def _run_http(host: str, port: int):
         sys.exit(1)
 
     from .landing import landing_page
+    from .auth import PublicOAuthProvider
 
     log_server_debug(f"Starting StatCan MCP Server on HTTP {host}:{port}...")
     server = create_server(http_mode=True)
@@ -258,6 +262,20 @@ def _run_http(host: str, port: int):
         async with session_manager.run():
             yield
 
+    # OAuth 2.1 / PKCE — required for Claude.ai web connector tool routing.
+    # PublicOAuthProvider auto-approves all clients; no user login is shown.
+    # The MCP endpoint itself remains open (no token enforcement) so existing
+    # programmatic and Claude Desktop access is unaffected.
+    base_url = os.environ.get("RENDER_BASE_URL", f"http://localhost:{port}").rstrip("/")
+    oauth_provider = PublicOAuthProvider()
+    oauth_routes = create_auth_routes(
+        provider=oauth_provider,
+        issuer_url=AnyHttpUrl(base_url),
+        service_documentation_url=AnyHttpUrl("https://github.com/Aryan-Jhaveri/mcp-statcan"),
+        client_registration_options=ClientRegistrationOptions(enabled=True),
+        revocation_options=RevocationOptions(enabled=True),
+    )
+
     # Starlette's Mount("/mcp", ...) issues a 307 redirect when the path is
     # exactly "/mcp" (no trailing slash). Many MCP clients don't follow POST
     # redirects, so they silently fail. This middleware rewrites /mcp → /mcp/
@@ -280,6 +298,7 @@ def _run_http(host: str, port: int):
             Route("/robots.txt", robots_txt),
             Route("/.well-known/mcp.json", well_known_mcp),
             Mount("/mcp", app=handle_mcp),
+            *oauth_routes,
         ],
         lifespan=lifespan,
     )
