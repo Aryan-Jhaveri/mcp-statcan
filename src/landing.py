@@ -252,9 +252,10 @@ hr.section { border: none; border-top: 1px solid #CCCCCC; margin: 14px 0; }
 
     <div class="news-box">
       <strong>Announcements:</strong><br>
-      <span class="new-badge">NEW</span> v0.7.9 — automated CI/CD: version bumps on push, landing announcement workflow<br>
-      <span class="new-badge">NEW</span> v0.7.8 — tool-level request logging and /.well-known/mcp.json discovery<br>
-      <span class="new-badge">NEW</span> v0.7.5 — SDMX get_sdmx_rows for inline data without context flood<br>
+      <span class="new-badge">NEW</span> v0.7.15 &mdash; OAuth 2.1/PKCE support: Claude.ai web connector now routes tool calls correctly<br>
+      <span class="new-badge">NEW</span> v0.7.14 &mdash; fixed 307 redirect loop on <tt>POST /mcp</tt>; Claude.ai IPs now receive 200 OK<br>
+      &bull; v0.7.9 &mdash; automated CI/CD: version bumps on push, landing announcement workflow<br>
+      &bull; v0.7.8 &mdash; tool-level request logging and <tt>/.well-known/mcp.json</tt> discovery<br>
       &bull; Listed on the MCP server registry<br>
     </div>
 
@@ -354,7 +355,7 @@ hr.section { border: none; border-top: 1px solid #CCCCCC; margin: 14px 0; }
     <table class="specs-table">
       <tr><td>Transport</td><td>Streamable HTTP (stateless) &mdash; MCP 2025-03-26 spec</td></tr>
       <tr><td>Upstream APIs</td><td>Statistics Canada WDS REST + SDMX 2.1 REST</td></tr>
-      <tr><td>Authentication</td><td>None required (public data)</td></tr>
+      <tr><td>Authentication</td><td>OAuth 2.1/PKCE available (auto-approved, no credentials); open access also supported</td></tr>
       <tr><td>SSL Verification</td><td>Disabled (<tt>VERIFY_SSL=False</tt>) &mdash; StatCan certificate quirk</td></tr>
       <tr><td>Max SDMX Rows</td><td>500 per <tt>get_sdmx_data</tt> call</td></tr>
       <tr><td>Cache</td><td>1-hour TTL on <tt>get_all_cubes_list_lite</tt></td></tr>
