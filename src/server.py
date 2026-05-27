@@ -258,7 +258,22 @@ def _run_http(host: str, port: int):
         async with session_manager.run():
             yield
 
-    app = Starlette(
+    # Starlette's Mount("/mcp", ...) issues a 307 redirect when the path is
+    # exactly "/mcp" (no trailing slash). Many MCP clients don't follow POST
+    # redirects, so they silently fail. This middleware rewrites /mcp → /mcp/
+    # before routing, eliminating the redirect entirely.
+    class _NormalizeMcpPath:
+        __slots__ = ("_app",)
+
+        def __init__(self, app):
+            self._app = app
+
+        async def __call__(self, scope, receive, send):
+            if scope.get("type") == "http" and scope.get("path") == "/mcp":
+                scope = {**scope, "path": "/mcp/", "raw_path": b"/mcp/"}
+            await self._app(scope, receive, send)
+
+    starlette_app = Starlette(
         routes=[
             Route("/", landing_page),
             Route("/health", health),
@@ -268,12 +283,14 @@ def _run_http(host: str, port: int):
         ],
         lifespan=lifespan,
     )
-    app = CORSMiddleware(
-        app,
-        allow_origins=["*"],
-        allow_methods=["GET", "POST", "DELETE"],
-        allow_headers=["*"],
-        expose_headers=["Mcp-Session-Id"],
+    app = _NormalizeMcpPath(
+        CORSMiddleware(
+            starlette_app,
+            allow_origins=["*"],
+            allow_methods=["GET", "POST", "DELETE"],
+            allow_headers=["*"],
+            expose_headers=["Mcp-Session-Id"],
+        )
     )
 
     uvicorn.run(app, host=host, port=port)
