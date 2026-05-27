@@ -50,16 +50,25 @@ jobs:
             exit 0
           fi
 
-          BRANCH="pages-update-${GITHUB_RUN_ID}"
+          BRANCH="pages-update"
           git config user.name  "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git checkout -b "$BRANCH"
+
+          # Use a fixed branch name so repeated runs update the same PR instead of
+          # creating a new branch+PR on every merge. Force-push overwrites stale state.
+          git checkout -b "$BRANCH" 2>/dev/null || git checkout "$BRANCH"
           git add index.html
           git commit -m "chore(pages): regenerate index.html from landing.py"
-          git push origin "$BRANCH"
-          gh pr create \
-            --title "chore(pages): regenerate index.html from landing.py" \
-            --body "Automated regeneration of the GitHub Pages static landing page.
+          git push --force origin "$BRANCH"
+
+          # Only open a PR if one doesn't already exist for this branch.
+          if gh pr list --head "$BRANCH" --state open | grep -q .; then
+            echo "PR already open for $BRANCH — updated in place."
+          else
+            gh pr create \
+              --title "chore(pages): regenerate index.html from landing.py" \
+              --body "Automated regeneration of the GitHub Pages static landing page.
 
           Triggered by a change to \`src/landing.py\` or \`pyproject.toml\`." \
-            --base main
+              --base main
+          fi
