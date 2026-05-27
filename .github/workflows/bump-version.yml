@@ -5,6 +5,7 @@ on:
     branches: [main]
     paths:
       - "src/**"
+      - "!src/landing.py"
       - "pyproject.toml"
       - "server.json"
   workflow_dispatch:
