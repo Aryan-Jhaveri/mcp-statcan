@@ -17,7 +17,7 @@ app = typer.Typer(
         "Quick start:\n\n"
         "  statcan search 'consumer price index'\n\n"
         "  statcan metadata 18-10-0004-01\n\n"
-        "  statcan download 18-10-0004-01 --last 12 --output cpi.csv"
+        '  statcan download 18-10-0004-01 --key "1.1.1" --last 12 --output cpi.csv'
     ),
 )
 

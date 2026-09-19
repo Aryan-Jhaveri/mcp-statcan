@@ -39,14 +39,14 @@ statcan search "consumer price index"
 # Inspect dimensions before downloading
 statcan metadata 18-10-0004-01
 
-# Download last 12 periods
-statcan download 18-10-0004-01 --last 12 --output cpi.csv
+# Download last 12 periods (--key is required; run `statcan metadata` first to see dimensions)
+statcan download 18-10-0004-01 --key "1.1.1" --last 12 --output cpi.csv
 
 # Download a specific slice
 statcan download 18-10-0004-01 --key "1.1.1" --start 2020-01 --end 2024-12
 
 # Preview the SDMX URL without fetching
-statcan download 18-10-0004-01 --last 5 --dry-run
+statcan download 18-10-0004-01 --key "1.1.1" --last 5 --dry-run
 
 # Download by vector ID
 statcan vector v41690973 v41690974 --last 24 --output series.csv
@@ -60,7 +60,7 @@ All commands accept `--format csv | json | table` and `--output <file>`.
 Data goes to **stdout**; progress and errors go to **stderr** — safe to pipe.
 
 ```bash
-statcan download 14-10-0287-01 --last 1 --format csv \
+statcan download 14-10-0287-01 --key "1.1.1" --last 1 --format csv \
   | awk -F',' 'NR>1 && $1=="Canada"' \
   | sort -t',' -k5 -rn \
   | head -10
@@ -93,6 +93,6 @@ Use the `/statcan-download` or `/statcan-data-lookup` MCP prompts to get ready-t
 ```bash
 statcan search "topic"
 statcan metadata <pid>
-statcan download <pid> --last 12 --output /tmp/data.csv
+statcan download <pid> --key "1.1.1" --last 12 --output /tmp/data.csv
 awk -F',' 'NR>1 && $1=="Canada"' /tmp/data.csv | sort -t',' -rn -k5 | head -10
 ```
