@@ -76,7 +76,7 @@ class ToolRegistry:
             tool_def = Tool(
                 name=tool_name,
                 description=tool_doc,
-                inputSchema=input_schema
+                input_schema=input_schema,
             )
             
             self._tools.append(tool_def)

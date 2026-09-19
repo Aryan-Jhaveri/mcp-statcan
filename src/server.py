@@ -1,9 +1,13 @@
 from mcp.server import Server
 from mcp.server.stdio import stdio_server
 from mcp.types import (
-    GetPromptResult,
-    ImageContent,
+    CallToolResult,
     EmbeddedResource,
+    GetPromptResult,
+    Icon,
+    ImageContent,
+    ListPromptsResult,
+    ListToolsResult,
     Prompt,
     PromptArgument,
     PromptMessage,
@@ -21,65 +25,17 @@ import sys
 _access_logger = logging.getLogger("statcan.access")
 
 
-def _patch_session_with_icons() -> None:
-    """Inject StatCan flag icon into the MCP serverInfo on every initialize response.
-
-    The MCP Python SDK (≤1.12.4) constructs Implementation(name, version) only;
-    it has no API for icons.  Implementation allows extra fields (extra="allow"),
-    so we patch ServerSession._received_request to include the icon directly.
-    This lets MCP clients (e.g. Claude.ai) display the flag instead of a fallback
-    avatar when the server is added as a custom URL.
-    """
-    from mcp.server.session import (
-        ServerSession,
-        InitializationState,
-        SUPPORTED_PROTOCOL_VERSIONS,
+# StatCan flag icon advertised in serverInfo.icons on every initialize response.
+# In mcp SDK v1.x this required a private-API monkey-patch on ServerSession
+# (no public API for icons). Since mcp v2.x, `Server(icons=...)` and
+# `Tool/Prompt(icons=...)` accept Icon objects directly, so the patch is gone.
+_SERVER_ICONS = [
+    Icon(
+        src="https://raw.githubusercontent.com/Aryan-Jhaveri/mcp-statcan/main/assets/Flag.jpg",
+        mime_type="image/jpeg",
+        sizes=["206x109"],
     )
-    from mcp import types as _t
-
-    _ICONS = [
-        {
-            "src": "https://raw.githubusercontent.com/Aryan-Jhaveri/mcp-statcan/main/assets/Flag.jpg",
-            "mimeType": "image/jpeg",
-            "sizes": ["206x109"],
-        }
-    ]
-
-    async def _received_request_with_icons(self, responder):  # type: ignore[override]
-        match responder.request.root:
-            case _t.InitializeRequest(params=params):
-                requested_version = params.protocolVersion
-                self._initialization_state = InitializationState.Initializing
-                self._client_params = params
-                with responder:
-                    await responder.respond(
-                        _t.ServerResult(
-                            _t.InitializeResult(
-                                protocolVersion=(
-                                    requested_version
-                                    if requested_version in SUPPORTED_PROTOCOL_VERSIONS
-                                    else _t.LATEST_PROTOCOL_VERSION
-                                ),
-                                capabilities=self._init_options.capabilities,
-                                serverInfo=_t.Implementation(
-                                    name=self._init_options.server_name,
-                                    version=self._init_options.server_version,
-                                    icons=_ICONS,
-                                ),
-                                instructions=self._init_options.instructions,
-                            )
-                        )
-                    )
-            case _:
-                if self._initialization_state != InitializationState.Initialized:
-                    raise RuntimeError(
-                        "Received request before initialization was complete"
-                    )
-
-    ServerSession._received_request = _received_request_with_icons  # type: ignore[method-assign]
-
-
-_patch_session_with_icons()
+]
 
 # Use relative imports within the src package
 from . import config
@@ -100,10 +56,6 @@ def create_server(http_mode: bool = False):
         http_mode: If True, skip DB and composite tools (stateless HTTP proxy).
     """
     log_server_debug("Inside create_server function.")
-
-    # Initialize standard MCP Server
-    server = Server("StatCanAPI_Server")
-    log_server_debug("MCP Server instance created.")
 
     # Register all tools by module to the global registry
     try:
@@ -131,43 +83,47 @@ def create_server(http_mode: bool = False):
         log_server_debug(f"ERROR during tool registration: {e}")
         raise
 
-    # Register handlers with the server instance
-    @server.list_tools()
-    async def list_tools() -> list[Tool]:
-        return registry.get_tools()
+    from .prompts import _PROMPTS, get_prompt_text
 
-    @server.call_tool()
-    async def call_tool(name: str, arguments: dict) -> list[TextContent | ImageContent | EmbeddedResource]:
+    # ── v2 handler callables (ctx, params) → Result models ────────────────
+    async def _on_list_tools(ctx, params) -> ListToolsResult:
+        return ListToolsResult(tools=registry.get_tools())
+
+    async def _on_call_tool(ctx, params) -> CallToolResult:
+        name = params.name
+        arguments = params.arguments or {}
         _access_logger.info("tool_call tool=%s", name)
         try:
             result = await registry.call_tool(name, arguments)
 
             # Format result to MCP Content list
-            if isinstance(result, list) or isinstance(result, dict):
+            if isinstance(result, (list, dict)):
                 import json
-                return [TextContent(type="text", text=json.dumps(result, indent=2))]
+                content = [TextContent(type="text", text=json.dumps(result, indent=2))]
             elif result is None:
-                return [TextContent(type="text", text="Tool executed successfully with no output.")]
+                content = [TextContent(type="text", text="Tool executed successfully with no output.")]
             else:
-                return [TextContent(type="text", text=str(result))]
+                content = [TextContent(type="text", text=str(result))]
+
+            return CallToolResult(content=content)
 
         except Exception as e:
             log_server_debug(f"Error calling tool {name}: {e}")
-            return [TextContent(type="text", text=f"Error: {str(e)}")]
+            return CallToolResult(
+                content=[TextContent(type="text", text=f"Error: {str(e)}")],
+                is_error=True,
+            )
 
-    # ── MCP Prompts ────────────────────────────────────────────────────────
-    from .prompts import _PROMPTS, get_prompt_text
+    async def _on_list_prompts(ctx, params) -> ListPromptsResult:
+        return ListPromptsResult(prompts=list(_PROMPTS.values()))
 
-    @server.list_prompts()
-    async def list_prompts() -> list[Prompt]:
-        return list(_PROMPTS.values())
-
-    @server.get_prompt()
-    async def get_prompt(name: str, arguments: dict | None = None) -> GetPromptResult:
+    async def _on_get_prompt(ctx, params) -> GetPromptResult:
+        name = params.name
+        arguments = params.arguments
         if name not in _PROMPTS:
             raise ValueError(f"Unknown prompt: {name}")
 
-        args = arguments or {}
+        args = dict(arguments) if arguments else {}
         text = get_prompt_text(name, args)
 
         return GetPromptResult(
@@ -179,6 +135,24 @@ def create_server(http_mode: bool = False):
                 )
             ],
         )
+
+    from importlib.metadata import PackageNotFoundError, version as _pkg_version
+    try:
+        _server_version = _pkg_version("statcan-mcp-server")
+    except PackageNotFoundError:
+        _server_version = "0.0.0"
+
+    # Native icons support (mcp v2.x) — no more ServerSession patching.
+    server = Server(
+        "StatCanAPI_Server",
+        version=_server_version,
+        icons=_SERVER_ICONS,
+        on_list_tools=_on_list_tools,
+        on_call_tool=_on_call_tool,
+        on_list_prompts=_on_list_prompts,
+        on_get_prompt=_on_get_prompt,
+    )
+    log_server_debug("MCP Server instance created.")
 
     log_server_debug("Returning server instance from create_server.")
     return server
