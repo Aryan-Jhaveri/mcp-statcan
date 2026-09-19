@@ -252,6 +252,7 @@ hr.section { border: none; border-top: 1px solid #CCCCCC; margin: 14px 0; }
 
     <div class="news-box">
       <strong>Announcements:</strong><br>
+      <span class="new-badge">NEW</span> v0.7.16 &mdash; <tt>statcan download</tt> now requires <tt>--key</tt>; StatCan SDMX no longer accepts the <tt>all</tt> shortcut<br>
       <span class="new-badge">NEW</span> v0.7.15 &mdash; OAuth 2.1/PKCE support: Claude.ai web connector now routes tool calls correctly<br>
       <span class="new-badge">NEW</span> v0.7.14 &mdash; fixed 307 redirect loop on <tt>POST /mcp</tt>; Claude.ai IPs now receive 200 OK<br>
       &bull; v0.7.9 &mdash; automated CI/CD: version bumps on push, landing announcement workflow<br>

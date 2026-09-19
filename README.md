@@ -97,7 +97,8 @@ Download StatCan data directly from the terminal. See [statcan CLI](#statcan-cli
 ```bash
 uvx statcan-mcp-server        # installs the package
 statcan search "labour force"
-statcan download 14-10-0287-01 --last 12 --output lfs.csv
+statcan metadata 14-10-0287-01                                    # run first to find dimension IDs
+statcan download 14-10-0287-01 --key "1.1.1" --last 12 --output lfs.csv  # run `statcan metadata <pid>` first to find real dimension IDs
 ```
 
 ---
@@ -239,7 +240,8 @@ Claude.ai (web) has no bash sandbox — it can't run shell commands. Instead, it
 
 ```bash
 statcan search "labour force"
-statcan download 14-10-0287-01 --last 12 --output ./lfs.csv
+statcan metadata 14-10-0287-01  # run first to find dimension IDs
+statcan download 14-10-0287-01 --key "1.1.1" --last 12 --output ./lfs.csv  # run `statcan metadata <pid>` first to find real dimension IDs
 awk -F',' 'NR>1 && $1=="Canada"' ./lfs.csv | sort -t',' -rn -k5 | head -10
 ```
 
@@ -295,10 +297,10 @@ statcan search "labour force" --max-results 10 --format json
 statcan metadata 18-10-0004-01
 statcan metadata 18100004 --full        # show all dimension members
 
-# Download data
-statcan download 18-10-0004-01 --last 12 --output cpi.csv
+# Download data (run `statcan metadata <pid>` first to find real dimension IDs)
+statcan download 18-10-0004-01 --key "1.1.1" --last 12 --output cpi.csv
 statcan download 18-10-0004-01 --key "1.1.1" --start 2020-01 --end 2024-12
-statcan download 18-10-0004-01 --last 5 --dry-run   # preview SDMX URL
+statcan download 18-10-0004-01 --key "1.1.1" --last 5 --dry-run   # preview SDMX URL
 
 # Download by vector ID
 statcan vector v41690973 --last 24 --output series.csv
@@ -313,17 +315,17 @@ statcan codeset --type frequency --format json
 
 **Pipe patterns:**
 ```bash
-# Top 10 by value
-statcan download 14-10-0287-01 --last 1 --format csv \
+# Top 10 by value (run `statcan metadata <pid>` first to find real dimension IDs)
+statcan download 14-10-0287-01 --key "1.1.1" --last 1 --format csv \
   | awk -F',' 'NR>1' | sort -t',' -k5 -rn | head -10
 
-# Extract unique geographies
-statcan download 14-10-0287-01 --last 1 --format csv \
+# Extract unique geographies (run `statcan metadata <pid>` first to find real dimension IDs)
+statcan download 14-10-0287-01 --key "1.1.1" --last 1 --format csv \
   | awk -F',' 'NR>1 {print $1}' | sort -u
 
-# Chain search → download
+# Chain search → download (run `statcan metadata <pid>` first to find real dimension IDs)
 PID=$(statcan search "CPI" --format json | python3 -c "import sys,json; print(json.load(sys.stdin)[0]['Product ID'])")
-statcan download $PID --last 12 --output cpi.csv
+statcan download $PID --key "1.1.1" --last 12 --output cpi.csv
 ```
 
 For the complete CLI reference see [cli.md](cli.md).
@@ -406,7 +408,7 @@ These tools are not available on the hosted Render server — SQLite is per-proc
 ```bash
 statcan search "unemployment rate"
 statcan metadata 14100287
-statcan download 14-10-0287-01 --last 24 --output ./lfs.csv
+statcan download 14-10-0287-01 --key "1.1.1" --last 24 --output ./lfs.csv  # run `statcan metadata <pid>` first to find real dimension IDs
 awk -F',' 'NR>1 && $1=="Canada"' ./lfs.csv | sort -t',' -rn -k5 | head -10
 ```
 
