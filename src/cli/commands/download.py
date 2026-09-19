@@ -14,14 +14,13 @@ from ..output import err_console, normalize_product_id, write_output
 
 def download(
     product_id: str = typer.Argument(..., help="Product ID (e.g. 18-10-0004-01 or 18100004)"),
-    key: str = typer.Option(
-        "all",
+    key: Optional[str] = typer.Option(
+        None,
         "--key",
         help=(
-            "SDMX dot-separated dimension key (e.g. '1.1.1'). "
-            "Use '.' to wildcard a position. "
-            "Use '+' for OR (e.g. '1+2.1.1'). "
-            "Default 'all' fetches everything — may be large."
+            "SDMX dot-separated dimension key, e.g. '1.1.1' (required). "
+            "Use '+' for OR within a dimension (e.g. '1+2.1.1'). "
+            "Run 'statcan metadata <product-id>' first to see dimension positions and member IDs."
         ),
     ),
     last: Optional[int] = typer.Option(
@@ -41,15 +40,23 @@ def download(
     for building the --key filter.
 
     Examples:\n
-      statcan download 18-10-0004-01 --last 12\n
+      statcan download 18-10-0004-01 --key "1.1.1" --last 12\n
       statcan download 18-10-0004-01 --key "1.1.1" --start 2020-01 --end 2024-12\n
-      statcan download 18-10-0004-01 --last 5 --output cpi.csv\n
+      statcan download 18-10-0004-01 --key "1.1.1" --last 5 --output cpi.csv\n
       statcan download 18-10-0004-01 --key "1.1.1" --dry-run
     """
     try:
         pid = normalize_product_id(product_id)
     except ValueError as e:
         err_console.print(f"[red]Error: {e}[/red]")
+        raise typer.Exit(1)
+
+    if key is None:
+        err_console.print(
+            "[red]Error: --key is required. "
+            "Run 'statcan metadata <product-id>' to see dimension positions and member IDs, "
+            "then pass e.g. --key '1.1.1'.[/red]"
+        )
         raise typer.Exit(1)
 
     if last is not None and (start or end):
