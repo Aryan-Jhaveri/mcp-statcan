@@ -30,6 +30,18 @@ class SDMXDataInput(BaseModel):
     )
 
 
+class SDMXQueryInput(SDMXDataInput):
+    sql: str = Field(
+        ...,
+        description=(
+            "One read-only SELECT (WITH/CTEs and window functions allowed) against table "
+            "'data'. Columns: one per dimension (spaces/punctuation -> '_', e.g. "
+            "\"Products_and_product_groups\"), period, value (REAL), VECTOR_ID, UOM, "
+            "SCALAR_FACTOR, STATUS, etc. Quote mixed-case names: SELECT \"Geography\", ..."
+        ),
+    )
+
+
 class SDMXVectorInput(BaseModel):
     vectorId: int
     startPeriod: Optional[str] = Field(
