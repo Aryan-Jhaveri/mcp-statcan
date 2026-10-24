@@ -85,3 +85,26 @@ def test_error_includes_table_columns_for_recovery():
     result = run_ephemeral_query(ROWS, "SELECT nope FROM data")
     assert "no such column" in result["error"]
     assert result["table_columns"] == ["Geography", "period", "value"]
+
+
+def test_oversized_query_text_rejected():
+    sql = "SELECT " + " + ".join(["1"] * 60_000)
+    result = run_ephemeral_query(ROWS, sql)
+    assert "error" in result
+
+
+def test_typical_analytical_query_within_limits():
+    sql = """
+        SELECT "Geography",
+               CASE WHEN AVG(value) > 500 THEN 'high' WHEN AVG(value) > 200 THEN 'mid' ELSE 'low' END AS band,
+               COALESCE(MAX(value), MIN(value), 0) AS v
+        FROM data WHERE "Geography" LIKE '%a%' GROUP BY 1
+        UNION ALL SELECT 'x', 'y', 1
+        UNION ALL SELECT 'x', 'y', 2
+        UNION ALL SELECT 'x', 'y', 3
+        UNION ALL SELECT 'x', 'y', 4
+        ORDER BY 1
+    """
+    result = run_ephemeral_query(ROWS, sql)
+    assert "error" not in result, result
+    assert len(result["rows"]) == 6  # Canada, Ontario + 4 UNION rows

@@ -4,12 +4,14 @@ Used by query_sdmx so hosted (stateless HTTP) users can aggregate fetched data
 server-side without a persistent database. Each call builds a fresh
 `:memory:` SQLite database, runs one read-only query, and discards it.
 
-The server is shared and multi-tenant, so the query runs under:
+The server is shared and multi-tenant, so the query follows SQLite's guidance for
+untrusted SQL (https://sqlite.org/security.html) and Datasette's approach:
   - an authorizer that only permits SELECT, column reads, CTEs and functions
     (no ATTACH, PRAGMA, writes, or load_extension)
-  - PRAGMA query_only
-  - a progress-handler timeout (EPHEMERAL_QUERY_TIMEOUT)
-  - SQLITE_LIMIT_LENGTH so a query can't build huge strings in memory
+  - PRAGMA query_only, trusted_schema=OFF, and SQLITE_DBCONFIG_DEFENSIVE where available
+  - a progress-handler timeout (EPHEMERAL_QUERY_TIMEOUT), checked every 1000 VM ops
+  - lowered sqlite3_limit() values (_QUERY_LIMITS) against oversized strings/queries
+Each call uses its own connection, so one request's timeout can't cancel another's.
 """
 
 import sqlite3
@@ -22,6 +24,23 @@ from .schema import build_table_statements
 _SQLITE_RECURSIVE = getattr(sqlite3, "SQLITE_RECURSIVE", 33)
 _ALLOWED_ACTIONS = {sqlite3.SQLITE_SELECT, sqlite3.SQLITE_READ, sqlite3.SQLITE_FUNCTION, _SQLITE_RECURSIVE}
 _BLOCKED_FUNCTIONS = {"load_extension"}
+
+# Lowered from SQLite defaults, following https://sqlite.org/security.html. Some are
+# looser than that page's "high-security" values so ordinary analytical SQL
+# (nested CASE, multi-way UNION, COALESCE with many args) still works.
+_QUERY_LIMITS = {
+    sqlite3.SQLITE_LIMIT_LENGTH: EPHEMERAL_MAX_VALUE_LENGTH,
+    sqlite3.SQLITE_LIMIT_SQL_LENGTH: 100_000,
+    sqlite3.SQLITE_LIMIT_COLUMN: 200,
+    sqlite3.SQLITE_LIMIT_EXPR_DEPTH: 100,
+    sqlite3.SQLITE_LIMIT_COMPOUND_SELECT: 20,
+    sqlite3.SQLITE_LIMIT_VDBE_OP: 100_000,
+    sqlite3.SQLITE_LIMIT_FUNCTION_ARG: 32,
+    sqlite3.SQLITE_LIMIT_ATTACHED: 0,
+    sqlite3.SQLITE_LIMIT_LIKE_PATTERN_LENGTH: 200,
+    sqlite3.SQLITE_LIMIT_VARIABLE_NUMBER: 10,
+    sqlite3.SQLITE_LIMIT_TRIGGER_DEPTH: 10,
+}
 
 
 def _authorizer(action: int, arg1: Any, arg2: Any, db_name: Any, trigger: Any) -> int:
@@ -60,12 +79,17 @@ def run_ephemeral_query(
         conn.commit()
 
         conn.execute("PRAGMA query_only = ON")
+        conn.execute("PRAGMA trusted_schema = OFF")
+        # setlimit/setconfig were added in Python 3.11/3.12; older versions rely on
+        # the authorizer, timeout and row cap alone.
+        if hasattr(conn, "setconfig"):
+            conn.setconfig(sqlite3.SQLITE_DBCONFIG_DEFENSIVE, True)
         if hasattr(conn, "setlimit"):
-            conn.setlimit(sqlite3.SQLITE_LIMIT_LENGTH, EPHEMERAL_MAX_VALUE_LENGTH)
-            conn.setlimit(sqlite3.SQLITE_LIMIT_ATTACHED, 0)
+            for limit, value in _QUERY_LIMITS.items():
+                conn.setlimit(limit, value)
         conn.set_authorizer(_authorizer)
         deadline = time.monotonic() + timeout
-        conn.set_progress_handler(lambda: 1 if time.monotonic() > deadline else 0, 10_000)
+        conn.set_progress_handler(lambda: 1 if time.monotonic() > deadline else 0, 1000)
 
         cursor = conn.execute(sql)
         columns = [d[0] for d in cursor.description] if cursor.description else []
