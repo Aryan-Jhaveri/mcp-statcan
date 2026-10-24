@@ -53,6 +53,11 @@ EXPECTED_COORD_DIMENSIONS = 10
 # Query limits
 MAX_QUERY_ROWS = 500
 
+# Ephemeral (in-memory, per-request) SQL — used by query_sdmx in stdio and HTTP mode
+MAX_EPHEMERAL_ROWS = 50_000       # Max fetched rows loaded into the in-memory table
+EPHEMERAL_QUERY_TIMEOUT = 2.0     # Seconds before a query is interrupted
+EPHEMERAL_MAX_VALUE_LENGTH = 1_000_000  # SQLITE_LIMIT_LENGTH: caps string/blob size a query can build
+
 # HTTP transport configuration (Phase 2)
 # TRANSPORT: "stdio" (default, local) or "http" (remote, stateless)
 # HOST / PORT: bind address for HTTP mode — PORT is the standard Render env var
