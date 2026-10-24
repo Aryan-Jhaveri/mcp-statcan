@@ -209,6 +209,38 @@ hr.section { border: none; border-top: 1px solid #CCCCCC; margin: 14px 0; }
   font-size: 9.5pt;
   margin: 8px 0;
 }
+.copy-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+.copy-row code, pre.copy-src {
+  font-family: "Courier New", Courier, monospace;
+  font-size: 9.5pt;
+  margin: 0;
+  white-space: pre-wrap;
+  word-break: break-all;
+}
+.copy-block { position: relative; }
+.copy-block .copy-btn {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+}
+.copy-btn {
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: 8pt;
+  font-weight: bold;
+  color: #003366;
+  background: #DDDDDD;
+  border: 2px outset #CCCCCC;
+  padding: 1px 8px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.copy-btn:active { border-style: inset; }
+.copy-btn.copied { background: #CCEECC; border-color: #88AA88; color: #003300; }
 </style>
 </head>
 <body>
@@ -235,7 +267,7 @@ hr.section { border: none; border-top: 1px solid #CCCCCC; margin: 14px 0; }
 
   <!-- STATUS BAR -->
   <div id="statusbar">
-    SERVER STATUS: ONLINE &nbsp;|&nbsp; VERSION %%VERSION%% &nbsp;|&nbsp; TOOLS: 17 REGISTERED
+    SERVER STATUS: ONLINE &nbsp;|&nbsp; VERSION %%VERSION%% &nbsp;|&nbsp; TOOLS: 18 REGISTERED
   </div>
 
   <!-- CONTENT -->
@@ -246,15 +278,17 @@ hr.section { border: none; border-top: 1px solid #CCCCCC; margin: 14px 0; }
       <span class="badge green">SDMX REST</span>
       <span class="badge green">WDS REST</span>
       <span class="badge gold">v%%VERSION%%</span>
-      <span class="badge">Python 3.11+</span>
+      <span class="badge">Python 3.10+</span>
       <span class="badge">Stateless HTTP</span>
     </div>
 
     <div class="news-box">
       <strong>Announcements:</strong><br>
-      <span class="new-badge">NEW</span> v0.7.16 &mdash; <tt>statcan download</tt> now requires <tt>--key</tt>; StatCan SDMX no longer accepts the <tt>all</tt> shortcut<br>
-      <span class="new-badge">NEW</span> v0.7.15 &mdash; OAuth 2.1/PKCE support: Claude.ai web connector now routes tool calls correctly<br>
-      <span class="new-badge">NEW</span> v0.7.14 &mdash; fixed 307 redirect loop on <tt>POST /mcp</tt>; Claude.ai IPs now receive 200 OK<br>
+      <span class="new-badge">NEW</span> v0.9.0 &mdash; <tt>query_sdmx</tt> on this server: fetch a table slice and run one read-only SQL query server-side; only the answer is returned, with no 500-row cap on the fetch<br>
+      <span class="new-badge">NEW</span> v0.8.0 &mdash; <tt>fetch_sdmx_to_database</tt> (local install): store a full SDMX slice in SQLite without passing rows through the model; values stored as numbers<br>
+      &bull; v0.7.16 &mdash; <tt>statcan download</tt> now requires <tt>--key</tt>; StatCan SDMX no longer accepts the <tt>all</tt> shortcut<br>
+      &bull; v0.7.15 &mdash; OAuth 2.1/PKCE support: Claude.ai web connector now routes tool calls correctly<br>
+      &bull; v0.7.14 &mdash; fixed 307 redirect loop on <tt>POST /mcp</tt>; Claude.ai IPs now receive 200 OK<br>
       &bull; v0.7.9 &mdash; automated CI/CD: version bumps on push, landing announcement workflow<br>
       &bull; v0.7.8 &mdash; tool-level request logging and <tt>/.well-known/mcp.json</tt> discovery<br>
       &bull; Listed on the MCP server registry<br>
@@ -280,33 +314,58 @@ hr.section { border: none; border-top: 1px solid #CCCCCC; margin: 14px 0; }
 
     <div class="endpoint-box">
       <span class="label">MCP Endpoint</span><br>
-      https://mcp-statcan.onrender.com/mcp<br><br>
+      <div class="copy-row">
+        <code id="copy-endpoint">https://mcp-statcan.onrender.com/mcp</code>
+        <button type="button" class="copy-btn" data-copy="copy-endpoint">Copy</button>
+      </div>
+      <br>
       <span class="label">Health Check</span><br>
-      https://mcp-statcan.onrender.com/health<br><br>
+      <div class="copy-row">
+        <code id="copy-health">https://mcp-statcan.onrender.com/health</code>
+        <button type="button" class="copy-btn" data-copy="copy-health">Copy</button>
+      </div>
     </div>
 
     <h3>Claude Desktop (<tt>claude_desktop_config.json</tt>)</h3>
-    <div class="endpoint-box">
-{<br>
-&nbsp;&nbsp;"mcpServers": {<br>
-&nbsp;&nbsp;&nbsp;&nbsp;"statcan": {<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"type": "http",<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"url": "https://mcp-statcan.onrender.com/mcp"<br>
-&nbsp;&nbsp;&nbsp;&nbsp;}<br>
-&nbsp;&nbsp;}<br>
-}
+    <div class="endpoint-box copy-block">
+      <button type="button" class="copy-btn" data-copy="copy-desktop">Copy</button>
+<pre class="copy-src" id="copy-desktop">{
+  "mcpServers": {
+    "statcan": {
+      "type": "http",
+      "url": "https://mcp-statcan.onrender.com/mcp"
+    }
+  }
+}</pre>
     </div>
 
     <h3>Claude Code (<tt>.mcp.json</tt>)</h3>
+    <div class="endpoint-box copy-block">
+      <button type="button" class="copy-btn" data-copy="copy-code-json">Copy</button>
+<pre class="copy-src" id="copy-code-json">{
+  "mcpServers": {
+    "statcan": {
+      "type": "http",
+      "url": "https://mcp-statcan.onrender.com/mcp"
+    }
+  }
+}</pre>
+    </div>
+
+    <h3>Claude Code (command line)</h3>
     <div class="endpoint-box">
-{<br>
-&nbsp;&nbsp;"mcpServers": {<br>
-&nbsp;&nbsp;&nbsp;&nbsp;"statcan": {<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"type": "http",<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"url": "https://mcp-statcan.onrender.com/mcp"<br>
-&nbsp;&nbsp;&nbsp;&nbsp;}<br>
-&nbsp;&nbsp;}<br>
-}
+      <div class="copy-row">
+        <code id="copy-code-cli">claude mcp add --transport http statcan https://mcp-statcan.onrender.com/mcp</code>
+        <button type="button" class="copy-btn" data-copy="copy-code-cli">Copy</button>
+      </div>
+    </div>
+
+    <h3>Local install (stdio, includes SQLite tools and the <tt>statcan</tt> CLI)</h3>
+    <div class="endpoint-box">
+      <div class="copy-row">
+        <code id="copy-pip">pip install statcan-mcp-server</code>
+        <button type="button" class="copy-btn" data-copy="copy-pip">Copy</button>
+      </div>
     </div>
 
     <div class="warning">
@@ -316,12 +375,13 @@ hr.section { border: none; border-top: 1px solid #CCCCCC; margin: 14px 0; }
     </div>
 
     <!-- TOOL INVENTORY -->
-    <h2>Registered Tools (17)</h2>
+    <h2>Registered Tools (18)</h2>
     <p>
       All tools below are exposed over the <tt>/mcp</tt> endpoint. The hosted HTTP server
       runs in <em>stateless</em> mode &mdash; composite and SQLite database tools are intentionally
       omitted here. To use those, run the server locally over stdio
-      (<tt>pip install statcan-mcp-server</tt>).
+      (<tt>pip install statcan-mcp-server</tt>). For calculations on this server, use
+      <tt>query_sdmx</tt>: the SQL runs here and only the answer is sent back to the model.
     </p>
 
     <table class="tools">
@@ -345,8 +405,9 @@ hr.section { border: none; border-top: 1px solid #CCCCCC; margin: 14px 0; }
       <tr class="odd"><td class="tool-name">get_sdmx_structure</td><td class="category">SDMX</td><td>Data Structure Definition as JSON: dimension positions and codelists with hierarchy</td></tr>
       <tr class="even"><td class="tool-name">get_sdmx_data</td><td class="category">SDMX</td><td>Server-side filtered observations by productId + SDMX key string</td></tr>
       <tr class="odd"><td class="tool-name">get_sdmx_rows</td><td class="category">SDMX</td><td>Inline tabular rows (up to 500) returned directly in the tool response</td></tr>
-      <tr class="even"><td class="tool-name">get_sdmx_vector_data</td><td class="category">SDMX</td><td>Single vectorId observations via SDMX</td></tr>
-      <tr class="odd"><td class="tool-name">get_sdmx_key_for_dimension</td><td class="category">SDMX</td><td>Returns the full OR-key for a large dimension (avoids wildcard sampling errors)</td></tr>
+      <tr class="even"><td class="tool-name">query_sdmx</td><td class="category">SDMX + SQL</td><td>Fetch observations and run one read-only SQL query server-side in a temporary in-memory table; returns only the result (rank, compare, growth)</td></tr>
+      <tr class="odd"><td class="tool-name">get_sdmx_vector_data</td><td class="category">SDMX</td><td>Single vectorId observations via SDMX</td></tr>
+      <tr class="even"><td class="tool-name">get_sdmx_key_for_dimension</td><td class="category">SDMX</td><td>Returns the full OR-key for a large dimension (avoids wildcard sampling errors)</td></tr>
     </table>
 
     <hr class="section">
@@ -359,9 +420,10 @@ hr.section { border: none; border-top: 1px solid #CCCCCC; margin: 14px 0; }
       <tr><td>Authentication</td><td>OAuth 2.1/PKCE available (auto-approved, no credentials); open access also supported</td></tr>
       <tr><td>SSL Verification</td><td>Disabled (<tt>VERIFY_SSL=False</tt>) &mdash; StatCan certificate quirk</td></tr>
       <tr><td>Max SDMX Rows</td><td>500 per <tt>get_sdmx_data</tt> call</td></tr>
+      <tr><td>Server-side SQL</td><td><tt>query_sdmx</tt>: SQLite in-memory, one SELECT per call, 2&nbsp;s limit, up to 50,000 fetched rows, 500 result rows; nothing stored</td></tr>
       <tr><td>Cache</td><td>1-hour TTL on <tt>get_all_cubes_list_lite</tt></td></tr>
-      <tr><td>Python</td><td>3.11+ &mdash; asyncio, httpx, Starlette, Uvicorn</td></tr>
-      <tr><td>Install</td><td><tt>pip install mcp-statcan</tt></td></tr>
+      <tr><td>Python</td><td>3.10+ &mdash; asyncio, httpx, Starlette, Uvicorn</td></tr>
+      <tr><td>Install</td><td><tt>pip install statcan-mcp-server</tt></td></tr>
       <tr><td>Source</td><td><a href="https://github.com/Aryan-Jhaveri/mcp-statcan">github.com/Aryan-Jhaveri/mcp-statcan</a></td></tr>
     </table>
 
@@ -408,6 +470,45 @@ hr.section { border: none; border-top: 1px solid #CCCCCC; margin: 14px 0; }
   </div>
 
 </div><!-- /wrapper -->
+<script type="text/javascript">
+(function () {
+  function fallbackCopy(text) {
+    var area = document.createElement("textarea");
+    area.value = text;
+    area.setAttribute("readonly", "");
+    area.style.position = "absolute";
+    area.style.left = "-9999px";
+    document.body.appendChild(area);
+    area.select();
+    var ok = false;
+    try { ok = document.execCommand("copy"); } catch (e) { ok = false; }
+    document.body.removeChild(area);
+    return ok;
+  }
+  function flash(btn, label) {
+    btn.textContent = label;
+    btn.className = label === "Copied" ? "copy-btn copied" : "copy-btn";
+    setTimeout(function () { btn.textContent = "Copy"; btn.className = "copy-btn"; }, 1500);
+  }
+  var buttons = document.querySelectorAll(".copy-btn[data-copy]");
+  for (var i = 0; i < buttons.length; i++) {
+    buttons[i].addEventListener("click", function () {
+      var btn = this;
+      var src = document.getElementById(btn.getAttribute("data-copy"));
+      if (!src) { return; }
+      var text = src.textContent;
+      if (navigator.clipboard && window.isSecureContext) {
+        navigator.clipboard.writeText(text).then(
+          function () { flash(btn, "Copied"); },
+          function () { flash(btn, fallbackCopy(text) ? "Copied" : "Press Ctrl+C"); }
+        );
+      } else {
+        flash(btn, fallbackCopy(text) ? "Copied" : "Press Ctrl+C");
+      }
+    });
+  }
+})();
+</script>
 </body>
 </html>"""
 
