@@ -9,6 +9,8 @@ from ..util.logger import log_ssl_warning, log_data_validation_warning
 from ..db.connection import get_db_connection
 from ..db.schema import create_table_from_data
 from ..models.db_models import TableDataInput
+from ..models.sdmx_models import SDMXDataInput
+from .sdmx.sdmx_tools import fetch_sdmx_rows
 
 
 class StoreCubeMetadataInput(BaseModel):
@@ -33,6 +35,28 @@ class FetchVectorsInput(BaseModel):
     endRefPeriod: Optional[str] = Field(
         None,
         description="End of the reference period to fetch, inclusive. Format: YYYY-MM-DD.",
+    )
+    sample_size: Optional[int] = Field(
+        5,
+        description="Number of sample rows to include in the response preview. Default 5.",
+    )
+
+
+def _to_number(value: Any) -> Any:
+    """Convert a numeric string to float; leave None and non-numeric values unchanged."""
+    if isinstance(value, str):
+        try:
+            return float(value)
+        except ValueError:
+            return value
+    return value
+
+
+class FetchSDMXToDatabaseInput(SDMXDataInput):
+    table_name: str = Field(
+        ...,
+        description="Name of the SQLite table to create and populate. "
+                    "Use snake_case, e.g. 'cpi_by_province'. Overwrites an existing table.",
     )
     sample_size: Optional[int] = Field(
         5,
@@ -162,6 +186,81 @@ def register_composite_tools(registry: ToolRegistry):
             "sample": flat_rows[:sample_size],
             "next_step": f"Use query_database to analyze: SELECT * FROM {table_name} LIMIT 10",
         }
+
+    @registry.tool()
+    async def fetch_sdmx_to_database(input_data: FetchSDMXToDatabaseInput) -> Dict[str, Any]:
+        """
+        PREFERRED tool for storing SDMX data. Fetches observations for a productId + key
+        via SDMX and writes ALL rows straight into a SQLite table — the rows never pass
+        through your context, and the MAX_SDMX_ROWS (500) cap does not apply.
+
+        *** Use this instead of get_sdmx_data → create_table_from_data. Do NOT copy rows
+        from get_sdmx_data into create_table_from_data — that sends every row through
+        the context window twice. ***
+
+        Same key syntax and time parameters as get_sdmx_data (see that tool for wildcard
+        and OR-key rules). lastNObservations cannot be combined with startPeriod/endPeriod.
+
+        Typical workflow:
+          1. search_cubes_by_title("consumer price index") → productId
+          2. get_sdmx_structure(productId=...) → dimension positions + codes
+          3. fetch_sdmx_to_database(productId=18100004, key="2+3+4.2",
+                                    startPeriod="2020-01", table_name="cpi_by_province")
+          4. query_database("SELECT ... FROM cpi_by_province ...") → analyze
+
+        Returns a compact summary: table name, columns, rows_inserted, series_count,
+        period range, a small sample, and the _sdmx_url.
+
+        IMPORTANT: In your final response, cite the _sdmx_url, productId and key used.
+        """
+        table_name = input_data.table_name
+        if not table_name.isidentifier():
+            return {"error": f"Invalid table name: '{table_name}'. Use alphanumeric and underscores."}
+
+        rows, sdmx_url = await fetch_sdmx_rows(
+            input_data.productId,
+            input_data.key,
+            input_data.lastNObservations,
+            input_data.startPeriod,
+            input_data.endPeriod,
+        )
+
+        if not rows:
+            return {
+                "error": "No observations returned for this query.",
+                "_sdmx_url": sdmx_url,
+                "hint": "Check the key against get_sdmx_structure and widen the period range.",
+            }
+
+        # SDMX-JSON returns values as strings ("124.3"); store them as REAL so SQL
+        # comparisons and aggregates are numeric rather than lexicographic.
+        for row in rows:
+            row["value"] = _to_number(row.get("value"))
+
+        db_result = create_table_from_data(TableDataInput(table_name=table_name, data=rows))
+        if "error" in db_result:
+            return {
+                "error": f"Data fetched ({len(rows)} rows) but failed to store: {db_result['error']}",
+                "_sdmx_url": sdmx_url,
+                "rows_fetched": len(rows),
+                "sample": rows[:3],
+            }
+
+        periods = [r["period"] for r in rows if r.get("period") is not None]
+        vector_ids = {r.get("VECTOR_ID") for r in rows if r.get("VECTOR_ID") is not None}
+        sample_size = input_data.sample_size or 5
+        return {
+            "success": db_result["success"],
+            "_sdmx_url": sdmx_url,
+            "table": table_name,
+            "columns": db_result.get("columns", []),
+            "rows_inserted": db_result.get("rows_inserted", len(rows)),
+            "series_count": len(vector_ids),
+            "period_range": [min(periods), max(periods)] if periods else None,
+            "sample": rows[:sample_size],
+            "next_step": f"Use query_database to analyze: SELECT * FROM {table_name} LIMIT 10",
+        }
+
 
     @registry.tool()
     async def store_cube_metadata(input_data: StoreCubeMetadataInput) -> Dict[str, Any]:

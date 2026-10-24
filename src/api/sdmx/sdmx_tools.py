@@ -11,7 +11,7 @@ Four tools:
 """
 
 import xml.etree.ElementTree as ET
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, Tuple
 
 from ...config import (
     MAX_SDMX_ROWS,
@@ -201,6 +201,39 @@ def _parse_structure_xml(xml_text: str, product_id: int) -> Dict[str, Any]:
     return {"name": ds_name, "productId": product_id, "dimensions": dimensions}
 
 
+async def fetch_sdmx_rows(
+    product_id: int,
+    key: str,
+    last_n: Optional[int] = None,
+    start_period: Optional[str] = None,
+    end_period: Optional[str] = None,
+) -> Tuple[List[Dict[str, Any]], str]:
+    """Fetch SDMX data for productId + key and return (flattened rows, request URL).
+
+    Shared by get_sdmx_data, get_sdmx_rows and fetch_sdmx_to_database. Rows are
+    not capped — callers decide whether to truncate or store them.
+    """
+    if last_n is not None and (start_period or end_period):
+        raise ValueError(
+            "StatCan SDMX does not support combining lastNObservations with startPeriod/endPeriod. "
+            "Use lastNObservations=N for recent data, or startPeriod/endPeriod for a date range."
+        )
+
+    url = f"{SDMX_BASE_URL}data/DF_{product_id}/{key}"
+    params: Dict[str, Any] = {}
+    if last_n is not None:
+        params["lastNObservations"] = last_n
+    if start_period:
+        params["startPeriod"] = start_period
+    if end_period:
+        params["endPeriod"] = end_period
+
+    response = await make_sdmx_get(url, params=params, headers={"Accept": SDMX_JSON_ACCEPT})
+    response_json = response.json()
+    _fix_or_series_keys(response_json, key)
+    return flatten_sdmx_json(response_json), str(response.url)
+
+
 def register_sdmx_tools(registry: ToolRegistry) -> None:
     """Register all SDMX REST API tools with the MCP server."""
 
@@ -277,30 +310,13 @@ def register_sdmx_tools(registry: ToolRegistry) -> None:
         IMPORTANT: In your final response to the user, you MUST cite the source of your data.
         This means including the _sdmx_url, table information and productId/key in your response.
         """
-        product_id = data_input.productId
-        key = data_input.key
-
-        if data_input.lastNObservations is not None and (data_input.startPeriod or data_input.endPeriod):
-            raise ValueError(
-                "StatCan SDMX does not support combining lastNObservations with startPeriod/endPeriod. "
-                "Use lastNObservations=N for recent data, or startPeriod/endPeriod for a date range."
-            )
-
-        url = f"{SDMX_BASE_URL}data/DF_{product_id}/{key}"
-
-        params: Dict[str, Any] = {}
-        if data_input.lastNObservations is not None:
-            params["lastNObservations"] = data_input.lastNObservations
-        if data_input.startPeriod:
-            params["startPeriod"] = data_input.startPeriod
-        if data_input.endPeriod:
-            params["endPeriod"] = data_input.endPeriod
-
-        response = await make_sdmx_get(url, params=params, headers={"Accept": SDMX_JSON_ACCEPT})
-        sdmx_url = str(response.url)
-        response_json = response.json()
-        _fix_or_series_keys(response_json, key)
-        rows = flatten_sdmx_json(response_json)
+        rows, sdmx_url = await fetch_sdmx_rows(
+            data_input.productId,
+            data_input.key,
+            data_input.lastNObservations,
+            data_input.startPeriod,
+            data_input.endPeriod,
+        )
 
         result: Dict[str, Any] = {"_sdmx_url": sdmx_url, "row_count": len(rows)}
 
@@ -337,29 +353,13 @@ def register_sdmx_tools(registry: ToolRegistry) -> None:
         IMPORTANT: In your final response to the user, cite the _sdmx_url, table
         productId, and key used.
         """
-        product_id = data_input.productId
-        key = data_input.key
-
-        if data_input.lastNObservations is not None and (data_input.startPeriod or data_input.endPeriod):
-            raise ValueError(
-                "StatCan SDMX does not support combining lastNObservations with startPeriod/endPeriod. "
-                "Use lastNObservations=N for recent data, or startPeriod/endPeriod for a date range."
-            )
-
-        url = f"{SDMX_BASE_URL}data/DF_{product_id}/{key}"
-        params: Dict[str, Any] = {}
-        if data_input.lastNObservations is not None:
-            params["lastNObservations"] = data_input.lastNObservations
-        if data_input.startPeriod:
-            params["startPeriod"] = data_input.startPeriod
-        if data_input.endPeriod:
-            params["endPeriod"] = data_input.endPeriod
-
-        response = await make_sdmx_get(url, params=params, headers={"Accept": SDMX_JSON_ACCEPT})
-        sdmx_url = str(response.url)
-        response_json = response.json()
-        _fix_or_series_keys(response_json, key)
-        rows = flatten_sdmx_json(response_json)
+        rows, sdmx_url = await fetch_sdmx_rows(
+            data_input.productId,
+            data_input.key,
+            data_input.lastNObservations,
+            data_input.startPeriod,
+            data_input.endPeriod,
+        )
 
         truncated = len(rows) > MAX_SDMX_ROWS
         return {
