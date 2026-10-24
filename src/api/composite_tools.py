@@ -10,6 +10,7 @@ from ..db.connection import get_db_connection
 from ..db.schema import create_table_from_data
 from ..models.db_models import TableDataInput
 from ..models.sdmx_models import SDMXDataInput
+from ..util.sql_helpers import to_number
 from .sdmx.sdmx_tools import fetch_sdmx_rows
 
 
@@ -40,16 +41,6 @@ class FetchVectorsInput(BaseModel):
         5,
         description="Number of sample rows to include in the response preview. Default 5.",
     )
-
-
-def _to_number(value: Any) -> Any:
-    """Convert a numeric string to float; leave None and non-numeric values unchanged."""
-    if isinstance(value, str):
-        try:
-            return float(value)
-        except ValueError:
-            return value
-    return value
 
 
 class FetchSDMXToDatabaseInput(SDMXDataInput):
@@ -235,7 +226,7 @@ def register_composite_tools(registry: ToolRegistry):
         # SDMX-JSON returns values as strings ("124.3"); store them as REAL so SQL
         # comparisons and aggregates are numeric rather than lexicographic.
         for row in rows:
-            row["value"] = _to_number(row.get("value"))
+            row["value"] = to_number(row.get("value"))
 
         db_result = create_table_from_data(TableDataInput(table_name=table_name, data=rows))
         if "error" in db_result:

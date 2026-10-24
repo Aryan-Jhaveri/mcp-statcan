@@ -6,35 +6,15 @@ from ..util.sql_helpers import infer_sql_type, convert_value_for_sql
 from ..models.db_models import TableDataInput
 from ..util.logger import log_data_validation_warning, log_sql_debug
 
-def create_table_from_data(table_input: TableDataInput) -> Dict[str, Any]:
+def build_table_statements(table_name: str, data: List[Dict[str, Any]]) -> Dict[str, Any]:
     """
-    Creates a new SQLite table from the provided data AND immediately inserts all rows.
-    Infers column names and types from the first item in the data list.
-    WARNING: Overwrites the table if it already exists.
+    Builds CREATE/INSERT statements and row tuples for a list of dicts, without touching a database.
+    Column names are sanitized from the first item; each column's type is inferred from its
+    first non-null value. Shared by create_table_from_data and the ephemeral query engine.
 
-    Use this as a single step to store fetched API data — no need to call
-    insert_data_into_table afterwards. Use insert_data_into_table only to
-    append more rows to an already-existing table.
-
-    Args:
-        table_input: Object containing table_name and data (list of dicts).
-
-    Returns:
-        Dict[str, Any]: A summary with table name, columns created, and rows inserted.
-
-    IMPORTANT: The database is persistent and does NOT clean itself automatically.
-    This tool overwrites the table if it exists, giving you a clean slate each call.
+    Returns a dict with create_sql, insert_sql, rows (list of tuples) and columns,
+    or {"error": ...} if no valid columns were found.
     """
-    table_name = table_input.table_name
-    data = table_input.data
-
-    if not data:
-        return {"error": "Cannot create table from empty data list."}
-    if not isinstance(data, list) or not all(isinstance(item, dict) for item in data):
-        return {"error": "Input 'data' must be a list of dictionaries."}
-    if not table_name.isidentifier():
-        return {"error": f"Invalid table name: '{table_name}'. Use alphanumeric characters and underscores, and cannot be a keyword."}
-
     # Infer columns from the first data item; types from each column's first non-null value
     columns_def = []
     valid_column_names = []  # Ordered list of sanitized column names
@@ -64,7 +44,6 @@ def create_table_from_data(table_input: TableDataInput) -> Dict[str, Any]:
         return {"error": "No valid columns found in the first data item after validation."}
 
     create_sql = f'CREATE TABLE "{table_name}" ({", ".join(columns_def)})'
-    drop_sql = f'DROP TABLE IF EXISTS "{table_name}"'
 
     # Build insert placeholders based on the columns we defined
     placeholders = ", ".join(["?"] * len(valid_column_names))
@@ -93,6 +72,52 @@ def create_table_from_data(table_input: TableDataInput) -> Dict[str, Any]:
             convert_value_for_sql(sanitized.get(col)) for col in valid_column_names
         )
         rows_to_insert.append(row_tuple)
+
+    return {
+        "create_sql": create_sql,
+        "insert_sql": insert_sql,
+        "rows": rows_to_insert,
+        "columns": valid_column_names,
+    }
+
+
+def create_table_from_data(table_input: TableDataInput) -> Dict[str, Any]:
+    """
+    Creates a new SQLite table from the provided data AND immediately inserts all rows.
+    Infers column names and types from the first item in the data list.
+    WARNING: Overwrites the table if it already exists.
+
+    Use this as a single step to store fetched API data — no need to call
+    insert_data_into_table afterwards. Use insert_data_into_table only to
+    append more rows to an already-existing table.
+
+    Args:
+        table_input: Object containing table_name and data (list of dicts).
+
+    Returns:
+        Dict[str, Any]: A summary with table name, columns created, and rows inserted.
+
+    IMPORTANT: The database is persistent and does NOT clean itself automatically.
+    This tool overwrites the table if it exists, giving you a clean slate each call.
+    """
+    table_name = table_input.table_name
+    data = table_input.data
+
+    if not data:
+        return {"error": "Cannot create table from empty data list."}
+    if not isinstance(data, list) or not all(isinstance(item, dict) for item in data):
+        return {"error": "Input 'data' must be a list of dictionaries."}
+    if not table_name.isidentifier():
+        return {"error": f"Invalid table name: '{table_name}'. Use alphanumeric characters and underscores, and cannot be a keyword."}
+
+    statements = build_table_statements(table_name, data)
+    if "error" in statements:
+        return statements
+    create_sql = statements["create_sql"]
+    insert_sql = statements["insert_sql"]
+    rows_to_insert = statements["rows"]
+    valid_column_names = statements["columns"]
+    drop_sql = f'DROP TABLE IF EXISTS "{table_name}"'
 
     try:
         with get_db_connection() as conn:

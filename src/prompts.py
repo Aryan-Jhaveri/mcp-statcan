@@ -144,7 +144,12 @@ def get_prompt_text(name: str, args: dict) -> str:
             "  get_sdmx_key_for_dimension(productId=<id>, dimension_position=N)\n"
             "  → Paste the returned or_key at that dot-position.\n"
             "\n"
-            "Step 3 — Fetch rows inline via MCP tool:\n"
+            "Step 3a — Computing an answer (rank, compare, growth, averages)? Do it server-side:\n"
+            '  query_sdmx(productId=<product-id>, key="<key>", startPeriod="2020-01",\n'
+            '             sql=\'SELECT "Geography", AVG(value) FROM data GROUP BY 1\')\n'
+            "  → Only the SQL result enters context; no 500-row cap on the fetch.\n"
+            "\n"
+            "Step 3b — Need the rows themselves (chart, table, artifact)? Fetch inline:\n"
             '  get_sdmx_rows(productId=<product-id>, key="<key>", lastNObservations=12)\n'
             "  → Returns rows directly in the tool response — no external fetch needed.\n"
             "  → Rows are capped at 500. Use a narrow key if you need fewer.\n"
@@ -256,7 +261,11 @@ def get_prompt_text(name: str, args: dict) -> str:
             "  → For large dimensions (>30 codes):\n"
             f"  get_sdmx_key_for_dimension(productId={pid}, dimension_position=N)\n"
             "\n"
-            "Step 2 — Fetch rows inline via MCP tool:\n"
+            "Step 2a — Computing an answer (rank, compare, growth)? Use SQL server-side:\n"
+            f'  query_sdmx(productId={pid}, key="<key>", lastNObservations={last_n}, sql="SELECT ... FROM data")\n'
+            "  → Only the SQL result enters context.\n"
+            "\n"
+            "Step 2b — Need the rows themselves? Fetch inline via MCP tool:\n"
             f'  get_sdmx_rows(productId={pid}, key="<key>", lastNObservations={last_n})\n'
             "  → Returns rows directly in the tool response — no external fetch needed.\n"
             '  → Rows are capped at 500. result["data"] is the list of dicts.\n'

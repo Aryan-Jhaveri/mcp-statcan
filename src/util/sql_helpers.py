@@ -21,3 +21,12 @@ def convert_value_for_sql(value: Any) -> Any:
         except TypeError:
             return str(value)  # Fallback
     return value
+
+def to_number(value: Any) -> Any:
+    """Convert a numeric string to float; leave None and non-numeric values unchanged."""
+    if isinstance(value, str):
+        try:
+            return float(value)
+        except ValueError:
+            return value
+    return value

@@ -3,17 +3,21 @@
 Provides server-side filtered data access via the SDMX REST API at:
   https://www150.statcan.gc.ca/t1/wds/sdmx/statcan/rest/
 
-Four tools:
+Tools:
   get_sdmx_structure   — fetch Data Structure Definition (DSD) as JSON: dimensions + codelists
   get_sdmx_data        — fetch filtered observations by productId + key
   get_sdmx_vector_data — fetch observations for a single vectorId
   get_sdmx_rows        — fetch rows inline always (use when building artifacts/widgets)
+  query_sdmx           — fetch + run one SQL query server-side, return only the result
 """
 
+import asyncio
 import xml.etree.ElementTree as ET
 from typing import Any, Dict, List, Optional, Tuple
 
 from ...config import (
+    MAX_CONCURRENT_EPHEMERAL_QUERIES,
+    MAX_EPHEMERAL_ROWS,
     MAX_SDMX_ROWS,
     SDMX_BASE_URL,
     SDMX_JSON_ACCEPT,
@@ -21,14 +25,17 @@ from ...config import (
     TIMEOUT_MEDIUM,
 )
 from ..client import make_sdmx_get
+from ...db.ephemeral import run_ephemeral_query
 from ...models.sdmx_models import (
     SDMXDataInput,
     SDMXKeyForDimensionInput,
+    SDMXQueryInput,
     SDMXStructureInput,
     SDMXVectorInput,
 )
 from ...util.registry import ToolRegistry
 from ...util.sdmx_json import flatten_sdmx_json
+from ...util.sql_helpers import to_number
 from ...util.truncation import DEFAULT_MEMBER_LIMIT
 
 def _fix_or_series_keys(data: Dict[str, Any], key: str) -> None:
@@ -234,6 +241,10 @@ async def fetch_sdmx_rows(
     return flatten_sdmx_json(response_json), str(response.url)
 
 
+# Shared across requests: caps how many ephemeral queries run at once
+_query_slots = asyncio.Semaphore(MAX_CONCURRENT_EPHEMERAL_QUERIES)
+
+
 def register_sdmx_tools(registry: ToolRegistry) -> None:
     """Register all SDMX REST API tools with the MCP server."""
 
@@ -369,6 +380,67 @@ def register_sdmx_tools(registry: ToolRegistry) -> None:
             "_truncated": truncated,
             **({"_message": f"Capped at {MAX_SDMX_ROWS} rows (total: {len(rows)}). Narrow your key."} if truncated else {}),
         }
+
+    @registry.tool()
+    async def query_sdmx(query_input: SDMXQueryInput) -> Dict[str, Any]:
+        """
+        Fetch SDMX observations and run ONE read-only SQL query over them server-side,
+        returning only the query result. Nothing is stored — the data is loaded into a
+        temporary in-memory table named `data` and discarded after the query.
+
+        *** Use this for compute/compare/rank questions ("which province grew fastest",
+        "average since 2020", "year-over-year change") instead of pulling raw rows with
+        get_sdmx_data and doing arithmetic yourself. It is not limited to 500 rows. ***
+
+        Same productId, key and time parameters as get_sdmx_data (see that tool for key
+        syntax and wildcard rules). lastNObservations cannot be combined with
+        startPeriod/endPeriod.
+
+        Table `data` columns: one per dimension (names sanitized: spaces/punctuation → '_'),
+        "period" (TEXT, e.g. "2024" or "2024-03"), "value" (REAL, NULL = suppressed),
+        plus SDMX attributes like VECTOR_ID, UOM, SCALAR_FACTOR, STATUS.
+        Quote mixed-case column names with double quotes.
+
+        Example — CPI growth by province since Jan 2020:
+          productId=18100004, key="2+3+5+6.2", startPeriod="2020-01",
+          sql: SELECT "Geography",
+                      MAX(CASE WHEN period = '2025-12' THEN value END) /
+                      MAX(CASE WHEN period = '2020-01' THEN value END) - 1 AS growth
+               FROM data GROUP BY 1 ORDER BY growth DESC
+
+        If the SQL fails, the response includes `table_columns` — fix the query and retry.
+        Limits: one statement, SELECT only, ~2s execution time, result capped at 500 rows.
+
+        IMPORTANT: In your final response, cite the _sdmx_url, productId and key used.
+        """
+        rows, sdmx_url = await fetch_sdmx_rows(
+            query_input.productId,
+            query_input.key,
+            query_input.lastNObservations,
+            query_input.startPeriod,
+            query_input.endPeriod,
+        )
+
+        if not rows:
+            return {
+                "error": "No observations returned for this query.",
+                "_sdmx_url": sdmx_url,
+                "hint": "Check the key against get_sdmx_structure and widen the period range.",
+            }
+        if len(rows) > MAX_EPHEMERAL_ROWS:
+            return {
+                "error": f"Query fetched {len(rows):,} rows, above the {MAX_EPHEMERAL_ROWS:,}-row limit.",
+                "_sdmx_url": sdmx_url,
+                "hint": "Narrow the key or the period range.",
+            }
+
+        for row in rows:
+            row["value"] = to_number(row.get("value"))
+
+        # Run off the event loop so a slow query can't stall other requests on the HTTP server
+        async with _query_slots:
+            result = await asyncio.to_thread(run_ephemeral_query, rows, query_input.sql)
+        return {"_sdmx_url": sdmx_url, "fetched_row_count": len(rows), **result}
 
     @registry.tool()
     async def get_sdmx_vector_data(vector_input: SDMXVectorInput) -> Dict[str, Any]:
