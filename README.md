@@ -379,6 +379,7 @@ These tools are not available on the hosted Render server — SQLite is per-proc
 
 | Tool | Description |
 |---|---|
+| `fetch_sdmx_to_database` | Fetch SDMX observations (productId + key) and store all rows to SQLite — no row cap, rows stay out of context. |
 | `fetch_vectors_to_database` | Fetch vectors by reference period range and store to SQLite. |
 | `store_cube_metadata` | Fetch full cube metadata into SQLite — browse all members and vectorIds with SQL. |
 | `query_database` | Read-only SQL against the local SQLite database. |
@@ -427,7 +428,7 @@ src/
 │   │   └── vector_tools.py      # vector series, bulk range fetch
 │   ├── sdmx/
 │   │   └── sdmx_tools.py        # get_sdmx_structure, get_sdmx_data, get_sdmx_key_for_dimension
-│   ├── composite_tools.py       # fetch_vectors_to_database, store_cube_metadata (stdio only)
+│   ├── composite_tools.py       # fetch_sdmx_to_database, fetch_vectors_to_database, store_cube_metadata (stdio only)
 │   └── metadata_tools.py        # get_code_sets
 ├── cli/
 │   ├── main.py                  # statcan CLI entry point (Typer app)

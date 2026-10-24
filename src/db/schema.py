@@ -35,7 +35,7 @@ def create_table_from_data(table_input: TableDataInput) -> Dict[str, Any]:
     if not table_name.isidentifier():
         return {"error": f"Invalid table name: '{table_name}'. Use alphanumeric characters and underscores, and cannot be a keyword."}
 
-    # Infer columns and types from the first data item
+    # Infer columns from the first data item; types from each column's first non-null value
     columns_def = []
     valid_column_names = []  # Ordered list of sanitized column names
     seen_names = set()
@@ -54,6 +54,8 @@ def create_table_from_data(table_input: TableDataInput) -> Dict[str, Any]:
         safe_col_name = temp_name
         seen_names.add(safe_col_name)
 
+        if value is None:
+            value = next((item.get(col_name) for item in data if item.get(col_name) is not None), None)
         sql_type = infer_sql_type(value)
         columns_def.append(f'"{safe_col_name}" {sql_type}')
         valid_column_names.append(safe_col_name)
