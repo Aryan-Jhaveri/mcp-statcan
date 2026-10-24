@@ -234,7 +234,7 @@ Claude.ai (web) has no bash sandbox — it can't run shell commands. Instead, it
    → filter / sort / aggregate → print only the result
 ```
 
-`get_sdmx_data` on the hosted server always returns a `download_csv` URL instead of inline data — data stays out of the context window regardless of response size.
+For questions that need computation (rank, compare, growth), `query_sdmx` runs the SQL on the server and returns only the answer, so raw rows never enter the context window.
 
 **Claude Code (bash sandbox)** uses the `statcan` CLI instead:
 
@@ -341,7 +341,8 @@ Only the slice you request is returned. No downloading full tables.
 | Tool | Description |
 |---|---|
 | `get_sdmx_structure` | Dimension codelists + key syntax for a table. Call before `get_sdmx_data`. |
-| `get_sdmx_data` | Filtered observations by `productId` + key. Returns a CSV download URL on the hosted server — data stays out of context. |
+| `get_sdmx_data` | Filtered observations by `productId` + key, returned inline (capped at 500 rows). |
+| `query_sdmx` | Fetch observations and run one read-only SQL query server-side in a temporary in-memory table — returns only the result. Works on the hosted server; no row cap on the fetch. |
 | `get_sdmx_vector_data` | Observations for a single vectorId via SDMX. |
 | `get_sdmx_key_for_dimension` | All leaf member IDs for a large dimension as a ready-to-paste OR key. Use when a dimension has >30 codes (e.g. NOC, CMAs). |
 
@@ -427,7 +428,7 @@ src/
 │   ├── vector/
 │   │   └── vector_tools.py      # vector series, bulk range fetch
 │   ├── sdmx/
-│   │   └── sdmx_tools.py        # get_sdmx_structure, get_sdmx_data, get_sdmx_key_for_dimension
+│   │   └── sdmx_tools.py        # get_sdmx_structure, get_sdmx_data, query_sdmx, get_sdmx_key_for_dimension
 │   ├── composite_tools.py       # fetch_sdmx_to_database, fetch_vectors_to_database, store_cube_metadata (stdio only)
 │   └── metadata_tools.py        # get_code_sets
 ├── cli/
