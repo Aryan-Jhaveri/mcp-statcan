@@ -16,6 +16,7 @@ import xml.etree.ElementTree as ET
 from typing import Any, Dict, List, Optional, Tuple
 
 from ...config import (
+    MAX_CONCURRENT_EPHEMERAL_QUERIES,
     MAX_EPHEMERAL_ROWS,
     MAX_SDMX_ROWS,
     SDMX_BASE_URL,
@@ -240,6 +241,10 @@ async def fetch_sdmx_rows(
     return flatten_sdmx_json(response_json), str(response.url)
 
 
+# Shared across requests: caps how many ephemeral queries run at once
+_query_slots = asyncio.Semaphore(MAX_CONCURRENT_EPHEMERAL_QUERIES)
+
+
 def register_sdmx_tools(registry: ToolRegistry) -> None:
     """Register all SDMX REST API tools with the MCP server."""
 
@@ -433,7 +438,8 @@ def register_sdmx_tools(registry: ToolRegistry) -> None:
             row["value"] = to_number(row.get("value"))
 
         # Run off the event loop so a slow query can't stall other requests on the HTTP server
-        result = await asyncio.to_thread(run_ephemeral_query, rows, query_input.sql)
+        async with _query_slots:
+            result = await asyncio.to_thread(run_ephemeral_query, rows, query_input.sql)
         return {"_sdmx_url": sdmx_url, "fetched_row_count": len(rows), **result}
 
     @registry.tool()

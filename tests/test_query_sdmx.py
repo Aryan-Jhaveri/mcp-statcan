@@ -112,3 +112,37 @@ def test_registered_in_http_mode():
     names = {t.name for t in server_registry._tools}
     assert "query_sdmx" in names
     assert "fetch_sdmx_to_database" not in names
+
+
+@pytest.mark.asyncio
+@respx.mock
+async def test_concurrent_queries_bounded(registry, monkeypatch):
+    import asyncio
+    import threading
+    import src.api.sdmx.sdmx_tools as sdmx_tools
+
+    monkeypatch.setattr(sdmx_tools, "_query_slots", asyncio.Semaphore(2))
+    active, peak, lock = 0, 0, threading.Lock()
+    real = sdmx_tools.run_ephemeral_query
+
+    def tracked(rows, sql):
+        nonlocal active, peak
+        with lock:
+            active += 1
+            peak = max(peak, active)
+        try:
+            import time
+            time.sleep(0.05)
+            return real(rows, sql)
+        finally:
+            with lock:
+                active -= 1
+
+    monkeypatch.setattr(sdmx_tools, "run_ephemeral_query", tracked)
+    respx.get(DATA_URL).mock(return_value=Response(200, json=_make_response()))
+
+    args = {"productId": 18100004, "key": "1+2.1", "sql": "SELECT COUNT(*) AS n FROM data"}
+    results = await asyncio.gather(*[registry.call_tool("query_sdmx", args) for _ in range(6)])
+
+    assert all(r["rows"] == [{"n": 2 * N_PERIODS}] for r in results)
+    assert peak == 2

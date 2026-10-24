@@ -57,6 +57,7 @@ MAX_QUERY_ROWS = 500
 MAX_EPHEMERAL_ROWS = 50_000       # Max fetched rows loaded into the in-memory table
 EPHEMERAL_QUERY_TIMEOUT = 2.0     # Seconds before a query is interrupted
 EPHEMERAL_MAX_VALUE_LENGTH = 1_000_000  # SQLITE_LIMIT_LENGTH: caps string/blob size a query can build
+MAX_CONCURRENT_EPHEMERAL_QUERIES = 4  # Bounds worst-case CPU/memory on the hosted free tier
 
 # HTTP transport configuration (Phase 2)
 # TRANSPORT: "stdio" (default, local) or "http" (remote, stateless)
