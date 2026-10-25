@@ -12,6 +12,7 @@ Tools:
 """
 
 import asyncio
+import time
 import xml.etree.ElementTree as ET
 from typing import Any, Dict, List, Optional, Tuple
 
@@ -20,9 +21,9 @@ from ...config import (
     MAX_EPHEMERAL_ROWS,
     MAX_SDMX_ROWS,
     SDMX_BASE_URL,
-    SDMX_JSON_ACCEPT,
+    SDMX_DATA_XML_ACCEPT,
+    SDMX_STRUCTURE_CACHE_TTL,
     SDMX_XML_ACCEPT,
-    TIMEOUT_MEDIUM,
 )
 from ..client import make_sdmx_get
 from ...db.ephemeral import run_ephemeral_query
@@ -40,7 +41,7 @@ from ...models.sdmx_models import (
     SDMXVectorInput,
 )
 from ...util.registry import ToolRegistry
-from ...util.sdmx_json import flatten_sdmx_json
+from ...util.sdmx_xml import dataflow_id, flatten_sdmx_xml, parse_dsd_labels
 from ...util.sql_helpers import to_number
 from ...util.truncation import DEFAULT_MEMBER_LIMIT
 
@@ -214,6 +215,40 @@ def _parse_structure_xml(xml_text: str, product_id: int) -> Dict[str, Any]:
     return {"name": ds_name, "productId": product_id, "dimensions": dimensions}
 
 
+# productId → (fetched_at, structure XML text). Shared by data fetches (for labels)
+# and the structure tools, so a typical structure → data workflow fetches the DSD once.
+_structure_cache: Dict[int, Tuple[float, str]] = {}
+
+
+async def fetch_structure_xml(product_id: int) -> str:
+    """Fetch a table's Data Structure Definition (SDMX 2.1 XML), cached for an hour."""
+    cached = _structure_cache.get(product_id)
+    if cached and time.monotonic() - cached[0] < SDMX_STRUCTURE_CACHE_TTL:
+        return cached[1]
+    url = f"{SDMX_BASE_URL}structure/Data_Structure_{product_id}"
+    response = await make_sdmx_get(url, headers={"Accept": SDMX_XML_ACCEPT})
+    _structure_cache[product_id] = (time.monotonic(), response.text)
+    return response.text
+
+
+def _period_params(
+    last_n: Optional[int], start_period: Optional[str], end_period: Optional[str]
+) -> Dict[str, Any]:
+    if last_n is not None and (start_period or end_period):
+        raise ValueError(
+            "StatCan SDMX does not support combining lastNObservations with startPeriod/endPeriod. "
+            "Use lastNObservations=N for recent data, or startPeriod/endPeriod for a date range."
+        )
+    params: Dict[str, Any] = {}
+    if last_n is not None:
+        params["lastNObservations"] = last_n
+    if start_period:
+        params["startPeriod"] = start_period
+    if end_period:
+        params["endPeriod"] = end_period
+    return params
+
+
 async def fetch_sdmx_rows(
     product_id: int,
     key: str,
@@ -223,28 +258,40 @@ async def fetch_sdmx_rows(
 ) -> Tuple[List[Dict[str, Any]], str]:
     """Fetch SDMX data for productId + key and return (flattened rows, request URL).
 
-    Shared by get_sdmx_data, get_sdmx_rows and fetch_sdmx_to_database. Rows are
-    not capped — callers decide whether to truncate or store them.
+    Shared by get_sdmx_data, get_sdmx_rows, query_sdmx, fetch_sdmx_to_database and
+    the statcan CLI. Rows are not capped — callers decide whether to truncate or
+    store them. Data and structure are fetched concurrently; see util/sdmx_xml.py
+    for why data comes as XML rather than SDMX-JSON.
     """
-    if last_n is not None and (start_period or end_period):
-        raise ValueError(
-            "StatCan SDMX does not support combining lastNObservations with startPeriod/endPeriod. "
-            "Use lastNObservations=N for recent data, or startPeriod/endPeriod for a date range."
-        )
-
+    params = _period_params(last_n, start_period, end_period)
     url = f"{SDMX_BASE_URL}data/DF_{product_id}/{key}"
-    params: Dict[str, Any] = {}
-    if last_n is not None:
-        params["lastNObservations"] = last_n
-    if start_period:
-        params["startPeriod"] = start_period
-    if end_period:
-        params["endPeriod"] = end_period
+    response, structure_xml = await asyncio.gather(
+        make_sdmx_get(url, params=params, headers={"Accept": SDMX_DATA_XML_ACCEPT}),
+        fetch_structure_xml(product_id),
+    )
+    rows = flatten_sdmx_xml(response.text, parse_dsd_labels(structure_xml))
+    return rows, str(response.url)
 
-    response = await make_sdmx_get(url, params=params, headers={"Accept": SDMX_JSON_ACCEPT})
-    response_json = response.json()
-    _fix_or_series_keys(response_json, key)
-    return flatten_sdmx_json(response_json), str(response.url)
+
+async def fetch_sdmx_vector_rows(
+    vector_id: int,
+    last_n: Optional[int] = None,
+    start_period: Optional[str] = None,
+    end_period: Optional[str] = None,
+) -> Tuple[List[Dict[str, Any]], str]:
+    """Fetch observations for one vectorId and return (flattened rows, request URL).
+
+    The table's productId (needed for labels) is read from the response header.
+    """
+    params = _period_params(last_n, start_period, end_period)
+    url = f"{SDMX_BASE_URL}vector/v{vector_id}"
+    response = await make_sdmx_get(url, params=params, headers={"Accept": SDMX_DATA_XML_ACCEPT})
+    flow = dataflow_id(response.text)
+    if flow is None:
+        return [], str(response.url)
+    structure_xml = await fetch_structure_xml(int(flow.removeprefix("DF_")))
+    rows = flatten_sdmx_xml(response.text, parse_dsd_labels(structure_xml))
+    return rows, str(response.url)
 
 
 # Read-only calls to the public StatCan API
@@ -284,8 +331,8 @@ def register_sdmx_tools(registry: ToolRegistry) -> None:
         product_id = structure_input.productId
         url = f"{SDMX_BASE_URL}structure/Data_Structure_{product_id}"
 
-        response = await make_sdmx_get(url, headers={"Accept": SDMX_XML_ACCEPT})
-        result = _parse_structure_xml(response.text, product_id)
+        structure_xml = await fetch_structure_xml(product_id)
+        result = _parse_structure_xml(structure_xml, product_id)
         result["_sdmx_url"] = url
         return result
 
@@ -472,27 +519,12 @@ def register_sdmx_tools(registry: ToolRegistry) -> None:
         IMPORTANT: In your final response to the user, you MUST cite the source of your data. 
         This means including the _sdmx_url,and vectorId in your response.
         """
-        vector_id = vector_input.vectorId
-
-        if vector_input.lastNObservations is not None and (vector_input.startPeriod or vector_input.endPeriod):
-            raise ValueError(
-                "StatCan SDMX does not support combining lastNObservations with startPeriod/endPeriod. "
-                "Use lastNObservations=N for recent data, or startPeriod/endPeriod for a date range."
-            )
-
-        url = f"{SDMX_BASE_URL}vector/v{vector_id}"
-
-        params: Dict[str, Any] = {}
-        if vector_input.lastNObservations is not None:
-            params["lastNObservations"] = vector_input.lastNObservations
-        if vector_input.startPeriod:
-            params["startPeriod"] = vector_input.startPeriod
-        if vector_input.endPeriod:
-            params["endPeriod"] = vector_input.endPeriod
-
-        response = await make_sdmx_get(url, params=params, headers={"Accept": SDMX_JSON_ACCEPT})
-        sdmx_url = str(response.url)
-        rows = flatten_sdmx_json(response.json())
+        rows, sdmx_url = await fetch_sdmx_vector_rows(
+            vector_input.vectorId,
+            vector_input.lastNObservations,
+            vector_input.startPeriod,
+            vector_input.endPeriod,
+        )
 
         result: Dict[str, Any] = {"_sdmx_url": sdmx_url, "row_count": len(rows)}
         if len(rows) > MAX_SDMX_ROWS:
@@ -541,9 +573,8 @@ def register_sdmx_tools(registry: ToolRegistry) -> None:
         position = key_input.dimension_position
 
         # Fetch the DSD and extract the codelist for the requested dimension
-        structure_url = f"{SDMX_BASE_URL}structure/Data_Structure_{product_id}"
-        response = await make_sdmx_get(structure_url, headers={"Accept": SDMX_XML_ACCEPT})
-        parsed = _parse_structure_xml(response.text, product_id)
+        structure_xml = await fetch_structure_xml(product_id)
+        parsed = _parse_structure_xml(structure_xml, product_id)
         dimensions: List[Dict[str, Any]] = parsed.get("dimensions", [])
 
         # Find the dimension at the requested 1-based position
@@ -561,7 +592,7 @@ def register_sdmx_tools(registry: ToolRegistry) -> None:
             )
 
         # Re-parse the XML to get the FULL codelist (structure tool truncates at DEFAULT_MEMBER_LIMIT)
-        root = ET.fromstring(response.text)
+        root = ET.fromstring(structure_xml)
         cl_id = target_dim.get("codelist")
         all_codes: List[Dict[str, Any]] = []
         if cl_id:

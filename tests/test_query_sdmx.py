@@ -8,7 +8,7 @@ from src import config
 from src.api.sdmx.sdmx_tools import register_sdmx_tools
 from src.server import create_server, registry as server_registry
 from src.util.registry import ToolRegistry
-from tests.test_fetch_sdmx_to_database import DATA_URL, N_PERIODS, _make_response
+from tests.sdmx_fixtures import DATA_URL, N_PERIODS, make_data_xml, mock_sdmx
 
 
 @pytest.fixture
@@ -21,7 +21,7 @@ def registry():
 @pytest.mark.asyncio
 @respx.mock
 async def test_aggregates_over_uncapped_rows(registry):
-    respx.get(DATA_URL).mock(return_value=Response(200, json=_make_response(first_value="0.0")))
+    mock_sdmx(make_data_xml(first_value="0.0"))
 
     result = await registry.call_tool(
         "query_sdmx",
@@ -43,7 +43,7 @@ async def test_aggregates_over_uncapped_rows(registry):
 @pytest.mark.asyncio
 @respx.mock
 async def test_value_is_numeric_not_lexicographic(registry):
-    respx.get(DATA_URL).mock(return_value=Response(200, json=_make_response(first_value="0.0")))
+    mock_sdmx(make_data_xml(first_value="0.0"))
 
     result = await registry.call_tool(
         "query_sdmx",
@@ -57,7 +57,7 @@ async def test_value_is_numeric_not_lexicographic(registry):
 @pytest.mark.asyncio
 @respx.mock
 async def test_bad_sql_returns_table_columns(registry):
-    respx.get(DATA_URL).mock(return_value=Response(200, json=_make_response()))
+    mock_sdmx(make_data_xml())
 
     result = await registry.call_tool(
         "query_sdmx", {"productId": 18100004, "key": "1+2.1", "sql": "SELECT geo FROM data"}
@@ -71,7 +71,7 @@ async def test_bad_sql_returns_table_columns(registry):
 @pytest.mark.asyncio
 @respx.mock
 async def test_write_statement_rejected(registry):
-    respx.get(DATA_URL).mock(return_value=Response(200, json=_make_response()))
+    mock_sdmx(make_data_xml())
 
     result = await registry.call_tool(
         "query_sdmx", {"productId": 18100004, "key": "1+2.1", "sql": "DELETE FROM data"}
@@ -86,7 +86,7 @@ async def test_fetch_above_row_limit_rejected(registry, monkeypatch):
     import src.api.sdmx.sdmx_tools as sdmx_tools
 
     monkeypatch.setattr(sdmx_tools, "MAX_EPHEMERAL_ROWS", 100)
-    respx.get(DATA_URL).mock(return_value=Response(200, json=_make_response()))
+    mock_sdmx(make_data_xml())
 
     result = await registry.call_tool(
         "query_sdmx", {"productId": 18100004, "key": "1+2.1", "sql": "SELECT 1"}
@@ -139,10 +139,22 @@ async def test_concurrent_queries_bounded(registry, monkeypatch):
                 active -= 1
 
     monkeypatch.setattr(sdmx_tools, "run_ephemeral_query", tracked)
-    respx.get(DATA_URL).mock(return_value=Response(200, json=_make_response()))
+    mock_sdmx(make_data_xml())
 
     args = {"productId": 18100004, "key": "1+2.1", "sql": "SELECT COUNT(*) AS n FROM data"}
     results = await asyncio.gather(*[registry.call_tool("query_sdmx", args) for _ in range(6)])
 
     assert all(r["rows"] == [{"n": 2 * N_PERIODS}] for r in results)
     assert peak == 2
+
+
+@pytest.mark.asyncio
+@respx.mock
+async def test_structure_fetched_once_across_calls(registry):
+    mock_sdmx(make_data_xml(first_value="0.0"))
+    args = {"productId": 18100004, "key": "1+2.1", "sql": "SELECT COUNT(*) AS n FROM data"}
+    await registry.call_tool("query_sdmx", args)
+    await registry.call_tool("get_sdmx_data", {"productId": 18100004, "key": "1+2.1"})
+
+    structure_calls = [c for c in respx.calls if "/structure/" in str(c.request.url)]
+    assert len(structure_calls) == 1
