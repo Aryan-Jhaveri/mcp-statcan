@@ -105,6 +105,16 @@ def create_server(http_mode: bool = False):
             else:
                 content = [TextContent(type="text", text=str(result))]
 
+            # Tools report recoverable failures as {"error": ...}; flag them so the
+            # client treats them as tool errors (and skips outputSchema validation).
+            if isinstance(result, dict) and "error" in result:
+                return CallToolResult(content=content, is_error=True)
+
+            # Tools with an outputSchema also return the result as structuredContent
+            tool = registry.get_tool(name)
+            if tool is not None and tool.output_schema is not None and isinstance(result, dict):
+                return CallToolResult(content=content, structured_content=result)
+
             return CallToolResult(content=content)
 
         except Exception as e:

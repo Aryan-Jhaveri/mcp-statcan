@@ -1,7 +1,7 @@
 import inspect
 import json
 from typing import Any, Callable, Dict, List, Optional, Union, get_type_hints
-from mcp.types import Tool
+from mcp.types import Tool, ToolAnnotations
 from pydantic import BaseModel, TypeAdapter
 
 class ToolRegistry:
@@ -9,8 +9,23 @@ class ToolRegistry:
         self._tools: List[Tool] = []
         self._handlers: Dict[str, Callable] = {}
 
-    def tool(self, name: Optional[str] = None, description: Optional[str] = None):
-        """Decorator to register a function as an MCP tool."""
+    def tool(
+        self,
+        name: Optional[str] = None,
+        description: Optional[str] = None,
+        output_model: Optional[type] = None,
+        meta: Optional[Dict[str, Any]] = None,
+        annotations: Optional[ToolAnnotations] = None,
+    ):
+        """Decorator to register a function as an MCP tool.
+
+        output_model: Pydantic model describing the tool's successful return value. Its JSON
+            schema is published as the tool's outputSchema, and the server returns the result
+            as structuredContent alongside the JSON text block. The model documents the dict
+            the tool already returns — tools keep returning plain dicts.
+        meta: Published as the tool's _meta (e.g. {"ui": {"resourceUri": "ui://..."}} for MCP Apps).
+        annotations: MCP ToolAnnotations hints (readOnlyHint, openWorldHint, ...).
+        """
         def decorator(func: Callable):
             nonlocal name, description
             tool_name = name or func.__name__
@@ -73,10 +88,17 @@ class ToolRegistry:
             if schema_defs:
                 input_schema["$defs"] = schema_defs
 
+            output_schema = None
+            if output_model is not None:
+                output_schema = output_model.model_json_schema(by_alias=True)
+
             tool_def = Tool(
                 name=tool_name,
                 description=tool_doc,
                 input_schema=input_schema,
+                output_schema=output_schema,
+                meta=meta,
+                annotations=annotations,
             )
             
             self._tools.append(tool_def)
@@ -86,6 +108,9 @@ class ToolRegistry:
 
     def get_tools(self) -> List[Tool]:
         return self._tools
+
+    def get_tool(self, name: str) -> Optional[Tool]:
+        return next((t for t in self._tools if t.name == name), None)
 
     async def call_tool(self, name: str, arguments: Dict[str, Any] = None) -> Any:
         handler = self._handlers.get(name)
