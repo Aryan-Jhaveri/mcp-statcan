@@ -9,7 +9,9 @@ from ..util.logger import log_ssl_warning, log_data_validation_warning
 from ..db.connection import get_db_connection
 from ..db.schema import create_table_from_data
 from ..models.db_models import TableDataInput
-from ..models.sdmx_models import SDMXDataInput
+from mcp.types import ToolAnnotations
+
+from ..models.sdmx_models import FetchSDMXToDatabaseOutput, SDMXDataInput
 from ..util.sql_helpers import to_number
 from .sdmx.sdmx_tools import fetch_sdmx_rows
 
@@ -178,7 +180,11 @@ def register_composite_tools(registry: ToolRegistry):
             "next_step": f"Use query_database to analyze: SELECT * FROM {table_name} LIMIT 10",
         }
 
-    @registry.tool()
+    @registry.tool(
+        output_model=FetchSDMXToDatabaseOutput,
+        # Writes to the local DB and overwrites an existing table of the same name
+        annotations=ToolAnnotations(readOnlyHint=False, destructiveHint=True, idempotentHint=True, openWorldHint=True),
+    )
     async def fetch_sdmx_to_database(input_data: FetchSDMXToDatabaseInput) -> Dict[str, Any]:
         """
         PREFERRED tool for storing SDMX data. Fetches observations for a productId + key
