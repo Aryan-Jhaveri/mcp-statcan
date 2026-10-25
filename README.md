@@ -99,6 +99,7 @@ uvx statcan-mcp-server        # installs the package
 statcan search "labour force"
 statcan metadata 14-10-0287-01                                    # run first to find dimension IDs
 statcan download 14-10-0287-01 --key "1.1.1" --last 12 --output lfs.csv  # run `statcan metadata <pid>` first to find real dimension IDs
+statcan describe                                                  # machine-readable command reference for agents
 ```
 
 ---
@@ -271,6 +272,16 @@ The server ships five prompts accessible as slash commands in supported clients.
 
 A standalone CLI for downloading StatCan data without an LLM. Outputs pipe-friendly CSV/JSON to stdout; progress and errors go to stderr.
 
+**Exploring a table** (search, then metadata, then download):
+
+<img src="assets/cli-explore.gif" alt="Terminal recording: statcan search, statcan metadata and statcan download for the Consumer Price Index table" width="800">
+
+**Agent mode** (`--json` envelopes, typed exit codes, `statcan describe`):
+
+<img src="assets/cli-agent.gif" alt="Terminal recording: statcan --json download writes a CSV and prints a summary envelope; a missing product returns a JSON error with exit code 3; statcan describe lists exit codes" width="800">
+
+Recordings are generated from the scripts in [`assets/tapes/`](assets/tapes/) with [VHS](https://github.com/charmbracelet/vhs): `vhs assets/tapes/cli-agent.tape`.
+
 **Install:**
 ```bash
 pip install statcan-mcp-server   # or: uvx statcan-mcp-server (no install)
@@ -284,6 +295,7 @@ statcan metadata <product-id>    Show table structure (dimensions + members)
 statcan download <product-id>    Download observations via SDMX
 statcan vector <vector-id>...    Download one or more vector series
 statcan codeset                  Show StatCan code definitions (UOM, frequency, etc.)
+statcan describe                 Commands, options, exit codes and JSON envelopes as JSON
 ```
 
 **Common usage:**
@@ -311,7 +323,9 @@ statcan codeset --type uom
 statcan codeset --type frequency --format json
 ```
 
-**Output formats:** `csv` (default for download/vector), `table` (default for search/metadata/codeset), `json`
+**Output formats:** `csv` (default for download/vector), `table` (default for search/metadata/codeset), `json`, `ndjson`
+
+**For agents and scripts:** put `--json` before the subcommand (or set `STATCAN_OUTPUT=json`) to get one JSON envelope on stdout, JSON errors with a `hint` on stderr, and stable exit codes (`0` ok, `2` usage, `3` not found, `4` rejected, `5` retryable, `6` empty). With `--output`, the envelope summarizes the file (rows, columns, period range, series count) so it never has to be read back. Details: [machine-readable mode](src/cli/README.md#machine-readable-mode-agents-and-scripts).
 
 **Pipe patterns:**
 ```bash
@@ -328,7 +342,7 @@ PID=$(statcan search "CPI" --format json | python3 -c "import sys,json; print(js
 statcan download $PID --key "1.1.1" --last 12 --output cpi.csv
 ```
 
-For the complete CLI reference see [cli.md](cli.md).
+For the complete CLI reference see [src/cli/README.md](src/cli/README.md).
 
 ---
 
