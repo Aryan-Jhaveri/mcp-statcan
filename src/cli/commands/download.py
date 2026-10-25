@@ -12,8 +12,8 @@ from ..output import err_console, normalize_product_id, summarize_rows, write_ou
 
 _KEY_HINT = (
     "Run 'statcan metadata <product-id>' to see dimension positions and member IDs, "
-    "then pass explicit codes, e.g. --key '1.1.1' (use '+' for OR: '1+2.1.1'). "
-    "Wildcard (empty) positions are rejected by StatCan."
+    "then pass codes, e.g. --key '1.1.1' (use '+' for OR: '1+2.1.1'; leave a position "
+    "empty for all members: '.1.1')."
 )
 
 

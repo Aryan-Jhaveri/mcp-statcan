@@ -358,14 +358,14 @@ Only the slice you request is returned. No downloading full tables.
 | `get_sdmx_data` | Filtered observations by `productId` + key, returned inline (capped at 500 rows). |
 | `query_sdmx` | Fetch observations and run one read-only SQL query server-side in a temporary in-memory table — returns only the result. Works on the hosted server; no row cap on the fetch. |
 | `get_sdmx_vector_data` | Observations for a single vectorId via SDMX. |
-| `get_sdmx_key_for_dimension` | All leaf member IDs for a large dimension as a ready-to-paste OR key. Use when a dimension has >30 codes (e.g. NOC, CMAs). |
+| `get_sdmx_key_for_dimension` | All leaf member IDs for a dimension as a ready-to-paste OR key — excludes totals and subtotals, so sums and rankings don't double-count (e.g. NOC, CMAs). |
 
 **Key syntax** (passed to `get_sdmx_data`):
 - `"1.2.1"` — Geography=1, Gender=2, Age=1
 - `".2.1"` — all geographies (wildcard), Gender=2, Age=1
 - `"1+2.2.1"` — Geography 1 or 2, Gender=2, Age=1
 
-> **Note:** Wildcard (`.`) on dimensions with >30 codes returns a sparse, unpredictable sample. Use `get_sdmx_key_for_dimension` to get the correct OR key.
+> **Note:** Wildcard (`.`) returns every member of the dimension, including totals and parent aggregates. For sums or rankings use leaf codes from `get_sdmx_key_for_dimension`. Large wildcards can exceed `get_sdmx_data`'s 500-row cap; use `query_sdmx` for those.
 
 ### WDS Discovery & Metadata
 
@@ -459,7 +459,7 @@ src/
 ├── util/
 │   ├── registry.py              # ToolRegistry — @decorator → MCP Tool schema
 │   ├── truncation.py            # Response truncation + pagination guidance
-│   ├── sdmx_json.py             # SDMX-JSON → tabular rows
+│   ├── sdmx_xml.py              # SDMX-ML (structure-specific XML) → labelled tabular rows
 │   └── cache.py                 # 1-hour TTL cache for cube list
 ├── config.py                    # BASE_URL, SDMX_BASE_URL, RENDER_BASE_URL, TRANSPORT, PORT
 └── server.py                    # create_server(), MCP Prompts, HTTP routes (/files/sdmx/), CLI
@@ -472,11 +472,10 @@ src/
 | Issue | Status | Workaround |
 |---|---|---|
 | **"Unable to open database file" on Claude Desktop** | Active | Pass `--db-path /Users/<you>/.statcan-mcp/statcan_data.db` in your config |
-| **SSL verification disabled** | Active | `VERIFY_SSL = False` in all API calls — StatCan cert issues made this necessary |
+| **SSL verification on broken trust stores** | Configurable | Verification is on by default; set `STATCAN_VERIFY_SSL=false` only if your system can't validate StatCan's certificate |
 | **`lastNObservations` + `startPeriod`/`endPeriod` → 406** | Active | Use one or the other, not both |
-| **OR syntax for Geography dimension unreliable** | Active | Use wildcard (`.`) for Geography; OR works fine for other dimensions |
-| **Wildcard returns sparse data for large dimensions** | Mitigated | Use `get_sdmx_key_for_dimension` to get the full OR key (e.g. NOC, CMAs) |
-| **Context overflow may cause data fabrication** | Mitigated | Hosted server returns `download_csv` URL — data processed via script, not context |
+| **Wildcard/OR rows missing or mislabelled; wrong `VECTOR_ID`/`UOM`** | Fixed in v0.12.0 | Caused by StatCan's SDMX-JSON index encoding; data is now read as structure-specific XML ([#90](https://github.com/Aryan-Jhaveri/mcp-statcan/issues/90)) |
+| **Context overflow may cause data fabrication** | Mitigated | Use `query_sdmx` (hosted) or `fetch_sdmx_to_database` (local) so raw rows never enter context; `get_sdmx_data` caps inline rows at 500 |
 
 ---
 
