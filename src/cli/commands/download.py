@@ -1,15 +1,20 @@
 """statcan download — download observations for a StatCan product ID via SDMX."""
 
 import asyncio
-from typing import Any, Dict, Optional
+from typing import Optional
 
-import httpx
 import typer
 
-from ...api.sdmx.sdmx_tools import _fix_or_series_keys
-from ...config import SDMX_BASE_URL, SDMX_JSON_ACCEPT, TIMEOUT_MEDIUM, VERIFY_SSL
-from ...util.sdmx_json import flatten_sdmx_json
-from ..output import err_console, normalize_product_id, write_output
+from ...api.sdmx.sdmx_tools import fetch_sdmx_rows
+from ...config import SDMX_BASE_URL
+from ..contract import CLIError, ExitCode, emit_success, handle_errors, state
+from ..output import err_console, normalize_product_id, summarize_rows, write_output
+
+_KEY_HINT = (
+    "Run 'statcan metadata <product-id>' to see dimension positions and member IDs, "
+    "then pass explicit codes, e.g. --key '1.1.1' (use '+' for OR: '1+2.1.1'). "
+    "Wildcard (empty) positions are rejected by StatCan."
+)
 
 
 def download(
@@ -29,7 +34,7 @@ def download(
     start: Optional[str] = typer.Option(None, "--start", help="Start period (e.g. 2020-01 or 2015)"),
     end: Optional[str] = typer.Option(None, "--end", help="End period (e.g. 2024-12)"),
     output: Optional[str] = typer.Option(None, "--output", "-o", help="Write to file"),
-    fmt: str = typer.Option("csv", "--format", "-f", help="Output format: csv, json, table"),
+    fmt: str = typer.Option("csv", "--format", "-f", help="Output format: csv, json, ndjson, table"),
     dry_run: bool = typer.Option(
         False, "--dry-run", help="Print the SDMX URL that would be fetched, then exit"
     ),
@@ -43,93 +48,43 @@ def download(
       statcan download 18-10-0004-01 --key "1.1.1" --last 12\n
       statcan download 18-10-0004-01 --key "1.1.1" --start 2020-01 --end 2024-12\n
       statcan download 18-10-0004-01 --key "1.1.1" --last 5 --output cpi.csv\n
+      statcan --json download 18-10-0004-01 --key "1.1.1" --last 5 --output cpi.csv\n
       statcan download 18-10-0004-01 --key "1.1.1" --dry-run
     """
-    try:
+    with handle_errors(what="Product", hint_406=_KEY_HINT):
         pid = normalize_product_id(product_id)
-    except ValueError as e:
-        err_console.print(f"[red]Error: {e}[/red]")
-        raise typer.Exit(1)
 
-    if key is None:
-        err_console.print(
-            "[red]Error: --key is required. "
-            "Run 'statcan metadata <product-id>' to see dimension positions and member IDs, "
-            "then pass e.g. --key '1.1.1'.[/red]"
-        )
-        raise typer.Exit(1)
-
-    if last is not None and (start or end):
-        err_console.print(
-            "[red]Error: --last cannot be used with --start or --end "
-            "(StatCan API limitation — returns 406)[/red]"
-        )
-        raise typer.Exit(1)
-
-    url = f"{SDMX_BASE_URL}data/DF_{pid}/{key}"
-    params: Dict[str, Any] = {}
-    if last is not None:
-        params["lastNObservations"] = last
-    if start:
-        params["startPeriod"] = start
-    if end:
-        params["endPeriod"] = end
-
-    if dry_run:
-        query = "?" + "&".join(f"{k}={v}" for k, v in params.items()) if params else ""
-        err_console.print(f"[bold]URL:[/bold] {url}{query}")
-        return
-
-    try:
-        asyncio.run(_download(pid, key, url, params, fmt, output))
-    except httpx.HTTPStatusError as e:
-        code = e.response.status_code
-        if code == 404:
-            err_console.print(f"[red]Error: No data found for product {pid}[/red]")
-        elif code == 406:
-            err_console.print(
-                "[red]Error: StatCan rejected the query (406). "
-                "Check --key syntax or date parameters.[/red]"
+        if key is None:
+            raise CLIError(ExitCode.USAGE, "--key is required.", _KEY_HINT)
+        if last is not None and (start or end):
+            raise CLIError(
+                ExitCode.USAGE,
+                "--last cannot be used with --start or --end (StatCan returns 406).",
+                "Use --last N for recent data, or --start/--end for a range.",
             )
-        else:
-            err_console.print(f"[red]Error: API returned {code}[/red]")
-        raise typer.Exit(2)
-    except httpx.TimeoutException:
-        err_console.print("[red]Error: Request timed out. Try a more specific --key or use --last.[/red]")
-        raise typer.Exit(2)
-    except httpx.RequestError:
-        err_console.print("[red]Error: Could not reach Statistics Canada API[/red]")
-        raise typer.Exit(2)
-    except ValueError as e:
-        err_console.print(f"[red]Error: {e}[/red]")
-        raise typer.Exit(1)
 
+        if dry_run:
+            params = {"lastNObservations": last, "startPeriod": start, "endPeriod": end}
+            query = "&".join(f"{k}={v}" for k, v in params.items() if v is not None)
+            url = f"{SDMX_BASE_URL}data/DF_{pid}/{key}" + (f"?{query}" if query else "")
+            if state.json_mode:
+                emit_success("download", dry_run=True, source_url=url)
+            else:
+                err_console.print(f"[bold]URL:[/bold] {url}")
+            return
 
-async def _download(
-    pid: int,
-    key: str,
-    url: str,
-    params: Dict[str, Any],
-    fmt: str,
-    output: Optional[str],
-) -> None:
-    with err_console.status("[bold green]Fetching data from Statistics Canada..."):
-        async with httpx.AsyncClient(timeout=TIMEOUT_MEDIUM, verify=VERIFY_SSL) as client:
-            response = await client.get(
-                url, params=params, headers={"Accept": SDMX_JSON_ACCEPT}
+        with err_console.status("[bold green]Fetching data from Statistics Canada..."):
+            rows, url = asyncio.run(fetch_sdmx_rows(pid, key, last, start, end))
+
+        if not rows:
+            raise CLIError(
+                ExitCode.EMPTY,
+                f"No observations returned for product {pid} with key '{key}'.",
+                "Widen the period (--start/--last) or check the key against 'statcan metadata'.",
             )
-            response.raise_for_status()
-            response_json = response.json()
 
-    # Fix StatCan's non-standard series key encoding for OR-key queries
-    if "+" in key:
-        _fix_or_series_keys(response_json, key)
-
-    rows = flatten_sdmx_json(response_json)
-
-    if not rows:
-        err_console.print("[yellow]Warning: No observations returned for this query[/yellow]")
-        return
-
-    err_console.print(f"[dim]{len(rows):,} rows[/dim]")
-    write_output(rows, fmt, output, title=f"Product {pid}")
+        err_console.print(f"[dim]{len(rows):,} rows[/dim]")
+        write_output(
+            rows, fmt, output, title=f"Product {pid}", command="download",
+            extra={"product_id": pid, "key": key, "source_url": url, **summarize_rows(rows)},
+        )

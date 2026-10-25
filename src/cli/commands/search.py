@@ -7,13 +7,14 @@ import httpx
 import typer
 
 from ...config import BASE_URL, TIMEOUT_LARGE, VERIFY_SSL
+from ..contract import CLIError, ExitCode, handle_errors
 from ..output import err_console, format_date, freq_label, write_output
 
 
 def search(
     term: str = typer.Argument(..., help="Search term (multiple words use AND logic)"),
     max_results: int = typer.Option(25, "--max-results", "-n", help="Maximum results to show"),
-    fmt: str = typer.Option("table", "--format", "-f", help="Output format: table, csv, json"),
+    fmt: str = typer.Option("table", "--format", "-f", help="Output format: table, csv, json, ndjson"),
     output: Optional[str] = typer.Option(None, "--output", "-o", help="Write to file"),
 ) -> None:
     """Search for StatCan tables by keyword.
@@ -25,17 +26,8 @@ def search(
       statcan search GDP --max-results 10\n
       statcan search "labour force" --format json
     """
-    try:
+    with handle_errors(what="Cube list"):
         asyncio.run(_search(term, max_results, fmt, output))
-    except httpx.HTTPStatusError as e:
-        err_console.print(f"[red]Error: API returned {e.response.status_code}[/red]")
-        raise typer.Exit(2)
-    except httpx.RequestError:
-        err_console.print("[red]Error: Could not reach Statistics Canada API[/red]")
-        raise typer.Exit(2)
-    except ValueError as e:
-        err_console.print(f"[red]Error: {e}[/red]")
-        raise typer.Exit(1)
 
 
 async def _search(term: str, max_results: int, fmt: str, output: Optional[str]) -> None:
@@ -57,16 +49,18 @@ async def _search(term: str, max_results: int, fmt: str, output: Optional[str]) 
     ]
 
     total = len(matching)
+    if not matching:
+        raise CLIError(
+            ExitCode.EMPTY,
+            f"No tables found matching '{term}'.",
+            "All words must appear in the title; try fewer or broader terms.",
+        )
     if total > max_results:
         err_console.print(
             f"[yellow]Showing {max_results} of {total} matches. "
             "Use --max-results to see more.[/yellow]"
         )
         matching = matching[:max_results]
-
-    if not matching:
-        err_console.print(f"[yellow]No tables found matching '{term}'[/yellow]")
-        return
 
     rows = [
         {
@@ -79,4 +73,7 @@ async def _search(term: str, max_results: int, fmt: str, output: Optional[str]) 
         for cube in matching
     ]
 
-    write_output(rows, fmt, output, title=f'Search: "{term}"', filter_internal=False)
+    write_output(
+        rows, fmt, output, title=f'Search: "{term}"', filter_internal=False,
+        command="search", extra={"term": term, "total_matches": total, "truncated": total > len(rows)},
+    )

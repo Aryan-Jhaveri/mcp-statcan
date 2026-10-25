@@ -2,6 +2,8 @@
 
 import typer
 
+from .contract import json_mode_requested, state
+
 from .commands.codeset import codeset
 from .commands.download import download
 from .commands.metadata import metadata_cmd
@@ -20,6 +22,20 @@ app = typer.Typer(
         '  statcan download 18-10-0004-01 --key "1.1.1" --last 12 --output cpi.csv'
     ),
 )
+
+
+
+@app.callback()
+def _root(
+    json_mode: bool = typer.Option(
+        False,
+        "--json",
+        help="Machine-readable mode: one JSON envelope on stdout, JSON errors on stderr, "
+        "stable exit codes. Also enabled by STATCAN_OUTPUT=json. See 'statcan describe'.",
+    ),
+) -> None:
+    state.json_mode = json_mode_requested(json_mode)
+
 
 app.command("search")(search)
 app.command("metadata")(metadata_cmd)

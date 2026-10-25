@@ -10,6 +10,7 @@ from rich.panel import Panel
 from rich.table import Table
 
 from ...config import BASE_URL, TIMEOUT_MEDIUM, VERIFY_SSL
+from ..contract import CLIError, ExitCode, emit_success, handle_errors, state
 from ..output import console, err_console, format_date, freq_label, normalize_product_id
 
 _MEMBER_CAP = 10
@@ -28,27 +29,9 @@ def metadata_cmd(
       statcan metadata 18100004 --full\n
       statcan metadata 18-10-0004-01 --format json --output meta.json
     """
-    try:
+    with handle_errors(what="Product"):
         pid = normalize_product_id(product_id)
-    except ValueError as e:
-        err_console.print(f"[red]Error: {e}[/red]")
-        raise typer.Exit(1)
-
-    try:
         asyncio.run(_metadata(pid, full, fmt, output))
-    except httpx.HTTPStatusError as e:
-        code = e.response.status_code
-        if code == 404:
-            err_console.print(f"[red]Error: No data found for product {pid}[/red]")
-        else:
-            err_console.print(f"[red]Error: API returned {code}[/red]")
-        raise typer.Exit(2)
-    except httpx.RequestError:
-        err_console.print("[red]Error: Could not reach Statistics Canada API[/red]")
-        raise typer.Exit(2)
-    except ValueError as e:
-        err_console.print(f"[red]Error: {e}[/red]")
-        raise typer.Exit(1)
 
 
 async def _metadata(pid: int, full: bool, fmt: str, output: Optional[str]) -> None:
@@ -66,9 +49,42 @@ async def _metadata(pid: int, full: bool, fmt: str, output: Optional[str]) -> No
             if result_list
             else "Empty response"
         )
-        raise ValueError(f"API error for product {pid}: {msg}")
+        raise CLIError(
+            ExitCode.NOT_FOUND,
+            f"StatCan returned no metadata for product {pid}: {msg}",
+            "Check the product ID with 'statcan search <term>'.",
+        )
 
     metadata: Dict[str, Any] = result_list[0].get("object", {})
+
+    if state.json_mode:
+        dims = [
+            {
+                "position": d.get("dimensionPositionId"),
+                "name": d.get("dimensionNameEn"),
+                "member_count": len(d.get("member", [])),
+                "members": [
+                    {"id": m.get("memberId"), "name": m.get("memberNameEn"), "parent_id": m.get("parentMemberId")}
+                    for m in (d.get("member", []) if full else d.get("member", [])[:_MEMBER_CAP])
+                ],
+            }
+            for d in metadata.get("dimension", [])
+        ]
+        fields: Dict[str, Any] = {
+            "product_id": pid,
+            "title": metadata.get("cubeTitleEn"),
+            "frequency": freq_label(metadata.get("frequencyCode")),
+            "period_range": [format_date(metadata.get("cubeStartDate")), format_date(metadata.get("cubeEndDate"))],
+            "members_truncated": not full and any(d["member_count"] > _MEMBER_CAP for d in dims),
+            "dimensions": dims,
+            "key_template": ".".join("<" + str(d["position"]) + ">" for d in dims),
+        }
+        if output:
+            with open(output, "w") as f:
+                f.write(json.dumps(metadata, indent=2, default=str, ensure_ascii=False))
+            fields["path"] = output
+        emit_success("metadata", **fields)
+        return
 
     if fmt == "json":
         content = json.dumps(metadata, indent=2, default=str)

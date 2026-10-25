@@ -4,10 +4,10 @@ import asyncio
 import json
 from typing import Any, Dict, List, Optional
 
-import httpx
 import typer
 
 from ...api.client import make_get_request
+from ..contract import CLIError, ExitCode, emit_success, handle_errors, state
 from ..output import err_console, write_output
 
 
@@ -25,17 +25,8 @@ def codeset(
       statcan codeset --type uom\n
       statcan codeset --type frequency --format json
     """
-    try:
+    with handle_errors(what="Code sets"):
         asyncio.run(_codeset(type_filter, fmt, output))
-    except httpx.HTTPStatusError as e:
-        err_console.print(f"[red]Error: API returned {e.response.status_code}[/red]")
-        raise typer.Exit(2)
-    except httpx.RequestError:
-        err_console.print("[red]Error: Could not reach Statistics Canada API[/red]")
-        raise typer.Exit(2)
-    except ValueError as e:
-        err_console.print(f"[red]Error: {e}[/red]")
-        raise typer.Exit(1)
 
 
 async def _codeset(type_filter: Optional[str], fmt: str, output: Optional[str]) -> None:
@@ -43,7 +34,7 @@ async def _codeset(type_filter: Optional[str], fmt: str, output: Optional[str]) 
         result = await make_get_request("/getCodeSets")
 
     if result.get("status") != "SUCCESS":
-        raise ValueError(f"API error: {result.get('object', 'Unknown error')}")
+        raise CLIError(ExitCode.UPSTREAM_REJECTED, f"StatCan API error: {result.get('object', 'Unknown error')}")
 
     code_sets: Dict[str, Any] = result.get("object", {})
 
@@ -51,12 +42,17 @@ async def _codeset(type_filter: Optional[str], fmt: str, output: Optional[str]) 
         key = next((k for k in code_sets if k.lower() == type_filter.lower()), None)
         if key is None:
             available = ", ".join(str(k) for k in code_sets.keys())
-            err_console.print(
-                f"[red]Error: Unknown codeset '{type_filter}'. "
-                f"Available: {available}[/red]"
-            )
-            raise typer.Exit(1)
+            raise CLIError(ExitCode.NOT_FOUND, f"Unknown codeset '{type_filter}'.", f"Available: {available}")
         code_sets = {key: code_sets[key]}
+
+    if state.json_mode:
+        if output:
+            with open(output, "w") as f:
+                f.write(json.dumps(code_sets, indent=2, default=str, ensure_ascii=False))
+            emit_success("codeset", path=output, codesets=list(code_sets))
+        else:
+            emit_success("codeset", codesets=list(code_sets), data=code_sets)
+        return
 
     if fmt == "json":
         content = json.dumps(code_sets, indent=2, default=str)
