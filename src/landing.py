@@ -284,8 +284,9 @@ hr.section { border: none; border-top: 1px solid #CCCCCC; margin: 14px 0; }
 
     <div class="news-box">
       <strong>Announcements:</strong><br>
+      <span class="new-badge">NEW</span> v0.10.0 &mdash; structured output: SDMX tools publish an <tt>outputSchema</tt> and return typed <tt>structuredContent</tt>; failures are flagged <tt>isError</tt>; responses are 25&ndash;40% smaller<br>
       <span class="new-badge">NEW</span> v0.9.0 &mdash; <tt>query_sdmx</tt> on this server: fetch a table slice and run one read-only SQL query server-side; only the answer is returned, with no 500-row cap on the fetch<br>
-      <span class="new-badge">NEW</span> v0.8.0 &mdash; <tt>fetch_sdmx_to_database</tt> (local install): store a full SDMX slice in SQLite without passing rows through the model; values stored as numbers<br>
+      &bull; v0.8.0 &mdash; <tt>fetch_sdmx_to_database</tt> (local install): store a full SDMX slice in SQLite without passing rows through the model; values stored as numbers<br>
       &bull; v0.7.16 &mdash; <tt>statcan download</tt> now requires <tt>--key</tt>; StatCan SDMX no longer accepts the <tt>all</tt> shortcut<br>
       &bull; v0.7.15 &mdash; OAuth 2.1/PKCE support: Claude.ai web connector now routes tool calls correctly<br>
       &bull; v0.7.14 &mdash; fixed 307 redirect loop on <tt>POST /mcp</tt>; Claude.ai IPs now receive 200 OK<br>
@@ -419,6 +420,7 @@ hr.section { border: none; border-top: 1px solid #CCCCCC; margin: 14px 0; }
       <tr><td>Upstream APIs</td><td>Statistics Canada WDS REST + SDMX 2.1 REST</td></tr>
       <tr><td>Authentication</td><td>OAuth 2.1/PKCE available (auto-approved, no credentials); open access also supported</td></tr>
       <tr><td>SSL Verification</td><td>Disabled (<tt>VERIFY_SSL=False</tt>) &mdash; StatCan certificate quirk</td></tr>
+      <tr><td>Structured Output</td><td><tt>outputSchema</tt> + <tt>structuredContent</tt> on all SDMX tools; read-only tools carry <tt>readOnlyHint</tt></td></tr>
       <tr><td>Max SDMX Rows</td><td>500 per <tt>get_sdmx_data</tt> call</td></tr>
       <tr><td>Server-side SQL</td><td><tt>query_sdmx</tt>: SQLite in-memory, one SELECT per call, 2&nbsp;s limit, up to 50,000 fetched rows, 500 result rows; nothing stored</td></tr>
       <tr><td>Cache</td><td>1-hour TTL on <tt>get_all_cubes_list_lite</tt></td></tr>
