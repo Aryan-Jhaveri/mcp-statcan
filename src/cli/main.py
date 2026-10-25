@@ -2,7 +2,10 @@
 
 import typer
 
+from .contract import json_mode_requested, state
+
 from .commands.codeset import codeset
+from .commands.describe import describe
 from .commands.download import download
 from .commands.metadata import metadata_cmd
 from .commands.search import search
@@ -21,11 +24,26 @@ app = typer.Typer(
     ),
 )
 
+
+
+@app.callback()
+def _root(
+    json_mode: bool = typer.Option(
+        False,
+        "--json",
+        help="Machine-readable mode: one JSON envelope on stdout, JSON errors on stderr, "
+        "stable exit codes. Also enabled by STATCAN_OUTPUT=json. See 'statcan describe'.",
+    ),
+) -> None:
+    state.json_mode = json_mode_requested(json_mode)
+
+
 app.command("search")(search)
 app.command("metadata")(metadata_cmd)
 app.command("download")(download)
 app.command("vector")(vector)
 app.command("codeset")(codeset)
+app.command("describe")(describe)
 
 
 def main() -> None:

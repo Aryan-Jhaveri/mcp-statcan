@@ -271,3 +271,37 @@ def test_fix_bug_b_or_query_three_codes():
     assert "0.2" in series, "0.15 should be corrected to 0.2"
     assert "0.10" not in series
     assert "0.15" not in series
+
+
+def test_single_monthly_period_uses_start_when_id_is_wrong_year():
+    """lastNObservations=1 on monthly data: StatCan sends id '2027' for Sep 2026."""
+    obs_vals = [{"id": "2027", "name": "2027", "start": "2026-09-01T00:00:00", "end": "2027-08-31T23:59:59"}]
+    data = _make_response(
+        series_dims=[{"id": "Geography", "values": [{"id": "1", "name": "Canada"}]}],
+        obs_dim_values=obs_vals,
+        series_data={"0": {"attributes": [], "observations": {"0": [170.0]}}},
+    )
+    assert [r["period"] for r in flatten_sdmx_json(data)] == ["2026-09"]
+
+
+def test_single_quarterly_period_uses_start():
+    obs_vals = [{"id": "2026", "name": "2026", "start": "2026-04-01T00:00:00"}]
+    data = _make_response(
+        series_dims=[{"id": "Geography", "values": [{"id": "1", "name": "Canada"}]}],
+        obs_dim_values=obs_vals,
+        series_data={"0": {"attributes": [], "observations": {"0": [1.0]}}},
+    )
+    assert [r["period"] for r in flatten_sdmx_json(data)] == ["2026-04"]
+
+
+def test_annual_periods_with_start_field_keep_id():
+    obs_vals = [
+        {"id": "2024", "name": "2024", "start": "2024-01-01T00:00:00"},
+        {"id": "2025", "name": "2025", "start": "2025-01-01T00:00:00"},
+    ]
+    data = _make_response(
+        series_dims=[{"id": "Geography", "values": [{"id": "1", "name": "Canada"}]}],
+        obs_dim_values=obs_vals,
+        series_data={"0": {"attributes": [], "observations": {"0": [1.0], "1": [2.0]}}},
+    )
+    assert [r["period"] for r in flatten_sdmx_json(data)] == ["2024", "2025"]

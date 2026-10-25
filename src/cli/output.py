@@ -11,13 +11,28 @@ from rich.table import Table
 console = Console()
 err_console = Console(stderr=True)
 
+_FORMATS = ("csv", "json", "ndjson", "table")
+
+# StatCan WDS frequencyCode values (from getCodeSets → frequency). These are
+# StatCan's own codes, not periods per year: 12 = Annual, 6 = Monthly.
 _FREQ_MAP = {
-    1: "Annual",
-    2: "Semi-annual",
-    4: "Quarterly",
-    12: "Monthly",
-    52: "Weekly",
-    365: "Daily",
+    1: "Daily",
+    2: "Weekly",
+    4: "Biweekly",
+    6: "Monthly",
+    7: "Bimonthly",
+    9: "Quarterly",
+    11: "Semi-annual",
+    12: "Annual",
+    13: "Every 2 years",
+    14: "Every 3 years",
+    15: "Every 4 years",
+    16: "Every 5 years",
+    17: "Every 10 years",
+    18: "Occasional",
+    19: "Occasional Quarterly",
+    20: "Occasional Monthly",
+    21: "Occasional Daily",
 }
 
 
@@ -93,15 +108,51 @@ def _filter_internal(rows: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
     return [{k: v for k, v in r.items() if k not in internal} for r in rows]
 
 
+def all_columns(rows: List[Dict[str, Any]]) -> List[str]:
+    """Union of keys across rows, in first-seen order (SDMX attributes vary per row)."""
+    seen: Dict[str, None] = {}
+    for row in rows:
+        for k in row:
+            seen.setdefault(k, None)
+    return list(seen)
+
+
 def rows_to_csv(rows: List[Dict[str, Any]]) -> str:
     """Convert a list of row dicts to a CSV string."""
     if not rows:
         return ""
     out = io.StringIO()
-    writer = csv.DictWriter(out, fieldnames=rows[0].keys())
+    writer = csv.DictWriter(out, fieldnames=all_columns(rows), restval="")
     writer.writeheader()
     writer.writerows(rows)
     return out.getvalue()
+
+
+def summarize_rows(rows: List[Dict[str, Any]]) -> Dict[str, Any]:
+    """Shape of an observation result: period range and series count, when present."""
+    summary: Dict[str, Any] = {}
+    periods = [r["period"] for r in rows if r.get("period")]
+    if periods:
+        summary["period_range"] = [min(periods), max(periods)]
+    # Count series by the (corrected) series key: StatCan's VECTOR_ID attribute
+    # indices are unreliable in multi-series SDMX-JSON responses.
+    series = {r.get("_series_key") for r in rows if r.get("_series_key") is not None}
+    if series:
+        summary["series_count"] = len(series)
+    return summary
+
+
+def _write_file(path: str, content: str) -> None:
+    with open(path, "w") as f:
+        f.write(content)
+
+
+def _render(rows: List[Dict[str, Any]], fmt: str) -> str:
+    if fmt == "json":
+        return json.dumps(rows, indent=2, default=str, ensure_ascii=False)
+    if fmt == "ndjson":
+        return "".join(json.dumps(r, default=str, ensure_ascii=False) + "\n" for r in rows)
+    return rows_to_csv(rows)  # csv, and table when written to a file
 
 
 def write_output(
@@ -110,48 +161,55 @@ def write_output(
     output_path: Optional[str],
     title: str = "",
     filter_internal: bool = True,
+    command: str = "",
+    extra: Optional[Dict[str, Any]] = None,
 ) -> None:
     """Render rows in the requested format and write to file or stdout.
 
     Data goes to stdout (or --output file).
     Progress/confirmation messages go to stderr via err_console.
+
+    In JSON mode (--json / STATCAN_OUTPUT=json) stdout gets a single envelope instead:
+    {"ok": true, "command", "rows", "columns", ...extra} plus "data" (inline) or
+    "path" (when --output is given; the file is still written in --format).
     """
+    from .contract import emit_success, state
+
+    if fmt not in _FORMATS:
+        raise ValueError(f"Unknown format '{fmt}'. Use one of: {', '.join(_FORMATS)}")
     if filter_internal:
         rows = _filter_internal(rows)
+    columns = all_columns(rows)
 
-    if fmt == "json":
-        content = json.dumps(rows, indent=2, default=str)
+    if state.json_mode:
+        fields: Dict[str, Any] = {"rows": len(rows), "columns": columns, **(extra or {})}
         if output_path:
-            with open(output_path, "w") as f:
-                f.write(content)
-            err_console.print(f"[green]✓ Wrote {len(rows):,} rows to {output_path}[/green]")
+            file_fmt = "csv" if fmt == "table" else fmt
+            _write_file(output_path, _render(rows, file_fmt))
+            emit_success(command, path=output_path, format=file_fmt, **fields)
         else:
-            print(content)
+            emit_success(command, **fields, data=rows)
+        return
 
-    elif fmt == "csv":
-        content = rows_to_csv(rows)
-        if output_path:
-            with open(output_path, "w") as f:
-                f.write(content)
-            err_console.print(f"[green]✓ Wrote {len(rows):,} rows to {output_path}[/green]")
-        else:
-            # end="" because rows_to_csv already includes a trailing newline
-            print(content, end="")
-
-    else:  # table
+    if fmt == "table" and not output_path:
         if not rows:
             err_console.print("[yellow]No data to display[/yellow]")
             return
         table = Table(title=title, show_header=True, header_style="bold cyan")
-        for col in rows[0]:
+        for col in columns:
             table.add_column(str(col), overflow="fold")
         for row in rows:
-            table.add_row(*[str(v) if v is not None else "" for v in row.values()])
-        if output_path:
-            # When --output is given with table format, write CSV to file
-            content = rows_to_csv(rows)
-            with open(output_path, "w") as f:
-                f.write(content)
-            err_console.print(f"[green]✓ Wrote {len(rows):,} rows to {output_path}[/green]")
-        else:
-            console.print(table)
+            table.add_row(*[str(row[c]) if row.get(c) is not None else "" for c in columns])
+        console.print(table)
+        return
+
+    # When --output is given with table format, write CSV to file
+    content = _render(rows, "csv" if fmt == "table" else fmt)
+    if output_path:
+        _write_file(output_path, content)
+        err_console.print(f"[green]✓ Wrote {len(rows):,} rows to {output_path}[/green]")
+    elif fmt == "json":
+        print(content)
+    else:
+        # end="" because csv/ndjson content already ends with a newline
+        print(content, end="")

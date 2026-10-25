@@ -51,12 +51,21 @@ def flatten_sdmx_json(data: Dict[str, Any]) -> List[Dict[str, Any]]:
     series_attrs: List[Dict] = attrs.get("series", [])
     obs_attrs: List[Dict] = attrs.get("observation", [])
 
-    # Period decoding strategy: StatCan sets id to the calendar year even for
-    # sub-annual (monthly) data. Detect sub-annual by duplicate id values.
+    # Period decoding strategy: StatCan sets id to a year even for sub-annual
+    # (monthly/quarterly) data — sometimes not even the right year (a single
+    # monthly period starting 2026-09 can arrive as id "2027"). Use the start
+    # field when the ids can't be plain annual periods: duplicate ids, a start
+    # month other than January, or an id that doesn't match the start year.
     period_vals: List[Dict] = obs_dims[0].get("values", []) if obs_dims else []
     n_period_vals = len(period_vals)
     period_ids = [e.get("id", "") for e in period_vals]
-    use_start_field = len(set(period_ids)) < len(period_ids) if period_ids else False
+    use_start_field = bool(period_ids) and (
+        len(set(period_ids)) < len(period_ids)
+        or any(
+            e.get("start") and (e["start"][5:7] != "01" or e["start"][:4] != str(e.get("id", "")))
+            for e in period_vals
+        )
+    )
 
     def _get_period(idx: int) -> Optional[str]:
         effective = idx % n_period_vals if n_period_vals else idx
