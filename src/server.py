@@ -96,10 +96,12 @@ def create_server(http_mode: bool = False):
         try:
             result = await registry.call_tool(name, arguments)
 
-            # Format result to MCP Content list
+            # Format result to MCP Content list. Compact JSON (no indentation, raw
+            # non-ASCII such as French accents) is ~25-40% fewer characters than indent=2.
             if isinstance(result, (list, dict)):
                 import json
-                content = [TextContent(type="text", text=json.dumps(result, indent=2))]
+                text = json.dumps(result, separators=(",", ":"), ensure_ascii=False, default=str)
+                content = [TextContent(type="text", text=text)]
             elif result is None:
                 content = [TextContent(type="text", text="Tool executed successfully with no output.")]
             else:

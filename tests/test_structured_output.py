@@ -3,6 +3,7 @@
 Uses the SDK's in-memory Client, so the real client-side outputSchema validation runs.
 """
 
+import json
 from typing import Any, Dict, List, Optional
 
 import pytest
@@ -77,7 +78,8 @@ async def test_structured_content_returned_and_validated(server):
     assert result.structured_content == {
         "_url": "https://example.test", "count": 2, "items": [{"i": 0}, {"i": 1}],
     }
-    assert '"count": 2' in result.content[0].text  # text fallback unchanged
+    assert json.loads(result.content[0].text) == result.structured_content  # text fallback carries the same data
+    assert '"count":2' in result.content[0].text  # compact JSON
 
 
 @pytest.mark.asyncio
