@@ -105,17 +105,20 @@ def get_prompt_text(name: str, args: dict) -> str:
             "\n"
             "━━━ Claude Code (bash sandbox) ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n"
             "\n"
+            "Use --json: one JSON envelope on stdout, errors as JSON on stderr, stable exit codes\n"
+            "(3 not found, 4 rejected → read error.hint, 5 retry, 6 empty). Full contract: statcan describe\n"
+            "\n"
             "Step 1 — Find the table:\n"
-            f'  statcan search "{topic}" --max-results 10\n'
-            "  → Note the Product ID of the best match.\n"
+            f'  statcan --json search "{topic}" --max-results 10\n'
+            '  → data[]["Product ID"] of the best match.\n'
             "\n"
             "Step 2 — Explore structure and build the --key filter:\n"
-            "  statcan metadata <product-id>\n"
-            "  → Note the dimension positions and the member IDs you want (e.g. '1.1.1').\n"
+            "  statcan --json metadata <product-id>\n"
+            "  → dimensions[].position + members[].id; key_template shows the slots (e.g. '<1>.<2>').\n"
             "\n"
-            "Step 3 — Download data (--key is required):\n"
-            '  statcan download <product-id> --key "1.1.1" --last 12 --output ./data.csv\n'
-            "  head -2 ./data.csv    # column names and dimension positions\n"
+            "Step 3 — Download data to a file (--key is required):\n"
+            '  statcan --json download <product-id> --key "1.1.1" --last 12 --output ./data.csv\n'
+            "  → envelope reports rows, columns, period_range, series_count — no need to read the file\n"
             "\n"
             "Step 4 — Analyze without loading the CSV into context:\n"
             "  head -2 ./data.csv                                     # column layout\n"
@@ -218,12 +221,16 @@ def get_prompt_text(name: str, args: dict) -> str:
             "\n"
             "━━━ Claude Code (bash sandbox) ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n"
             "\n"
+            "# --json gives one JSON envelope on stdout and stable exit codes\n"
+            "# (3 not found, 4 rejected → read error.hint, 5 retry, 6 empty). See: statcan describe\n"
+            "\n"
             "# 1. Inspect dimensions to build the --key filter\n"
-            f"statcan metadata {pid}\n"
-            "#    → Note the member ID you want at each dimension position (e.g. 1.1.1)\n"
+            f"statcan --json metadata {pid}\n"
+            "#    → dimensions[].position + members[].id; key_template shows the slots\n"
             "\n"
             "# 2. Download data (replace 1.1.1 with the key you built in step 1)\n"
-            f'statcan download {pid} --key "1.1.1" --last {last_n} --output {out}\n'
+            f'statcan --json download {pid} --key "1.1.1" --last {last_n} --output {out}\n'
+            "#    → envelope: rows, columns, period_range, series_count, source_url\n"
             "\n"
             "# 3. Inspect column layout (note column numbers for filtering)\n"
             f"head -2 {out}\n"
