@@ -12,7 +12,7 @@ from mcp import Client
 from src import config
 from src.config import SDMX_BASE_URL
 from src.server import create_server, registry
-from tests.test_fetch_sdmx_to_database import DATA_URL, N_PERIODS, _make_response
+from tests.sdmx_fixtures import DATA_URL, N_PERIODS, make_data_xml, mock_sdmx
 
 STRUCTURE_URL = f"{SDMX_BASE_URL}structure/Data_Structure_18100004"
 
@@ -69,7 +69,7 @@ async def _call(server, name, args):
 @respx.mock
 @pytest.mark.parametrize("tool", ["get_sdmx_data", "get_sdmx_rows"])
 async def test_rows_tools(tool):
-    respx.get(DATA_URL).mock(return_value=Response(200, json=_make_response(first_value="0.0")))
+    mock_sdmx(make_data_xml(first_value="0.0"))
     meta, sc = await _call(_fresh_server(True), tool, {"productId": 18100004, "key": "1+2.1"})
     assert sc["row_count"] == 2 * N_PERIODS
     assert sc["_truncated"] is True
@@ -79,9 +79,7 @@ async def test_rows_tools(tool):
 @pytest.mark.asyncio
 @respx.mock
 async def test_vector_data():
-    respx.get(f"{SDMX_BASE_URL}vector/v41690973").mock(
-        return_value=Response(200, json=_make_response(first_value="0.0"))
-    )
+    mock_sdmx(make_data_xml(first_value="0.0"), url=f"{SDMX_BASE_URL}vector/v41690973")
     _, sc = await _call(_fresh_server(True), "get_sdmx_vector_data", {"vectorId": 41690973, "lastNObservations": 5})
     assert sc["_sdmx_url"].startswith(f"{SDMX_BASE_URL}vector/v41690973")
 
@@ -89,7 +87,7 @@ async def test_vector_data():
 @pytest.mark.asyncio
 @respx.mock
 async def test_query_sdmx():
-    respx.get(DATA_URL).mock(return_value=Response(200, json=_make_response(first_value="0.0")))
+    mock_sdmx(make_data_xml(first_value="0.0"))
     _, sc = await _call(
         _fresh_server(True), "query_sdmx",
         {"productId": 18100004, "key": "1+2.1", "sql": 'SELECT "Geography", COUNT(*) AS n FROM data GROUP BY 1'},
@@ -100,7 +98,7 @@ async def test_query_sdmx():
 @pytest.mark.asyncio
 @respx.mock
 async def test_query_sdmx_sql_error_is_tool_error():
-    respx.get(DATA_URL).mock(return_value=Response(200, json=_make_response()))
+    mock_sdmx(make_data_xml())
     async with Client(_fresh_server(True)) as client:
         await client.list_tools()
         result = await client.call_tool("query_sdmx", {"productId": 18100004, "key": "1+2.1", "sql": "SELECT nope FROM data"})
@@ -131,7 +129,7 @@ async def test_key_for_dimension():
 @respx.mock
 async def test_fetch_sdmx_to_database(tmp_path, monkeypatch):
     monkeypatch.setattr(config, "DB_FILE", str(tmp_path / "test.db"))
-    respx.get(DATA_URL).mock(return_value=Response(200, json=_make_response(first_value="0.0")))
+    mock_sdmx(make_data_xml(first_value="0.0"))
     meta, sc = await _call(
         _fresh_server(False), "fetch_sdmx_to_database",
         {"productId": 18100004, "key": "1+2.1", "table_name": "cpi"},

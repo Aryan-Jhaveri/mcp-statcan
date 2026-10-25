@@ -165,7 +165,7 @@ def get_prompt_text(name: str, args: dict) -> str:
             '  for r in top10: print(r.get("period"), r.get("value"))\n'
             f"  # Goal: {goal}\n"
             "\n"
-            "WARNING: Never use wildcard (.) for dimensions with >30 codes — use or_key instead."
+            "NOTE: wildcard (.) returns every member incl. totals; for sums/rankings use leaf codes (or_key)."
         )
 
     elif name == "sdmx-key-builder":
@@ -182,10 +182,12 @@ def get_prompt_text(name: str, args: dict) -> str:
             "  - WDS memberIds == SDMX codelist codes — same numbers, no translation needed\n"
             "  - Do NOT use the positional index of a code within get_sdmx_structure() output\n"
             "\n"
-            "WILDCARD WARNING:\n"
-            "  Wildcard (.) on a large dimension (>30 codes) returns only a sparse, unpredictable sample.\n"
-            "  For NOC (309 codes), wildcard returned 31 rows; the correct full fetch needs 162 IDs.\n"
-            "  Use get_sdmx_key_for_dimension(productId, dimension_position) to get the full OR key.\n"
+            "WILDCARD vs LEAF CODES:\n"
+            "  Wildcard (.) returns every member of the dimension, including totals and parent\n"
+            "  aggregates (NOC: 309 codes = 162 leaves + subtotals). Fine for browsing; for sums or\n"
+            "  rankings use leaf codes only, or totals get counted twice:\n"
+            "  get_sdmx_key_for_dimension(productId, dimension_position) → or_key of leaf codes.\n"
+            "  Large wildcards can exceed get_sdmx_data's 500-row cap — use query_sdmx instead.\n"
             "\n"
             "OR KEY USAGE:\n"
             '  or_key from get_sdmx_key_for_dimension = "7+11+12+13+..." → paste at the right position:\n'
@@ -364,7 +366,7 @@ def get_prompt_text(name: str, args: dict) -> str:
             "\n"
             "Step 2 — Sample 3 periods to see column layout (MCP tool):\n"
             f'  get_sdmx_rows(productId={pid}, key="<narrow-key>", lastNObservations=3)\n'
-            "  → key from Step 1 — avoid wildcards on large dims.\n"
+            "  → key from Step 1 — wildcards on large dims return many series; narrow for a sample.\n"
             '  → Returns rows in result["data"].\n'
             '  rows = result["data"]\n'
             "  cols = list(rows[0].keys()) if rows else []\n"

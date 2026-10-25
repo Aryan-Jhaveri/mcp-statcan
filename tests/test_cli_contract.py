@@ -16,7 +16,7 @@ from typer.testing import CliRunner
 from src.cli.contract import ExitCode, state
 from src.cli.main import app
 from src.config import BASE_URL, SDMX_BASE_URL
-from tests.test_fetch_sdmx_to_database import DATA_URL, N_PERIODS, _make_response
+from tests.sdmx_fixtures import DATA_URL, N_PERIODS, make_data_xml, mock_sdmx
 
 runner = CliRunner()
 CUBES_URL = f"{BASE_URL}/getAllCubesListLite"
@@ -42,7 +42,7 @@ def _err(result):
 
 @respx.mock
 def test_download_json_inline_envelope():
-    respx.get(DATA_URL).mock(return_value=Response(200, json=_make_response(first_value="0.0")))
+    mock_sdmx(make_data_xml(first_value="0.0"))
     result = runner.invoke(app, ["--json", "download", "18-10-0004-01", "--key", "1+2.1"])
 
     assert result.exit_code == ExitCode.OK
@@ -57,7 +57,7 @@ def test_download_json_inline_envelope():
 
 @respx.mock
 def test_download_json_with_output_writes_file_and_summarizes(tmp_path):
-    respx.get(DATA_URL).mock(return_value=Response(200, json=_make_response(first_value="0.0")))
+    mock_sdmx(make_data_xml(first_value="0.0"))
     out = tmp_path / "cpi.csv"
     result = runner.invoke(app, ["--json", "download", "18100004", "--key", "1+2.1", "-o", str(out)])
 
@@ -76,22 +76,19 @@ def test_env_var_enables_json_mode():
 @respx.mock
 def test_csv_handles_rows_with_different_attributes():
     """StatCan attributes vary per row; CSV must use the union of columns, not crash."""
-    data = _make_response(first_value="0.0")
-    data["structure"]["attributes"]["observation"] = [{"id": "NB_DECIMAL", "values": [{"id": "1"}]}]
-    data["dataSets"][0]["series"]["1.0"]["observations"]["300"] = ["0.0", 0]  # only this obs has NB_DECIMAL
-    respx.get(DATA_URL).mock(return_value=Response(200, json=data))
+    mock_sdmx(make_data_xml(first_value="0.0", obs_attr_on=(1, 0)))  # only this obs has STATUS_CAN
 
     result = runner.invoke(app, ["download", "18100004", "--key", "1+2.1"])
 
     assert result.exit_code == ExitCode.OK, result.stderr
     rows = list(csv.DictReader(io.StringIO(result.stdout)))
-    assert "NB_DECIMAL" in rows[0]
+    assert "STATUS_CAN" in rows[0]
     assert len(rows) == 2 * N_PERIODS
 
 
 @respx.mock
 def test_ndjson_format():
-    respx.get(DATA_URL).mock(return_value=Response(200, json=_make_response(first_value="0.0")))
+    mock_sdmx(make_data_xml(first_value="0.0"))
     result = runner.invoke(app, ["download", "18100004", "--key", "1+2.1", "-f", "ndjson"])
 
     lines = result.stdout.strip().splitlines()
@@ -124,7 +121,7 @@ def test_usage_errors(args, code, fragment):
 )
 def test_upstream_status_mapping(status, code, monkeypatch):
     monkeypatch.setattr("src.api.client.asyncio.sleep", _no_sleep)  # skip retry backoff
-    respx.get(DATA_URL).mock(return_value=Response(status))
+    mock_sdmx(status=status)
     result = runner.invoke(app, ["--json", "download", "18100004", "--key", "1+2.1"])
 
     assert result.exit_code == code
@@ -136,16 +133,14 @@ def test_upstream_status_mapping(status, code, monkeypatch):
 
 @respx.mock
 def test_network_error_is_unavailable():
-    respx.get(DATA_URL).mock(side_effect=httpx.ConnectError("boom"))
+    mock_sdmx(side_effect=httpx.ConnectError("boom"))
     result = runner.invoke(app, ["--json", "download", "18100004", "--key", "1+2.1"])
     assert result.exit_code == ExitCode.UPSTREAM_UNAVAILABLE
 
 
 @respx.mock
 def test_empty_result_exit_code():
-    empty = _make_response()
-    empty["dataSets"] = [{"series": {}}]
-    respx.get(DATA_URL).mock(return_value=Response(200, json=empty))
+    mock_sdmx(make_data_xml(empty=True))
     result = runner.invoke(app, ["--json", "download", "18100004", "--key", "1+2.1"])
 
     assert result.exit_code == ExitCode.EMPTY

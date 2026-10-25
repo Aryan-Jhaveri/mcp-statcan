@@ -4,45 +4,12 @@ import sqlite3
 
 import pytest
 import respx
-from httpx import Response
 
 from src import config
 from src.api.composite_tools import register_composite_tools
 from src.api.sdmx.sdmx_tools import register_sdmx_tools
-from src.config import SDMX_BASE_URL
 from src.util.registry import ToolRegistry
-
-N_PERIODS = 300  # 2 series × 300 periods = 600 rows, above MAX_SDMX_ROWS
-DATA_URL = f"{SDMX_BASE_URL}data/DF_18100004/1+2.1"
-
-
-def _make_response(first_value=None):
-    """Two geographies × N_PERIODS annual observations; first observation optionally null."""
-    periods = [{"id": str(1700 + i), "name": str(1700 + i)} for i in range(N_PERIODS)]
-    series = {}
-    for g in range(2):
-        # StatCan OR-key responses use globally sequential obs keys across series
-        # Values are strings, as in live StatCan SDMX-JSON
-        obs = {str(g * N_PERIODS + i): [str(float(i))] for i in range(N_PERIODS)}
-        series[f"{g}.0"] = {"attributes": [g], "observations": obs}
-    series["0.0"]["observations"]["0"] = [first_value]
-    return {
-        "structure": {
-            "dimensions": {
-                "series": [
-                    {"id": "Geography", "values": [{"id": "1", "name": "Canada"}, {"id": "2", "name": "Ontario"}]},
-                    {"id": "Products", "values": [{"id": "1", "name": "All-items"}]},
-                ],
-                "observation": [{"id": "TIME_PERIOD", "values": periods}],
-            },
-            "attributes": {
-                "series": [{"id": "VECTOR_ID", "values": [{"id": "41690973"}, {"id": "41691244"}]}],
-                "observation": [],
-            },
-        },
-        "dataSets": [{"series": series}],
-    }
-
+from tests.sdmx_fixtures import DATA_URL, N_PERIODS, make_data_xml, mock_sdmx
 
 @pytest.fixture
 def registry(tmp_path, monkeypatch):
@@ -56,7 +23,7 @@ def registry(tmp_path, monkeypatch):
 @pytest.mark.asyncio
 @respx.mock
 async def test_stores_all_rows_and_returns_compact_summary(registry):
-    respx.get(DATA_URL).mock(return_value=Response(200, json=_make_response()))
+    mock_sdmx(make_data_xml())
 
     result = await registry.call_tool(
         "fetch_sdmx_to_database",
@@ -80,7 +47,7 @@ async def test_stores_all_rows_and_returns_compact_summary(registry):
 @pytest.mark.asyncio
 @respx.mock
 async def test_null_first_value_still_gets_numeric_column(registry):
-    respx.get(DATA_URL).mock(return_value=Response(200, json=_make_response(first_value=None)))
+    mock_sdmx(make_data_xml(first_value=None))
 
     await registry.call_tool(
         "fetch_sdmx_to_database", {"productId": 18100004, "key": "1+2.1", "table_name": "cpi"}
@@ -106,9 +73,7 @@ async def test_last_n_with_period_range_rejected(registry):
 @pytest.mark.asyncio
 @respx.mock
 async def test_empty_response_returns_error_without_creating_table(registry):
-    empty = _make_response()
-    empty["dataSets"] = [{"series": {}}]
-    respx.get(DATA_URL).mock(return_value=Response(200, json=empty))
+    mock_sdmx(make_data_xml(empty=True))
 
     result = await registry.call_tool(
         "fetch_sdmx_to_database", {"productId": 18100004, "key": "1+2.1", "table_name": "cpi"}
@@ -131,7 +96,7 @@ async def test_invalid_table_name(registry):
 @pytest.mark.asyncio
 @respx.mock
 async def test_get_sdmx_data_still_caps_rows(registry):
-    respx.get(DATA_URL).mock(return_value=Response(200, json=_make_response()))
+    mock_sdmx(make_data_xml())
 
     result = await registry.call_tool("get_sdmx_data", {"productId": 18100004, "key": "1+2.1"})
 

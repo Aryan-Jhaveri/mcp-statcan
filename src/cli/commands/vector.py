@@ -3,12 +3,10 @@
 import asyncio
 from typing import Any, Dict, List, Optional
 
-import httpx
 import typer
 from rich.progress import Progress
 
-from ...config import SDMX_BASE_URL, SDMX_JSON_ACCEPT, TIMEOUT_MEDIUM, VERIFY_SSL
-from ...util.sdmx_json import flatten_sdmx_json
+from ...api.sdmx.sdmx_tools import fetch_sdmx_vector_rows
 from ..contract import CLIError, ExitCode, handle_errors
 from ..output import err_console, normalize_vector_id, summarize_rows, write_output
 
@@ -46,11 +44,10 @@ def vector(
 
 
 async def _fetch_vector(vid: str, params: Dict[str, Any]) -> List[Dict[str, Any]]:
-    url = f"{SDMX_BASE_URL}vector/v{vid}"
-    async with httpx.AsyncClient(timeout=TIMEOUT_MEDIUM, verify=VERIFY_SSL) as client:
-        response = await client.get(url, params=params, headers={"Accept": SDMX_JSON_ACCEPT})
-        response.raise_for_status()
-        return flatten_sdmx_json(response.json())
+    rows, _ = await fetch_sdmx_vector_rows(
+        int(vid), params.get("lastNObservations"), params.get("startPeriod"), params.get("endPeriod")
+    )
+    return rows
 
 
 async def _vector(
