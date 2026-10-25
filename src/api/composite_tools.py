@@ -244,7 +244,9 @@ def register_composite_tools(registry: ToolRegistry):
             }
 
         periods = [r["period"] for r in rows if r.get("period") is not None]
-        vector_ids = {r.get("VECTOR_ID") for r in rows if r.get("VECTOR_ID") is not None}
+        # Count by corrected series key — StatCan's VECTOR_ID attribute indices are
+        # unreliable in multi-series SDMX-JSON responses.
+        series_keys = {r.get("_series_key") for r in rows if r.get("_series_key") is not None}
         sample_size = input_data.sample_size or 5
         return {
             "success": db_result["success"],
@@ -252,7 +254,7 @@ def register_composite_tools(registry: ToolRegistry):
             "table": table_name,
             "columns": db_result.get("columns", []),
             "rows_inserted": db_result.get("rows_inserted", len(rows)),
-            "series_count": len(vector_ids),
+            "series_count": len(series_keys),
             "period_range": [min(periods), max(periods)] if periods else None,
             "sample": rows[:sample_size],
             "next_step": f"Use query_database to analyze: SELECT * FROM {table_name} LIMIT 10",
