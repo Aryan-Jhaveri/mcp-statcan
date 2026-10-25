@@ -96,14 +96,26 @@ def create_server(http_mode: bool = False):
         try:
             result = await registry.call_tool(name, arguments)
 
-            # Format result to MCP Content list
+            # Format result to MCP Content list. Compact JSON (no indentation, raw
+            # non-ASCII such as French accents) is ~25-40% fewer characters than indent=2.
             if isinstance(result, (list, dict)):
                 import json
-                content = [TextContent(type="text", text=json.dumps(result, indent=2))]
+                text = json.dumps(result, separators=(",", ":"), ensure_ascii=False, default=str)
+                content = [TextContent(type="text", text=text)]
             elif result is None:
                 content = [TextContent(type="text", text="Tool executed successfully with no output.")]
             else:
                 content = [TextContent(type="text", text=str(result))]
+
+            # Tools report recoverable failures as {"error": ...}; flag them so the
+            # client treats them as tool errors (and skips outputSchema validation).
+            if isinstance(result, dict) and "error" in result:
+                return CallToolResult(content=content, is_error=True)
+
+            # Tools with an outputSchema also return the result as structuredContent
+            tool = registry.get_tool(name)
+            if tool is not None and tool.output_schema is not None and isinstance(result, dict):
+                return CallToolResult(content=content, structured_content=result)
 
             return CallToolResult(content=content)
 

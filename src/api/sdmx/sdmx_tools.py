@@ -26,11 +26,17 @@ from ...config import (
 )
 from ..client import make_sdmx_get
 from ...db.ephemeral import run_ephemeral_query
+from mcp.types import ToolAnnotations
+
 from ...models.sdmx_models import (
     SDMXDataInput,
     SDMXKeyForDimensionInput,
+    SDMXKeyForDimensionOutput,
     SDMXQueryInput,
+    SDMXQueryOutput,
+    SDMXRowsOutput,
     SDMXStructureInput,
+    SDMXStructureOutput,
     SDMXVectorInput,
 )
 from ...util.registry import ToolRegistry
@@ -241,6 +247,9 @@ async def fetch_sdmx_rows(
     return flatten_sdmx_json(response_json), str(response.url)
 
 
+# Read-only calls to the public StatCan API
+_READ_ONLY = ToolAnnotations(readOnlyHint=True, openWorldHint=True)
+
 # Shared across requests: caps how many ephemeral queries run at once
 _query_slots = asyncio.Semaphore(MAX_CONCURRENT_EPHEMERAL_QUERIES)
 
@@ -248,7 +257,7 @@ _query_slots = asyncio.Semaphore(MAX_CONCURRENT_EPHEMERAL_QUERIES)
 def register_sdmx_tools(registry: ToolRegistry) -> None:
     """Register all SDMX REST API tools with the MCP server."""
 
-    @registry.tool()
+    @registry.tool(output_model=SDMXStructureOutput, annotations=_READ_ONLY)
     async def get_sdmx_structure(structure_input: SDMXStructureInput) -> Dict[str, Any]:
         """
         Fetch the Data Structure Definition (DSD) for a StatCan table via SDMX REST.
@@ -280,7 +289,7 @@ def register_sdmx_tools(registry: ToolRegistry) -> None:
         result["_sdmx_url"] = url
         return result
 
-    @registry.tool()
+    @registry.tool(output_model=SDMXRowsOutput, annotations=_READ_ONLY)
     async def get_sdmx_data(data_input: SDMXDataInput) -> Dict[str, Any]:
         """
         Fetch filtered time-series observations from a StatCan table via SDMX REST.
@@ -345,7 +354,7 @@ def register_sdmx_tools(registry: ToolRegistry) -> None:
 
         return result
 
-    @registry.tool()
+    @registry.tool(output_model=SDMXRowsOutput, annotations=_READ_ONLY)
     async def get_sdmx_rows(data_input: SDMXDataInput) -> Dict[str, Any]:
         """
         Fetch SDMX observations and always return rows inline — use this when you
@@ -381,7 +390,7 @@ def register_sdmx_tools(registry: ToolRegistry) -> None:
             **({"_message": f"Capped at {MAX_SDMX_ROWS} rows (total: {len(rows)}). Narrow your key."} if truncated else {}),
         }
 
-    @registry.tool()
+    @registry.tool(output_model=SDMXQueryOutput, annotations=_READ_ONLY)
     async def query_sdmx(query_input: SDMXQueryInput) -> Dict[str, Any]:
         """
         Fetch SDMX observations and run ONE read-only SQL query over them server-side,
@@ -442,7 +451,7 @@ def register_sdmx_tools(registry: ToolRegistry) -> None:
             result = await asyncio.to_thread(run_ephemeral_query, rows, query_input.sql)
         return {"_sdmx_url": sdmx_url, "fetched_row_count": len(rows), **result}
 
-    @registry.tool()
+    @registry.tool(output_model=SDMXRowsOutput, annotations=_READ_ONLY)
     async def get_sdmx_vector_data(vector_input: SDMXVectorInput) -> Dict[str, Any]:
         """
         Fetch time-series observations for a single StatCan vector via SDMX REST.
@@ -499,7 +508,7 @@ def register_sdmx_tools(registry: ToolRegistry) -> None:
 
         return result
 
-    @registry.tool()
+    @registry.tool(output_model=SDMXKeyForDimensionOutput, annotations=_READ_ONLY)
     async def get_sdmx_key_for_dimension(
         key_input: SDMXKeyForDimensionInput,
     ) -> Dict[str, Any]:

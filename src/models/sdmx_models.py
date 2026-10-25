@@ -1,5 +1,5 @@
-from pydantic import BaseModel, Field
-from typing import Optional
+from pydantic import BaseModel, ConfigDict, Field
+from typing import Any, Dict, List, Optional
 
 
 class SDMXStructureInput(BaseModel):
@@ -65,3 +65,78 @@ class SDMXKeyForDimensionInput(BaseModel):
             "to find positions). E.g. position=6 for the 6th dot-separated slot."
         ),
     )
+
+
+# ── Output models ────────────────────────────────────────────────────────────
+# Published as each tool's outputSchema (see ToolRegistry.tool(output_model=...)).
+# They document the dicts the tools already return; extra="allow" keeps the
+# schema open so adding a field never breaks clients validating structuredContent.
+# Error results ({"error": ...}) are flagged isError and are not validated.
+
+class _OpenModel(BaseModel):
+    model_config = ConfigDict(extra="allow", populate_by_name=True)
+
+
+class SDMXRowsOutput(_OpenModel):
+    sdmx_url: str = Field(..., alias="_sdmx_url", description="SDMX request URL — cite as the data source.")
+    row_count: int = Field(..., description="Total rows returned by StatCan (before truncation).")
+    data: List[Dict[str, Any]] = Field(
+        ..., description="Observation rows: dimension columns, period, value, and SDMX attributes."
+    )
+    truncated: bool = Field(..., alias="_truncated", description="True if data was capped at 500 rows.")
+    message: Optional[str] = Field(None, alias="_message", description="Truncation guidance, when truncated.")
+
+
+class SDMXQueryOutput(_OpenModel):
+    sdmx_url: str = Field(..., alias="_sdmx_url", description="SDMX request URL — cite as the data source.")
+    fetched_row_count: int = Field(..., description="Rows loaded into the temporary 'data' table.")
+    columns: List[str] = Field(..., description="Columns of the SQL result.")
+    rows: List[Dict[str, Any]] = Field(..., description="SQL result rows (max 500).")
+    table_columns: List[str] = Field(..., description="Columns available in table 'data'.")
+    message: Optional[str] = Field(None, description="Present when the result was truncated.")
+
+
+class SDMXCode(_OpenModel):
+    id: str
+    name: str
+    parent: Optional[str] = Field(None, description="Parent code id in the hierarchy, if any.")
+
+
+class SDMXDimension(_OpenModel):
+    id: str
+    name: str
+    position: int = Field(..., description="1-based slot in the dot-separated key.")
+    codelist: Optional[str] = None
+    codes: List[SDMXCode]
+    code_count: int = Field(..., alias="_code_count")
+    truncated: bool = Field(..., alias="_truncated")
+    message: Optional[str] = Field(None, alias="_message")
+
+
+class SDMXStructureOutput(_OpenModel):
+    name: str
+    productId: int
+    dimensions: List[SDMXDimension]
+    sdmx_url: str = Field(..., alias="_sdmx_url")
+
+
+class SDMXKeyForDimensionOutput(_OpenModel):
+    dimension_id: Optional[str] = None
+    dimension_name: str
+    position: int
+    leaf_count: int
+    total_count: int
+    or_key: str = Field(..., description="'+'-joined leaf codes, ready to paste at `position` in the key.")
+    note: str
+
+
+class FetchSDMXToDatabaseOutput(_OpenModel):
+    success: str
+    sdmx_url: str = Field(..., alias="_sdmx_url")
+    table: str
+    columns: List[str]
+    rows_inserted: int
+    series_count: int
+    period_range: Optional[List[str]] = Field(None, description="[first_period, last_period]")
+    sample: List[Dict[str, Any]]
+    next_step: str
