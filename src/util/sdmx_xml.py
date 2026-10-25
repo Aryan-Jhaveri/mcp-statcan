@@ -18,6 +18,7 @@ shape the JSON flattener produced: one column per dimension (label), then
 "_series_key", "period", "value", then attributes.
 """
 
+import re
 import xml.etree.ElementTree as ET
 from typing import Any, Dict, List, Optional
 
@@ -25,6 +26,12 @@ _STR = "{http://www.sdmx.org/resources/sdmxml/schemas/v2_1/structure}"
 _COM = "{http://www.sdmx.org/resources/sdmxml/schemas/v2_1/common}"
 _XML_LANG = "{http://www.w3.org/XML/1998/namespace}lang"
 _OBS_RESERVED = ("TIME_PERIOD", "OBS_VALUE")
+
+
+def _norm(component_id: str) -> str:
+    """Normalize a component id: the DSD keeps characters like '-' that StatCan's
+    data XML replaces with '_' (e.g. 'Occupation_-_Minor_group' vs 'Occupation___Minor_group')."""
+    return re.sub(r"[^0-9A-Za-z_]", "_", component_id)
 
 
 def _local(tag: str) -> str:
@@ -54,7 +61,8 @@ def parse_dsd_labels(structure_xml: str) -> Dict[str, Any]:
 
     Returns {"dimensions": [dimension ids in key-position order],
              "labels": {component_id: {code: English name}}} for every
-    dimension and attribute that has a codelist.
+    dimension and attribute that has a codelist. Ids are normalized with _norm
+    so they match the attribute names used in data messages.
     """
     root = ET.fromstring(structure_xml)
     codelists: Dict[str, Dict[str, str]] = {}
@@ -66,15 +74,19 @@ def parse_dsd_labels(structure_xml: str) -> Dict[str, Any]:
 
     dims = []
     labels: Dict[str, Dict[str, str]] = {}
-    for dim in root.iter(f"{_STR}Dimension"):
-        dims.append((int(dim.get("position", "0")), dim.get("id", "")))
-        cl_id = _enumeration_ref(dim)
-        if cl_id in codelists:
-            labels[dim.get("id", "")] = codelists[cl_id]
-    for attr in root.iter(f"{_STR}Attribute"):
-        cl_id = _enumeration_ref(attr)
-        if cl_id in codelists:
-            labels[attr.get("id", "")] = codelists[cl_id]
+    # Only DimensionList children: <str:Dimension> also appears elsewhere (e.g. constraints)
+    for dim_list in root.iter(f"{_STR}DimensionList"):
+        for dim in dim_list.findall(f"{_STR}Dimension"):
+            dim_id = _norm(dim.get("id", ""))
+            dims.append((int(dim.get("position", "0")), dim_id))
+            cl_id = _enumeration_ref(dim)
+            if cl_id in codelists:
+                labels[dim_id] = codelists[cl_id]
+    for attr_list in root.iter(f"{_STR}AttributeList"):
+        for attr in attr_list.findall(f"{_STR}Attribute"):
+            cl_id = _enumeration_ref(attr)
+            if cl_id in codelists:
+                labels[_norm(attr.get("id", ""))] = codelists[cl_id]
 
     return {"dimensions": [d for _, d in sorted(dims)], "labels": labels}
 
@@ -104,7 +116,7 @@ def flatten_sdmx_xml(data_xml: str, dsd: Dict[str, Any]) -> List[Dict[str, Any]]
     for series in root.iter():
         if _local(series.tag) != "Series":
             continue
-        s_attrs = dict(series.attrib)
+        s_attrs = {_norm(k): v for k, v in series.attrib.items()}
         base: Dict[str, Any] = {d: label(d, s_attrs[d]) for d in dim_ids if d in s_attrs}
         base["_series_key"] = ".".join(s_attrs.get(d, "") for d in dim_ids)
         series_attributes = {k: label(k, v) for k, v in s_attrs.items() if k not in dim_ids}
@@ -118,6 +130,6 @@ def flatten_sdmx_xml(data_xml: str, dsd: Dict[str, Any]) -> List[Dict[str, Any]]
             row["period"] = o.get("TIME_PERIOD")
             row["value"] = None if value in (None, "", "NaN") else value
             row.update(series_attributes)
-            row.update({k: label(k, v) for k, v in o.items() if k not in _OBS_RESERVED})
+            row.update({_norm(k): label(_norm(k), v) for k, v in o.items() if k not in _OBS_RESERVED})
             rows.append(row)
     return rows

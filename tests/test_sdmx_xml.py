@@ -110,3 +110,19 @@ def test_dataflow_id_from_header():
 def test_empty_dataset():
     data = DATA_XML.split("<message:DataSet>")[0] + "<message:DataSet/></message:StructureSpecificData>"
     assert flatten_sdmx_xml(data, parse_dsd_labels(DSD_XML)) == []
+
+
+def test_dimension_ids_with_hyphens_match_data_attributes():
+    """DSD id 'Occupation_-_Minor' appears as 'Occupation___Minor' in data XML (live: DF_98100452)."""
+    dsd = DSD_XML.replace('id="Products_and_product_groups"', 'id="Products_-_and_groups"')
+    data = DATA_XML.replace('Products_and_product_groups="2"', 'Products___and_groups="2"')
+    rows = flatten_sdmx_xml(data, parse_dsd_labels(dsd))
+    assert rows[0]["Products___and_groups"] == "All-items"  # labelled as a dimension
+    assert rows[0]["_series_key"] == "2.2"
+
+
+def test_dimensions_outside_dimension_list_ignored():
+    """<str:Dimension> elements elsewhere (e.g. constraints) must not become key slots."""
+    extra = '<str:Constraints><str:ContentConstraint><str:Dimension/></str:ContentConstraint></str:Constraints>'
+    dsd = DSD_XML.replace("<str:DataStructures>", extra + "<str:DataStructures>")
+    assert parse_dsd_labels(dsd)["dimensions"] == ["Geography", "Products_and_product_groups"]
