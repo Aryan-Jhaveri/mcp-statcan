@@ -259,7 +259,7 @@ hr.section { border: none; border-top: 1px solid #CCCCCC; margin: 14px 0; }
 
   <!-- STATUS BAR -->
   <div id="statusbar">
-    SERVER STATUS: ONLINE &nbsp;|&nbsp; VERSION 0.10.0 &nbsp;|&nbsp; TOOLS: 18 REGISTERED
+    SERVER STATUS: ONLINE &nbsp;|&nbsp; VERSION 0.11.0 &nbsp;|&nbsp; TOOLS: 18 REGISTERED
   </div>
 
   <!-- CONTENT -->
@@ -269,15 +269,16 @@ hr.section { border: none; border-top: 1px solid #CCCCCC; margin: 14px 0; }
       <span class="badge blue">MCP SDK</span>
       <span class="badge green">SDMX REST</span>
       <span class="badge green">WDS REST</span>
-      <span class="badge gold">v0.10.0</span>
+      <span class="badge gold">v0.11.0</span>
       <span class="badge">Python 3.10+</span>
       <span class="badge">Stateless HTTP</span>
     </div>
 
     <div class="news-box">
       <strong>Announcements:</strong><br>
+      <span class="new-badge">NEW</span> v0.11.0 &mdash; <tt>statcan</tt> CLI for agents: <tt>--json</tt> envelopes, stable exit codes with hints, <tt>statcan describe</tt>; fixes for single-period monthly dates and frequency labels<br>
       <span class="new-badge">NEW</span> v0.10.0 &mdash; structured output: SDMX tools publish an <tt>outputSchema</tt> and return typed <tt>structuredContent</tt>; failures are flagged <tt>isError</tt>; responses are 25&ndash;40% smaller<br>
-      <span class="new-badge">NEW</span> v0.9.0 &mdash; <tt>query_sdmx</tt> on this server: fetch a table slice and run one read-only SQL query server-side; only the answer is returned, with no 500-row cap on the fetch<br>
+      &bull; v0.9.0 &mdash; <tt>query_sdmx</tt> on this server: fetch a table slice and run one read-only SQL query server-side; only the answer is returned, with no 500-row cap on the fetch<br>
       &bull; v0.8.0 &mdash; <tt>fetch_sdmx_to_database</tt> (local install): store a full SDMX slice in SQLite without passing rows through the model; values stored as numbers<br>
       &bull; v0.7.16 &mdash; <tt>statcan download</tt> now requires <tt>--key</tt>; StatCan SDMX no longer accepts the <tt>all</tt> shortcut<br>
       &bull; v0.7.15 &mdash; OAuth 2.1/PKCE support: Claude.ai web connector now routes tool calls correctly<br>
@@ -358,6 +359,19 @@ hr.section { border: none; border-top: 1px solid #CCCCCC; margin: 14px 0; }
       <div class="copy-row">
         <code id="copy-pip">pip install statcan-mcp-server</code>
         <button type="button" class="copy-btn" data-copy="copy-pip">Copy</button>
+      </div>
+    </div>
+
+    <h3>CLI for agents with a shell (JSON output, stable exit codes)</h3>
+    <div class="endpoint-box">
+      <div class="copy-row">
+        <code id="copy-cli-describe">statcan describe</code>
+        <button type="button" class="copy-btn" data-copy="copy-cli-describe">Copy</button>
+      </div>
+      <br>
+      <div class="copy-row">
+        <code id="copy-cli-download">statcan --json download 18-10-0004-01 --key "2+3.2" --last 12 --output cpi.csv</code>
+        <button type="button" class="copy-btn" data-copy="copy-cli-download">Copy</button>
       </div>
     </div>
 
@@ -453,7 +467,7 @@ hr.section { border: none; border-top: 1px solid #CCCCCC; margin: 14px 0; }
 
   <!-- FOOTER -->
   <div id="footer">
-    <strong>Statistics Canada MCP Server</strong> &mdash; v0.10.0<br>
+    <strong>Statistics Canada MCP Server</strong> &mdash; v0.11.0<br>
     &copy; 2025 Aryan Jhaveri &nbsp;|&nbsp;
     <a href="https://github.com/Aryan-Jhaveri/mcp-statcan/blob/main/LICENSE">MIT Licence</a>
     &nbsp;|&nbsp;
