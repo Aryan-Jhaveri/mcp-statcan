@@ -45,80 +45,6 @@ from ...util.sdmx_xml import dataflow_id, flatten_sdmx_xml, parse_dsd_labels
 from ...util.sql_helpers import to_number
 from ...util.truncation import DEFAULT_MEMBER_LIMIT
 
-def _fix_or_series_keys(data: Dict[str, Any], key: str) -> None:
-    """Fix StatCan's non-standard series key encoding for all queries.
-
-    StatCan SDMX-JSON has two related bugs in series key encoding:
-
-    Bug A — Solo/single-code queries (e.g. key "7.3.1.1.1.10.2"):
-      StatCan uses the memberId as the series key index instead of the
-      positional index (0) into the values array. Codes where memberId
-      happens to equal 0 work correctly; all others produce an out-of-range
-      index and lose their label (e.g. NOC=10 → series key index 10, but
-      values has 1 entry at index 0).
-      Fix: for any dim where the current index >= len(values), reset to 0.
-
-    Bug B — OR queries (e.g. key "7.3.1.1.1.6+10+15.2"):
-      For the OR dimension, code 1 uses positional index 0 (correct), but
-      codes 2+ all use the same wrong index (the memberId of code 2), making
-      them indistinguishable. Single-value dims after the OR dim use the
-      global series index G instead of 0.
-      Fix: derive G = min(obs_key) // n_period_vals for each series, then
-      decompose G into per-dim positional indices (right-to-left for multiple
-      OR dims).
-
-    Operates in-place on the raw SDMX-JSON response dict.
-    """
-    key_parts = key.split(".")
-    or_positions: Dict[int, List[str]] = {
-        i: part.split("+")
-        for i, part in enumerate(key_parts)
-        if "+" in part
-    }
-
-    structure = data.get("structure", {})
-    obs_dims = structure.get("dimensions", {}).get("observation", [])
-    n_period_vals = len(obs_dims[0].get("values", [])) if obs_dims else 1
-    if n_period_vals < 1:
-        n_period_vals = 1
-
-    series_dims: List[Dict] = structure.get("dimensions", {}).get("series", [])
-    sorted_or_pos = sorted(or_positions.keys())
-
-    dataset = (data.get("dataSets") or [{}])[0]
-    raw_series: Dict[str, Any] = dataset.get("series", {})
-    patched: Dict[str, Any] = {}
-
-    for series_key_str, series_data in raw_series.items():
-        parts = series_key_str.split(".")
-        new_parts = list(parts)
-
-        # Bug A fix: reset any out-of-range index on non-OR dims to 0.
-        # Single-value dims should always use index 0; StatCan sometimes uses
-        # memberId or global series index G instead.
-        for dim_idx, dim in enumerate(series_dims):
-            if dim_idx in or_positions or dim_idx >= len(new_parts):
-                continue
-            val_count = len(dim.get("values", []))
-            if val_count > 0 and int(new_parts[dim_idx]) >= val_count:
-                new_parts[dim_idx] = "0"
-
-        # Bug B fix: for OR dims, replace index with G-derived positional index.
-        if or_positions:
-            obs_keys = [int(k) for k in series_data.get("observations", {}).keys()]
-            if obs_keys:
-                G = min(obs_keys) // n_period_vals
-                remaining = G
-                for pos in reversed(sorted_or_pos):
-                    n = len(or_positions[pos])
-                    new_parts[pos] = str(remaining % n)
-                    remaining //= n
-
-        patched[".".join(new_parts)] = series_data
-
-    dataset["series"] = patched
-
-
 # SDMX 2.1 XML namespaces
 _NS = {
     "mes": "http://www.sdmx.org/resources/sdmxml/schemas/v2_1/message",
@@ -352,11 +278,11 @@ def register_sdmx_tools(registry: ToolRegistry) -> None:
         IMPORTANT — key position codes:
           - Use member IDs from get_cube_metadata(), NOT SDMX codelist positions from
             get_sdmx_structure(). Member IDs and SDMX codelist codes are the same numbers.
-          - Wildcard (omit a position) returns a SPARSE SAMPLE for large dimensions — do NOT
-            use wildcard for dimensions with >30 codes (e.g. NOC occupations, CMA geographies).
-            Use explicit member IDs joined with '+' instead.
-          - To get all leaf IDs for a large dimension as a ready-to-use OR string, call
-            get_sdmx_key_for_dimension(productId, dimension_position) first.
+          - Wildcard (omit a position) returns EVERY member of that dimension, including
+            totals and parent aggregates — on large dimensions (e.g. 309 NOC occupations) that
+            can exceed the 500-row cap here; use query_sdmx or fetch_sdmx_to_database instead.
+          - To sum or rank across a hierarchy without double-counting totals, use leaf codes:
+            get_sdmx_key_for_dimension(productId, dimension_position) returns them as an OR key.
 
         Time filtering (use one or the other, not both):
           lastNObservations=12  → last 12 periods (e.g. 1 year of monthly data)
@@ -364,9 +290,6 @@ def register_sdmx_tools(registry: ToolRegistry) -> None:
           endPeriod="2023-12"   → up to Dec 2023
 
         LIMITATION: StatCan rejects combining lastNObservations with startPeriod/endPeriod (returns 406).
-        NOTE: OR syntax (+) triggers a StatCan SDMX-JSON encoding bug (non-positional series keys).
-          This is automatically corrected before rows are returned, so all OR-ed dimension labels
-          should be present.
 
         Output rows contain: dimension values, "period", "value", SCALAR_FACTOR,
         UOM, VECTOR_ID, STATUS, and other SDMX attributes.

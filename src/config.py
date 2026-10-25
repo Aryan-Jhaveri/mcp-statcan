@@ -43,7 +43,6 @@ VERIFY_SSL = os.environ.get("STATCAN_VERIFY_SSL", "true").lower() != "false"
 
 # SDMX REST API configuration
 SDMX_BASE_URL = "https://www150.statcan.gc.ca/t1/wds/sdmx/statcan/rest/"
-SDMX_JSON_ACCEPT = "application/json"
 SDMX_XML_ACCEPT = "application/vnd.sdmx.structure+xml;version=2.1"
 # Data is fetched as structure-specific XML: StatCan's SDMX-JSON mis-indexes series
 # keys and attributes (issue #90); the XML carries codes and attributes inline.
