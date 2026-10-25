@@ -188,3 +188,16 @@ def test_search_no_matches_is_empty():
 
 async def _no_sleep(_seconds):
     return None
+
+
+def test_describe_lists_commands_options_and_exit_codes():
+    result = runner.invoke(app, ["describe"])
+    assert result.exit_code == 0
+    d = json.loads(result.stdout)
+    names = {c["name"] for c in d["commands"]}
+    assert {"search", "metadata", "download", "vector", "codeset", "describe"} <= names
+    download = next(c for c in d["commands"] if c["name"] == "download")
+    key = next(p for p in download["params"] if p["name"] == "key")
+    assert key["flags"] == ["--key"]
+    assert any(p["name"] == "json_mode" for p in d["global_options"])
+    assert d["contract"]["exit_codes"]["6"]["name"] == "empty"
