@@ -188,6 +188,19 @@ table.tools td.category {
 .badge.blue  { background: #CCDDEF; border-color: #8899BB; color: #001133; }
 .badge.gold  { background: #FFEEAA; border-color: #AAAA55; color: #443300; }
 hr.section { border: none; border-top: 1px solid #CCCCCC; margin: 14px 0; }
+.recording {
+  margin: 8px 0 14px 0;
+  border: 2px inset #CCCCCC;
+  background: #F4F4F8;
+  padding: 4px;
+}
+.recording img { display: block; width: 100%; height: auto; }
+.recording .caption {
+  font-size: 8.5pt;
+  font-style: italic;
+  color: #444444;
+  padding: 4px 2px 0 2px;
+}
 #footer {
   background: #E8EEF5;
   border-top: 2px solid #AAAACC;
@@ -387,6 +400,30 @@ hr.section { border: none; border-top: 1px solid #CCCCCC; margin: 14px 0; }
       <strong>Note:</strong> This server is deployed on Render&rsquo;s free tier.
       The first request after a period of inactivity may take 30&ndash;60&nbsp;seconds
       while the instance spins up. Subsequent requests are fast.
+    </div>
+
+    <!-- CLI RECORDINGS -->
+    <h2>Command-Line Interface</h2>
+    <p>
+      The <tt>statcan</tt> CLI ships with the local install and works without an LLM. People can
+      browse tables in the terminal; agents with a shell can use <tt>--json</tt> for structured output
+      and stable exit codes.
+    </p>
+
+    <h3>Exploring a table: search, metadata, download</h3>
+    <div class="recording">
+      <img src="https://raw.githubusercontent.com/Aryan-Jhaveri/mcp-statcan/main/assets/cli-explore.gif"
+           alt="Terminal recording: statcan search, statcan metadata and statcan download for the Consumer Price Index table"
+           width="760" loading="lazy">
+      <div class="caption">statcan search &rarr; statcan metadata &rarr; statcan download (table output)</div>
+    </div>
+
+    <h3>Agent mode: JSON envelopes and exit codes</h3>
+    <div class="recording">
+      <img src="https://raw.githubusercontent.com/Aryan-Jhaveri/mcp-statcan/main/assets/cli-agent.gif"
+           alt="Terminal recording: statcan --json download writes a CSV and prints a summary envelope; a missing product returns a JSON error with exit code 3; statcan describe lists exit codes"
+           width="760" loading="lazy">
+      <div class="caption">--json download writes the file and prints a summary; failures return a typed exit code and a hint</div>
     </div>
 
     <!-- TOOL INVENTORY -->
