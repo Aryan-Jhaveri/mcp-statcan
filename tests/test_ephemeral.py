@@ -108,3 +108,11 @@ def test_typical_analytical_query_within_limits():
     result = run_ephemeral_query(ROWS, sql)
     assert "error" not in result, result
     assert len(result["rows"]) == 6  # Canada, Ontario + 4 UNION rows
+
+
+def test_columns_are_union_across_rows():
+    """Observation-level attributes (e.g. STATUS_CAN) can appear on only some rows."""
+    rows = [{"Geography": "Canada", "value": 1.0}, {"Geography": "Canada", "value": None, "STATUS_CAN": ".."}]
+    result = run_ephemeral_query(rows, "SELECT STATUS_CAN FROM data WHERE value IS NULL")
+    assert result["rows"] == [{"STATUS_CAN": ".."}]
+    assert result["table_columns"] == ["Geography", "value", "STATUS_CAN"]

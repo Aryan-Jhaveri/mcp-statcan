@@ -11,7 +11,7 @@ _MAX_RETRY_ATTEMPTS = 3
 
 async def make_get_request(endpoint: str, params: Optional[Dict[str, Any]] = None,
                            timeout: float = TIMEOUT_SMALL) -> Any:
-    """Make a GET request to the StatCan WDS API with retry on 5xx/429."""
+    """Make a GET request to the StatCan WDS API with retry on 5xx/429, timeouts and dropped connections."""
     if not VERIFY_SSL:
         log_ssl_warning(f"SSL verification disabled for {endpoint}.")
     for attempt in range(_MAX_RETRY_ATTEMPTS):
@@ -22,6 +22,11 @@ async def make_get_request(endpoint: str, params: Optional[Dict[str, Any]] = Non
                 return response.json()
         except httpx.HTTPStatusError as exc:
             if exc.response.status_code not in _RETRY_STATUSES or attempt == _MAX_RETRY_ATTEMPTS - 1:
+                raise
+            await asyncio.sleep(min(1.0 * (2 ** attempt), 10.0))
+        except httpx.TransportError:
+            # Timeouts and dropped connections; GETs are idempotent, so retry
+            if attempt == _MAX_RETRY_ATTEMPTS - 1:
                 raise
             await asyncio.sleep(min(1.0 * (2 ** attempt), 10.0))
 
@@ -50,7 +55,8 @@ async def make_sdmx_get(
     params: Optional[Dict[str, Any]] = None,
     timeout: float = TIMEOUT_MEDIUM,
 ) -> httpx.Response:
-    """GET request to an SDMX endpoint with retry on 5xx/429. Returns raw response."""
+    """GET request to an SDMX endpoint with retry on 5xx/429, timeouts and dropped
+    connections. Returns raw response."""
     if not VERIFY_SSL:
         log_ssl_warning(f"SSL verification disabled for {url}.")
     for attempt in range(_MAX_RETRY_ATTEMPTS):
@@ -61,6 +67,12 @@ async def make_sdmx_get(
                 return response
         except httpx.HTTPStatusError as exc:
             if exc.response.status_code not in _RETRY_STATUSES or attempt == _MAX_RETRY_ATTEMPTS - 1:
+                raise
+            await asyncio.sleep(min(1.0 * (2 ** attempt), 10.0))
+        except httpx.TransportError:
+            # Timeouts and dropped connections: StatCan's SDMX endpoints occasionally hang
+            # and then close the connection. GETs are idempotent, so retry.
+            if attempt == _MAX_RETRY_ATTEMPTS - 1:
                 raise
             await asyncio.sleep(min(1.0 * (2 ** attempt), 10.0))
 

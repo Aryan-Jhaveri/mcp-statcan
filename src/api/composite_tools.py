@@ -1,18 +1,18 @@
 import httpx
 import sqlite3
+from urllib.parse import urlencode
 from typing import List, Dict, Any, Optional
 from pydantic import BaseModel, Field
 
 from ..util.registry import ToolRegistry
+from .client import make_get_request
 from ..config import BASE_URL, TIMEOUT_LARGE, TIMEOUT_MEDIUM, VERIFY_SSL
 from ..util.logger import log_ssl_warning, log_data_validation_warning
 from ..db.connection import get_db_connection
-from ..db.schema import create_table_from_data
-from ..models.db_models import TableDataInput
+from ..db.store import create_series_view, upsert_sdmx_rows, upsert_wds_points
 from mcp.types import ToolAnnotations
 
 from ..models.sdmx_models import FetchSDMXToDatabaseOutput, SDMXDataInput
-from ..util.sql_helpers import to_number
 from .sdmx.sdmx_tools import fetch_sdmx_rows
 
 
@@ -88,9 +88,15 @@ def register_composite_tools(registry: ToolRegistry):
             input_data.startRefPeriod: Optional start date (YYYY-MM-DD).
             input_data.endRefPeriod: Optional end date (YYYY-MM-DD).
 
+        Storage: observations are upserted into the shared store (_statcan_series +
+        _statcan_observations) and table_name becomes a VIEW with columns: dimension labels
+        (when the series was also fetched via SDMX), series_key, period, ref_date, value,
+        VECTOR_ID, UOM, SCALAR_FACTOR, STATUS, SYMBOL, release_time, product_id, fetched_at.
+        The same series fetched via fetch_sdmx_to_database shares rows with this tool.
+
         Returns:
-            Dict with table name, columns, rows_inserted, and a 5-row sample so you
-            can verify the data looks right before querying.
+            Dict with view name, columns, rows_inserted, new/revised/unchanged counts, and a
+            small sample so you can verify the data looks right before querying.
 
         IMPORTANT: In your final response cite the vectorIds and reference period used.
         """
@@ -109,48 +115,32 @@ def register_composite_tools(registry: ToolRegistry):
         if input_data.endRefPeriod:
             params["endReferencePeriod"] = input_data.endRefPeriod
 
-        # Fetch data from StatCan API
-        async with httpx.AsyncClient(base_url=BASE_URL, timeout=TIMEOUT_LARGE, verify=VERIFY_SSL) as client:
-            log_ssl_warning(f"SSL verification disabled for fetch_vectors_to_database.")
-            try:
-                response = await client.get("/getDataFromVectorByReferencePeriodRange", params=params)
-                response.raise_for_status()
-                result_list = response.json()
-            except httpx.RequestError as exc:
-                return {"error": f"Network error fetching vectors: {exc}"}
-            except Exception as exc:
-                return {"error": f"Unexpected error fetching vectors: {exc}"}
+        # Fetch data from StatCan API (retries 5xx/429, timeouts and dropped connections)
+        endpoint = "/getDataFromVectorByReferencePeriodRange"
+        source_url = f"{BASE_URL}{endpoint}?{urlencode(params)}"
+        try:
+            result_list = await make_get_request(endpoint, params=params, timeout=TIMEOUT_LARGE)
+        except httpx.HTTPStatusError as exc:
+            return {"error": f"StatCan returned HTTP {exc.response.status_code} fetching vectors."}
+        except httpx.TransportError as exc:
+            return {"error": f"Network error fetching vectors: {str(exc) or type(exc).__name__}"}
 
-        # Process the response — flatten each vector's data points
-        flat_rows: List[Dict[str, Any]] = []
-        failures = []
         if not isinstance(result_list, list):
             return {"error": f"Unexpected API response format (not a list): {type(result_list)}"}
 
+        vectors: List[Dict[str, Any]] = []
+        failures = []
         for item in result_list:
             if not isinstance(item, dict):
                 continue
-            if item.get("status") == "SUCCESS":
-                obj = item.get("object", {})
-                vector_id = obj.get("vectorId")
-                product_id = obj.get("productId")
-                coordinate = obj.get("coordinate")
-                data_points = obj.get("vectorDataPoint", [])
-                if isinstance(data_points, list):
-                    for point in data_points:
-                        if isinstance(point, dict):
-                            row = dict(point)
-                            row["vectorId"] = vector_id
-                            if product_id is not None:
-                                row["productId"] = product_id
-                            if coordinate is not None:
-                                row["coordinate"] = coordinate
-                            flat_rows.append(row)
+            if item.get("status") == "SUCCESS" and isinstance(item.get("object"), dict):
+                vectors.append(item["object"])
             else:
                 failures.append(item)
                 log_data_validation_warning(f"Vector fetch partial failure: {item}")
 
-        if not flat_rows:
+        n_points = sum(len(v.get("vectorDataPoint") or []) for v in vectors)
+        if not n_points:
             failure_detail = failures[:3] if failures else "No data returned."
             return {
                 "error": "No data points retrieved from the API.",
@@ -158,25 +148,28 @@ def register_composite_tools(registry: ToolRegistry):
                 "hint": "Check that vectorIds are correct and the date range contains data.",
             }
 
-        # Store in SQLite via create_table_from_data (creates + inserts in one shot)
-        db_result = create_table_from_data(TableDataInput(table_name=table_name, data=flat_rows))
+        try:
+            with get_db_connection() as conn:
+                stored = upsert_wds_points(conn, vectors, source_url=source_url)
+                columns = create_series_view(conn, table_name, stored["series_ids"], stored["date_range"])
+                sample_size = input_data.sample_size or 5
+                sample = [dict(r) for r in conn.execute(f'SELECT * FROM "{table_name}" LIMIT ?', (sample_size,))]
+        except ValueError as exc:  # e.g. table_name is a canonical store table
+            return {"error": str(exc)}
+        except sqlite3.Error as exc:
+            return {"error": f"Data fetched ({n_points} points) but failed to store: {exc}"}
 
-        if "error" in db_result:
-            return {
-                "error": f"Data fetched ({len(flat_rows)} rows) but failed to store: {db_result['error']}",
-                "rows_fetched": len(flat_rows),
-                "sample": flat_rows[:3],
-            }
-
-        # Return a summary with a small sample so the LLM can verify structure
-        sample_size = input_data.sample_size or 5
         return {
-            "success": db_result["success"],
+            "success": f"Stored {n_points} observations for {len(stored['series_ids'])} series; "
+                       f"'{table_name}' is a view over them.",
             "table": table_name,
-            "columns": db_result.get("columns", []),
-            "rows_inserted": db_result.get("rows_inserted", len(flat_rows)),
+            "columns": columns,
+            "rows_inserted": n_points,
+            "new": stored["inserted"],
+            "revised": stored["revised"],
+            "unchanged": stored["unchanged"],
             "partial_failures": len(failures),
-            "sample": flat_rows[:sample_size],
+            "sample": sample,
             "next_step": f"Use query_database to analyze: SELECT * FROM {table_name} LIMIT 10",
         }
 
@@ -205,8 +198,16 @@ def register_composite_tools(registry: ToolRegistry):
                                     startPeriod="2020-01", table_name="cpi_by_province")
           4. query_database("SELECT ... FROM cpi_by_province ...") → analyze
 
-        Returns a compact summary: table name, columns, rows_inserted, series_count,
-        period range, a small sample, and the _sdmx_url.
+        Storage: observations are upserted into the shared store (_statcan_series +
+        _statcan_observations, one row per series and period, with source and fetch time),
+        and table_name becomes a VIEW over the series and periods this call fetched.
+        Re-fetching updates values in place; new/revised/unchanged report what changed.
+        For cross-table analysis, query the store directly, e.g.
+          SELECT o.period, o.value FROM _statcan_observations o
+          JOIN _statcan_series s USING (series_id) WHERE s.product_id = 18100004
+
+        Returns a compact summary: view name, columns, rows_inserted, series_count,
+        period range, new/revised/unchanged counts, a small sample, and the _sdmx_url.
 
         IMPORTANT: In your final response, cite the _sdmx_url, productId and key used.
         """
@@ -229,34 +230,31 @@ def register_composite_tools(registry: ToolRegistry):
                 "hint": "Check the key against get_sdmx_structure and widen the period range.",
             }
 
-        # SDMX-JSON returns values as strings ("124.3"); store them as REAL so SQL
-        # comparisons and aggregates are numeric rather than lexicographic.
-        for row in rows:
-            row["value"] = to_number(row.get("value"))
-
-        db_result = create_table_from_data(TableDataInput(table_name=table_name, data=rows))
-        if "error" in db_result:
-            return {
-                "error": f"Data fetched ({len(rows)} rows) but failed to store: {db_result['error']}",
-                "_sdmx_url": sdmx_url,
-                "rows_fetched": len(rows),
-                "sample": rows[:3],
-            }
+        try:
+            with get_db_connection() as conn:
+                stored = upsert_sdmx_rows(conn, input_data.productId, rows, sdmx_url)
+                columns = create_series_view(conn, table_name, stored["series_ids"], stored["date_range"])
+                sample_size = input_data.sample_size or 5
+                sample = [dict(r) for r in conn.execute(f'SELECT * FROM "{table_name}" LIMIT ?', (sample_size,))]
+        except ValueError as exc:  # e.g. table_name is a canonical store table
+            return {"error": str(exc), "_sdmx_url": sdmx_url}
+        except sqlite3.Error as exc:
+            return {"error": f"Data fetched ({len(rows)} rows) but failed to store: {exc}", "_sdmx_url": sdmx_url}
 
         periods = [r["period"] for r in rows if r.get("period") is not None]
-        # Count by corrected series key — StatCan's VECTOR_ID attribute indices are
-        # unreliable in multi-series SDMX-JSON responses.
-        series_keys = {r.get("_series_key") for r in rows if r.get("_series_key") is not None}
-        sample_size = input_data.sample_size or 5
         return {
-            "success": db_result["success"],
+            "success": f"Stored {len(rows)} observations for {len(stored['series_ids'])} series; "
+                       f"'{table_name}' is a view over them.",
             "_sdmx_url": sdmx_url,
             "table": table_name,
-            "columns": db_result.get("columns", []),
-            "rows_inserted": db_result.get("rows_inserted", len(rows)),
-            "series_count": len(series_keys),
+            "columns": columns,
+            "rows_inserted": len(rows),
+            "series_count": len(stored["series_ids"]),
             "period_range": [min(periods), max(periods)] if periods else None,
-            "sample": rows[:sample_size],
+            "new": stored["inserted"],
+            "revised": stored["revised"],
+            "unchanged": stored["unchanged"],
+            "sample": sample,
             "next_step": f"Use query_database to analyze: SELECT * FROM {table_name} LIMIT 10",
         }
 

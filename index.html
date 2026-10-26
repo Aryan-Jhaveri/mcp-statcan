@@ -289,8 +289,9 @@ hr.section { border: none; border-top: 1px solid #CCCCCC; margin: 14px 0; }
 
     <div class="news-box">
       <strong>Announcements:</strong><br>
+      <span class="new-badge">NEW</span> v0.13.0 &mdash; local installs: fetched data accumulates in one observation store (upserts with new/revised counts, shared across SDMX and WDS, cross-table joins); more resilient to StatCan timeouts<br>
       <span class="new-badge">NEW</span> v0.12.0 &mdash; data correctness: SDMX data now read as XML; wildcards return every series (previously a partial set), and <tt>VECTOR_ID</tt>, <tt>DGUID</tt> and <tt>UOM</tt> are correct per row<br>
-      <span class="new-badge">NEW</span> v0.11.0 &mdash; <tt>statcan</tt> CLI for agents: <tt>--json</tt> envelopes, stable exit codes with hints, <tt>statcan describe</tt>; fixes for single-period monthly dates and frequency labels<br>
+      &bull; v0.11.0 &mdash; <tt>statcan</tt> CLI for agents: <tt>--json</tt> envelopes, stable exit codes with hints, <tt>statcan describe</tt>; fixes for single-period monthly dates and frequency labels<br>
       &bull; v0.10.0 &mdash; structured output: SDMX tools publish an <tt>outputSchema</tt> and return typed <tt>structuredContent</tt>; failures are flagged <tt>isError</tt>; responses are 25&ndash;40% smaller<br>
       &bull; v0.9.0 &mdash; <tt>query_sdmx</tt> on this server: fetch a table slice and run one read-only SQL query server-side; only the answer is returned, with no 500-row cap on the fetch<br>
       &bull; v0.8.0 &mdash; <tt>fetch_sdmx_to_database</tt> (local install): store a full SDMX slice in SQLite without passing rows through the model; values stored as numbers<br>

@@ -4,6 +4,7 @@ import sqlite3
 
 import pytest
 import respx
+from httpx import Response
 
 from src import config
 from src.api.composite_tools import register_composite_tools
@@ -103,3 +104,35 @@ async def test_get_sdmx_data_still_caps_rows(registry):
     assert result["row_count"] == 2 * N_PERIODS
     assert len(result["data"]) == config.MAX_SDMX_ROWS
     assert result["_truncated"] is True
+
+
+@pytest.mark.asyncio
+@respx.mock
+async def test_refetch_reports_revisions_and_writes_view(registry):
+    route = mock_sdmx(make_data_xml(first_value="0.0"))
+    args = {"productId": 18100004, "key": "1+2.1", "table_name": "cpi"}
+    first = await registry.call_tool("fetch_sdmx_to_database", args)
+    assert (first["new"], first["revised"], first["unchanged"]) == (2 * N_PERIODS, 0, 0)
+
+    route.mock(return_value=Response(200, text=make_data_xml(first_value="99.5")))
+    second = await registry.call_tool("fetch_sdmx_to_database", args)
+    assert (second["new"], second["revised"], second["unchanged"]) == (0, 1, 2 * N_PERIODS - 1)
+
+    with sqlite3.connect(config.DB_FILE) as conn:
+        kind = conn.execute("SELECT type FROM sqlite_master WHERE name='cpi'").fetchone()[0]
+        stored = conn.execute("SELECT COUNT(*) FROM _statcan_observations").fetchone()[0]
+        (value,) = conn.execute(
+            "SELECT value FROM cpi WHERE \"Geography\"='Canada' AND period='1700'").fetchone()
+    assert kind == "view"
+    assert stored == 2 * N_PERIODS  # upserted, not duplicated
+    assert value == 99.5
+
+
+@pytest.mark.asyncio
+@respx.mock
+async def test_canonical_table_name_rejected(registry):
+    mock_sdmx(make_data_xml(first_value="0.0"))
+    result = await registry.call_tool(
+        "fetch_sdmx_to_database", {"productId": 18100004, "key": "1+2.1", "table_name": "_statcan_series"}
+    )
+    assert "canonical" in result["error"]

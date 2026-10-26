@@ -394,12 +394,32 @@ These tools are not available on the hosted Render server — SQLite is per-proc
 
 | Tool | Description |
 |---|---|
-| `fetch_sdmx_to_database` | Fetch SDMX observations (productId + key) and store all rows to SQLite — no row cap, rows stay out of context. |
-| `fetch_vectors_to_database` | Fetch vectors by reference period range and store to SQLite. |
+| `fetch_sdmx_to_database` | Fetch SDMX observations (productId + key) into the observation store — no row cap, rows stay out of context. `table_name` becomes a view. |
+| `fetch_vectors_to_database` | Fetch vectors by reference period range into the same store. `table_name` becomes a view. |
 | `store_cube_metadata` | Fetch full cube metadata into SQLite — browse all members and vectorIds with SQL. |
 | `query_database` | Read-only SQL against the local SQLite database. |
-| `create_table_from_data` / `insert_data` | Create or append to a table. |
-| `list_tables` / `get_table_schema` / `drop_table` | Database utilities. |
+| `create_table_from_data` / `insert_data` | Create or append to a table of your own data. |
+| `list_tables` / `get_table_schema` / `drop_table` | Database utilities (tables and views; `list_tables` also reports store size). |
+
+**Observation store.** Both fetch tools upsert into two shared tables, so data accumulates instead of being copied into a new table per call:
+
+| Table | One row per | Key columns |
+|---|---|---|
+| `_statcan_series` | series | `series_id` (`<productId>:<SDMX key>`, e.g. `18100004:2.2`), `product_id`, `vector_id`, `dims_json` (labels), `uom` |
+| `_statcan_observations` | series × period | `series_id`, `ref_date` (period start), `period` (`2026`, `2026-Q2`, `2026-08`), `value`, `status`, `source`, `fetched_at`, `release_time` |
+
+- Re-fetching updates values in place; each fetch reports how many observations were `new`, `revised` or `unchanged`.
+- An SDMX and a WDS fetch of the same series share rows (WDS coordinates map to the same SDMX key).
+- `table_name` is a view over the series and periods that call fetched, with the same columns as before (dimension labels, `period`, `value`, `VECTOR_ID`, `UOM`, ...).
+- Cross-table analysis needs no schema discovery:
+
+```sql
+-- Seasonal component: CPI not seasonally adjusted (18100004) minus seasonally adjusted (18100006)
+SELECT nsa.period, ROUND(nsa.value - sa.value, 2) AS seasonal
+FROM _statcan_observations nsa JOIN _statcan_observations sa USING (ref_date)
+WHERE nsa.series_id = '18100004:2.2' AND sa.series_id = '18100006:1.1'
+ORDER BY ref_date DESC;
+```
 
 ### Typical workflow
 
@@ -454,7 +474,7 @@ src/
 │       ├── download.py          # statcan download
 │       ├── vector.py            # statcan vector
 │       └── codeset.py           # statcan codeset
-├── db/                          # SQLite connection, schema, queries (stdio only)
+├── db/                          # SQLite: observation store (store.py), per-request SQL for query_sdmx (ephemeral.py), schema, queries
 ├── models/                      # Pydantic input models
 ├── util/
 │   ├── registry.py              # ToolRegistry — @decorator → MCP Tool schema

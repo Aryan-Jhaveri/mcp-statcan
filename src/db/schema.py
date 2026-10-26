@@ -9,18 +9,24 @@ from ..util.logger import log_data_validation_warning, log_sql_debug
 def build_table_statements(table_name: str, data: List[Dict[str, Any]]) -> Dict[str, Any]:
     """
     Builds CREATE/INSERT statements and row tuples for a list of dicts, without touching a database.
-    Column names are sanitized from the first item; each column's type is inferred from its
-    first non-null value. Shared by create_table_from_data and the ephemeral query engine.
+    Columns are the union of keys across all items (sanitized); each column's type is inferred
+    from its first non-null value. Shared by create_table_from_data and the ephemeral query engine.
 
     Returns a dict with create_sql, insert_sql, rows (list of tuples) and columns,
     or {"error": ...} if no valid columns were found.
     """
-    # Infer columns from the first data item; types from each column's first non-null value
+    # Columns are the union of keys across all items (first-seen order) — StatCan rows
+    # can carry observation-level attributes on only some rows. Types come from each
+    # column's first non-null value.
     columns_def = []
     valid_column_names = []  # Ordered list of sanitized column names
     seen_names = set()
-    first_item = data[0]
-    for col_name, value in first_item.items():
+    all_keys: Dict[str, None] = {}
+    for item in data:
+        for k in item:
+            all_keys.setdefault(k, None)
+    for col_name in all_keys:
+        value = data[0].get(col_name)
         safe_col_name = ''.join(c if c.isalnum() or c == '_' else '_' for c in col_name)
         if not safe_col_name or safe_col_name[0].isdigit() or not safe_col_name.isidentifier():
             log_data_validation_warning(f"Skipping column with potentially invalid original name: '{col_name}' -> '{safe_col_name}'")
@@ -41,7 +47,7 @@ def build_table_statements(table_name: str, data: List[Dict[str, Any]]) -> Dict[
         valid_column_names.append(safe_col_name)
 
     if not columns_def:
-        return {"error": "No valid columns found in the first data item after validation."}
+        return {"error": "No valid columns found in the data after validation."}
 
     create_sql = f'CREATE TABLE "{table_name}" ({", ".join(columns_def)})'
 

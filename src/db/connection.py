@@ -30,4 +30,6 @@ def get_db_connection() -> sqlite3.Connection:
             f"Set STATCAN_DB_FILE env var or pass --db-path to statcan-mcp-server."
         ) from exc
     conn.row_factory = sqlite3.Row
+    from .store import ensure_schema  # canonical series/observations tables (cheap no-op once migrated)
+    ensure_schema(conn)
     return conn
