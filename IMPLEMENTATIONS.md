@@ -1,10 +1,27 @@
 # Implementation Status & Roadmap
 
-*Updated October 24, 2026 · current release v0.12.0 · tracking issue [#75](https://github.com/Aryan-Jhaveri/mcp-statcan/issues/75)*
+*Updated October 26, 2026 · current release v0.13.0 · tracking issue [#75](https://github.com/Aryan-Jhaveri/mcp-statcan/issues/75)*
 
 ---
 
 ## What's Shipped
+
+### v0.13.0 — Canonical observation store (Oct 2026) · [#65](https://github.com/Aryan-Jhaveri/mcp-statcan/issues/65)
+
+- `src/db/store.py` adds `_statcan_series` and `_statcan_observations`.
+  - **Series** are keyed `<productId>:<SDMX key>` rather than `vectorId`: Census tables have no vectors, and WDS coordinates reduce to the same key.
+  - **Observations** are keyed by series and ISO period start date, with provenance (`source`, `source_url`, `fetched_at`, `release_time`).
+  - Created on connect and versioned with `PRAGMA user_version`.
+- `fetch_sdmx_to_database` and `fetch_vectors_to_database` **upsert** into the store and report `new` / `revised` / `unchanged`. An SDMX and a WDS fetch of one series share rows, and WDS keeps the SDMX dimension labels.
+- `table_name` becomes a **view** over the fetched series and periods. Views fetched earlier don't grow when wider ranges are fetched later.
+- Periods are stored as both a label (`2026`, `2026-Q2`, `2026-08`) and a start date (`ref_date`), so sources and frequencies align on joins.
+- `list_tables` lists views and store size. `drop_table` drops views. The store tables can't be dropped or replaced.
+- `create_table_from_data` / `query_sdmx` columns are the union of keys across rows, so observation-level flags are no longer dropped.
+- **Reliability** (found live):
+  - SDMX and WDS GETs retry timeouts and dropped connections. StatCan's structure endpoint intermittently hangs about 30 s, so DSD requests now time out after 20 s and retry.
+  - StatCan's malformed XML for an unmatched key now parses as an empty result.
+  - Empty transport-error messages now name the exception type.
+- Not yet in the store: `store_cube_metadata` still writes `_statcan_dimensions` / `_statcan_members` (see backlog).
 
 ### v0.12.0 — Correct SDMX data: XML instead of SDMX-JSON (Oct 2026) · [#90](https://github.com/Aryan-Jhaveri/mcp-statcan/issues/90)
 
@@ -87,7 +104,8 @@ StatCan's SDMX-JSON encodes series keys and attribute values as indices, and tho
 | Wildcards include totals | `.` returns every member, including totals and parent aggregates. Summing or ranking over them double-counts; use leaf codes (`get_sdmx_key_for_dimension`) |
 | `get_sdmx_data` caps inline rows at 500 | By design, to protect context. Use `query_sdmx` (hosted) or `fetch_sdmx_to_database` (local) for larger slices |
 | No per-query heap limit in `query_sdmx` | Python's `sqlite3` doesn't expose `sqlite3_hard_heap_limit64`. Mitigated by the 50k fetched-row cap, `SQLITE_LIMIT_LENGTH`, the 2 s timeout and the 4-query concurrency cap |
-| Columns from the first row in `query_sdmx` / `create_table_from_data` | Attributes absent from row 1 are dropped from the table. Rare with XML data; fixed properly by the canonical schema (#65) |
+| CLI re-fetches the DSD on every run | The structure cache is in-process, so each `statcan download` also downloads the table's DSD (e.g. 260 KB for CPI). The MCP server reuses it for an hour |
+| StatCan endpoint hangs | The structure endpoint occasionally hangs about 30 s before dropping the connection. Retried with a 20 s timeout, but a request can still take ~40 s in the worst case |
 | SSL verification on broken trust stores | On by default; `STATCAN_VERIFY_SSL=false` disables it |
 | `search_cubes_by_title`, `get_series_info` have no `outputSchema` | They return either a list or a dict; `structuredContent` must be an object. Needs a return-shape change |
 | Typed output is sent twice on the wire | Text + `structuredContent`, per the spec's backward-compatibility guidance. Watch whether any host feeds both to the model |
@@ -98,12 +116,11 @@ StatCan's SDMX-JSON encodes series keys and attribute values as indices, and tho
 
 Order from the tracking issue [#75](https://github.com/Aryan-Jhaveri/mcp-statcan/issues/75):
 
-1. **[#65](https://github.com/Aryan-Jhaveri/mcp-statcan/issues/65) Canonical `series` / `observations` schema.** One long-format store with provenance (`product_id`, `vector_id`, `release_time`, `fetched_at`) and upserts, replacing per-call tables with first-row type inference. Now safe to do, since attribute values are correct (#90). Introduce a small storage interface at the same time so the engine is swappable.
-2. **[#68](https://github.com/Aryan-Jhaveri/mcp-statcan/issues/68) DuckDB as an optional backend** for stdio and the CLI (`pip install statcan-mcp-server[duckdb]`), separate branch. Not for hosted persistence. Query CSV/Parquet in place. Needs `enable_external_access=false`, `lock_configuration=true` and a watchdog timeout if it ever runs untrusted SQL.
-3. **[#71](https://github.com/Aryan-Jhaveri/mcp-statcan/issues/71) MCP Apps (TypeScript `ui://` views).** Unblocked by #70: the Python server only needs to serve the bundled HTML resource and set `_meta.ui.resourceUri`. Candidates are a series chart/table, an SDMX key builder over `get_sdmx_structure`, and search results. DuckDB-WASM in the iframe is an option (verify host CSP first).
-4. **[#69](https://github.com/Aryan-Jhaveri/mcp-statcan/issues/69) HTTP-mode data handoff.** Short-lived download links / `resource_link` for large slices.
-5. **[#66](https://github.com/Aryan-Jhaveri/mcp-statcan/issues/66) Cache-aware refresh**, **[#67](https://github.com/Aryan-Jhaveri/mcp-statcan/issues/67) DB lifecycle**, **[#73](https://github.com/Aryan-Jhaveri/mcp-statcan/issues/73) shared CLI + MCP storage** (`statcan query`, `--to-db`). All build on #65.
-6. **[#74](https://github.com/Aryan-Jhaveri/mcp-statcan/issues/74) TUI explorer.** Low priority; only useful as a human → agent handoff that prints a reproducible command.
+1. **[#68](https://github.com/Aryan-Jhaveri/mcp-statcan/issues/68) DuckDB as an optional backend** for stdio and the CLI (`pip install statcan-mcp-server[duckdb]`), separate branch. Not for hosted persistence. Query CSV/Parquet in place. Needs `enable_external_access=false`, `lock_configuration=true` and a watchdog timeout if it ever runs untrusted SQL.
+2. **[#71](https://github.com/Aryan-Jhaveri/mcp-statcan/issues/71) MCP Apps (TypeScript `ui://` views).** Unblocked by #70: the Python server only needs to serve the bundled HTML resource and set `_meta.ui.resourceUri`. Candidates are a series chart/table, an SDMX key builder over `get_sdmx_structure`, and search results. DuckDB-WASM in the iframe is an option (verify host CSP first).
+3. **[#69](https://github.com/Aryan-Jhaveri/mcp-statcan/issues/69) HTTP-mode data handoff.** Short-lived download links / `resource_link` for large slices.
+4. **[#66](https://github.com/Aryan-Jhaveri/mcp-statcan/issues/66) Cache-aware refresh**, **[#67](https://github.com/Aryan-Jhaveri/mcp-statcan/issues/67) DB lifecycle**, **[#73](https://github.com/Aryan-Jhaveri/mcp-statcan/issues/73) shared CLI + MCP storage** (`statcan query`, `--to-db`). All build on the store from #65; #66 can use `revised` counts and `fetched_at`.
+5. **[#74](https://github.com/Aryan-Jhaveri/mcp-statcan/issues/74) TUI explorer.** Low priority; only useful as a human → agent handoff that prints a reproducible command.
 
 Decided against: **GraphQL**. Upstream is REST and the consumers are LLMs calling MCP tools; field selection is covered by `summary=True`, SDMX keys, composite tools and `outputSchema`.
 
@@ -112,6 +129,9 @@ Decided against: **GraphQL**. Upstream is REST and the consumers are LLMs callin
 ## Backlog
 
 ### Quality
+- [ ] `store_cube_metadata` → fill `_statcan_series` (all vectorIds + labels for a table) instead of separate `_statcan_members`
+- [ ] Persist the DSD cache on disk (e.g. `~/.statcan-mcp/cache/`) so CLI runs don't re-download it
+- [ ] DuckDB backend (#68) behind the same store functions (`upsert_*`, `create_series_view`)
 - [ ] Output schemas for `search_cubes_by_title` / `get_series_info` (normalize return shape)
 - [ ] Per-query memory cap for `query_sdmx` on hosted (process-wide `PRAGMA hard_heap_limit` in HTTP mode, or DuckDB `memory_limit`)
 - [ ] Retire or fix local `bump-version.sh` (it rewrites the first `vX.Y.Z` in `landing.py`, which is now an announcement; CI bumps don't touch `landing.py`)
@@ -143,7 +163,7 @@ flowchart TD
 
     L -->|WDS + SDMX| D
     L -->|WDS + SDMX| S
-    L -->|fetch_*_to_database\nquery_database| E["SQLite\n~/.statcan-mcp/statcan_data.db"]
+    L -->|fetch_*_to_database upserts\nquery_database| E["SQLite store\n_statcan_series + _statcan_observations\n~/.statcan-mcp/statcan_data.db"]
 
     C -->|WDS + SDMX| D
     C -->|SDMX| S
@@ -165,7 +185,7 @@ flowchart TD
 | Users | Claude.ai web, API, Cursor | Claude Desktop, Claude Code | People, agents with bash |
 | SDMX + WDS tools | Yes | Yes | `download`, `vector`, `metadata`, `search`, `codeset` |
 | Server-side SQL | `query_sdmx` (ephemeral) | `query_sdmx` + persistent `query_database` | — (planned: `statcan query`, #73) |
-| Persistent storage | No | SQLite | Files |
+| Persistent storage | No | SQLite observation store (upserts, views) | Files |
 | Structured output | `outputSchema` + `structuredContent` | Same | `--json` envelopes + exit codes |
 | MCP Prompts | Yes | Yes | — |
 
