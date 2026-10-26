@@ -60,7 +60,9 @@ class FetchSDMXToDatabaseInput(SDMXDataInput):
 def register_composite_tools(registry: ToolRegistry):
     """Register high-level composite tools that orchestrate multiple API + DB steps."""
 
-    @registry.tool()
+    @registry.tool(
+        annotations=ToolAnnotations(readOnlyHint=False, destructiveHint=True, idempotentHint=True, openWorldHint=True),
+    )
     async def fetch_vectors_to_database(input_data: FetchVectorsInput) -> Dict[str, Any]:
         """
         PREFERRED tool for multi-series analysis. Fetches data for multiple StatCan
@@ -259,7 +261,9 @@ def register_composite_tools(registry: ToolRegistry):
         }
 
 
-    @registry.tool()
+    @registry.tool(
+        annotations=ToolAnnotations(readOnlyHint=False, destructiveHint=True, idempotentHint=True, openWorldHint=True),
+    )
     async def store_cube_metadata(input_data: StoreCubeMetadataInput) -> Dict[str, Any]:
         """
         Fetches FULL metadata for a cube and stores it into two normalized SQLite

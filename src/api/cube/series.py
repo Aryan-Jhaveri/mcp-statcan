@@ -17,7 +17,7 @@ from ...models.api_models import (
 )
 from ...util.coordinate import pad_coordinate
 from ...util.logger import log_ssl_warning, log_data_validation_warning
-from ...util.registry import ToolRegistry
+from ...util.registry import READ_ONLY, ToolRegistry
 from ...util.truncation import truncate_with_guidance
 from ..client import NO_CHANGE_TODAY_MESSAGE, describe_request_error
 
@@ -120,7 +120,7 @@ def register_cube_series_tools(registry: ToolRegistry):
             except ValueError as exc:
                 raise ValueError(f"Error processing response for get_series_info_from_cube_pid_coord: {exc}")
 
-    @registry.tool()
+    @registry.tool(annotations=READ_ONLY)
     async def get_changed_series_data_from_cube_pid_coord(input_data: CubeCoordInput) -> Dict[str, Any]:
         """
         Get the data points of a series (by ProductId + Coordinate) that changed TODAY only.
@@ -294,7 +294,7 @@ def register_cube_series_tools(registry: ToolRegistry):
             except ValueError as exc:
                 raise ValueError(f"Error processing response for get_series_info_from_cube_pid_coord_bulk: {exc}")
 
-    @registry.tool()
+    @registry.tool(annotations=READ_ONLY)
     async def get_series_info(input_data: BulkCubeCoordInput) -> Union[List[Dict[str, Any]], Dict[str, Any]]:
         """
         Resolve one or more {productId, coordinate} pairs to series metadata
@@ -302,6 +302,8 @@ def register_cube_series_tools(registry: ToolRegistry):
 
         Use this to find vectorIds before fetching data with get_sdmx_data or
         get_sdmx_vector_data. Pass one item or many — same tool either way.
+        Each result already includes vectorId, frequencyCode, scalarFactorCode and
+        memberUomCode, so do not call get_series_info_from_vector for the same series.
         Coordinates are automatically padded to 10 dimensions.
         Corresponds to: POST /getSeriesInfoFromCubePidCoord (accepts array)
 
@@ -360,7 +362,7 @@ def register_cube_series_tools(registry: ToolRegistry):
             except ValueError as exc:
                 raise ValueError(f"Error processing response for get_series_info: {exc}")
 
-    @registry.tool()
+    @registry.tool(annotations=READ_ONLY)
     async def get_changed_cube_list(date: str) -> List[Dict[str, Any]]:
         """
         Get the list of data tables/cubes that were updated on a specific date (YYYY-MM-DD).

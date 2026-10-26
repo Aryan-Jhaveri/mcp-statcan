@@ -9,8 +9,18 @@ from ...config import BASE_URL, TIMEOUT_LARGE, VERIFY_SSL
 from ...models.api_models import CubeListInput, CubeSearchInput
 from ...util.cache import get_cached_cubes_list_lite
 from ...util.logger import log_ssl_warning, log_search_progress, log_data_validation_warning
-from ...util.registry import ToolRegistry
+from ...util.registry import READ_ONLY, ToolRegistry
 from ...util.truncation import truncate_response
+
+
+_SEARCH_FIELDS = ("productId", "cubeTitleEn", "cubeStartDate", "cubeEndDate", "frequencyCode", "releaseTime")
+
+
+def _slim_cube(cube: Dict[str, Any]) -> Dict[str, Any]:
+    """Search result fields: enough to pick a table; get_cube_metadata has the rest."""
+    slim = {k: cube.get(k) for k in _SEARCH_FIELDS}
+    slim["archived"] = cube.get("archived") == "1"  # WDS: "1" = archived, "2" = current
+    return slim
 
 
 def register_cube_discovery_tools(registry: ToolRegistry):
@@ -23,7 +33,7 @@ def register_cube_discovery_tools(registry: ToolRegistry):
             response.raise_for_status()
             return response.json()
 
-    @registry.tool()
+    @registry.tool(annotations=READ_ONLY)
     async def get_all_cubes_list(list_input: CubeListInput) -> Union[List[Dict[str, Any]], Dict[str, Any]]:
         """
         Provides a complete inventory of data tables available via the API,
@@ -48,7 +58,7 @@ def register_cube_discovery_tools(registry: ToolRegistry):
             except ValueError as exc:
                 raise ValueError(f"Error processing response for get_all_cubes_list: {exc}")
 
-    @registry.tool()
+    @registry.tool(annotations=READ_ONLY)
     async def get_all_cubes_list_lite(list_input: CubeListInput) -> Union[List[Dict[str, Any]], Dict[str, Any]]:
         """
         Provides a complete inventory of data tables available via the API,
@@ -73,15 +83,19 @@ def register_cube_discovery_tools(registry: ToolRegistry):
             except ValueError as exc:
                 raise ValueError(f"Error processing response for get_all_cubes_list_lite: {exc}")
 
-    @registry.tool()
-    async def search_cubes_by_title(search_input: CubeSearchInput) -> Union[List[Dict[str, Any]], Dict[str, Any]]:
+    @registry.tool(annotations=READ_ONLY)
+    async def search_cubes_by_title(search_input: CubeSearchInput) -> Dict[str, Any]:
         """
         Searches for data cubes/tables where the English or French title contains
-        the provided search term (case-insensitive). Returns a list of matching cubes
-        in the 'lite' format (excluding dimensions/footnotes).
+        the provided search term (case-insensitive).
 
         Multiple keywords use AND logic (e.g., "tobacco smoking age" finds cubes
         containing ALL three words). Results are capped at max_results (default 25).
+
+        Returns {"data": [...], "total_matches": N, "showing": M}. Each result has
+        productId, cubeTitleEn, cubeStartDate, cubeEndDate, frequencyCode, releaseTime
+        and archived (true = discontinued table). Current tables are listed first.
+        Use get_cube_metadata(productId) for dimensions and notes.
 
         IMPORTANT: In your final response to the user, you MUST cite the source of your data.
         For cubes, this means including the ProductId (pid) and the Title.
@@ -107,18 +121,24 @@ def register_cube_discovery_tools(registry: ToolRegistry):
             match_fr = all(term in title_fr for term in search_terms)
 
             if match_en or match_fr:
-                matching_cubes.append(cube)
+                matching_cubes.append(_slim_cube(cube))
+
+        # Current tables before archived ones; stable sort keeps catalogue order within each
+        matching_cubes.sort(key=lambda c: c["archived"])
 
         elapsed = time.time() - start_time
         total_found = len(matching_cubes)
         log_search_progress(f"Found {total_found} cubes matching keywords '{search_terms}' in {elapsed:.2f}s")
 
+        result: Dict[str, Any] = {
+            "data": matching_cubes[:max_results],
+            "total_matches": total_found,
+            "showing": min(total_found, max_results),
+        }
         if total_found > max_results:
-            return {
-                "data": matching_cubes[:max_results],
-                "total_matches": total_found,
-                "showing": max_results,
-                "message": f"Showing {max_results} of {total_found} matches. Increase max_results to see more.",
-            }
-        return matching_cubes
+            result["message"] = (
+                f"Showing {max_results} of {total_found} matches. "
+                "Add keywords to narrow, or increase max_results to see more."
+            )
+        return result
 

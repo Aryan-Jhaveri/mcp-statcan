@@ -63,3 +63,17 @@ class FullTableDownloadCSVInput(BaseModel):
 
 class FullTableDownloadSDMXInput(BaseModel):
     productId: int
+
+class CodeSetsInput(BaseModel):
+    code_set: Optional[str] = Field(
+        None,
+        description=(
+            "One code set to return in full: scalar, frequency, symbol, status, uom, survey, "
+            "subject, classificationType, securityLevel, terminated, wdsResponseStatus. "
+            "Omit for a summary (small sets in full, counts for large ones)."
+        ),
+    )
+    search: Optional[str] = Field(
+        None,
+        description="Case-insensitive text or code to filter entries of code_set (e.g. 'percent', '17').",
+    )

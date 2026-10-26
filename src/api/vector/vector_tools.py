@@ -12,7 +12,7 @@ from ...models.api_models import (
     VectorRangeInput,
 )
 from ...util.logger import log_data_validation_warning, log_ssl_warning
-from ...util.registry import ToolRegistry
+from ...util.registry import READ_ONLY, ToolRegistry
 from ...util.truncation import truncate_response
 from ..client import NO_CHANGE_TODAY_MESSAGE, describe_request_error
 
@@ -20,13 +20,14 @@ from ..client import NO_CHANGE_TODAY_MESSAGE, describe_request_error
 def register_vector_tools(registry: ToolRegistry):
     """Register all vector-related API tools with the MCP server."""
 
-    @registry.tool()
+    @registry.tool(annotations=READ_ONLY)
     async def get_series_info_from_vector(
         vector_input: VectorIdInput,
     ) -> Dict[str, Any]:
         """
         Request series metadata (productId, coordinate, titles, frequency, etc.)
-        by Vector ID. Disables SSL Verification.
+        by Vector ID. Use only when you start from a vectorId: get_series_info already
+        returns this metadata for series it resolved. Disables SSL Verification.
         Corresponds to: POST /getSeriesInfoFromVector
 
         Returns:
@@ -220,7 +221,7 @@ def register_vector_tools(registry: ToolRegistry):
                     f"Error processing response for get_data_from_vector_by_reference_period_range: {exc}"
                 )
 
-    @registry.tool()
+    @registry.tool(annotations=READ_ONLY)
     async def get_bulk_vector_data_by_range(
         bulk_range_input: BulkVectorRangeInput,
     ) -> Union[List[Dict[str, Any]], Dict[str, Any]]:
@@ -349,7 +350,7 @@ def register_vector_tools(registry: ToolRegistry):
                     f"Error processing response for get_bulk_vector_data_by_range: {exc}"
                 )
 
-    @registry.tool()
+    @registry.tool(annotations=READ_ONLY)
     async def get_changed_series_data_from_vector(
         vector_input: VectorIdInput,
     ) -> Dict[str, Any]:
@@ -420,7 +421,7 @@ def register_vector_tools(registry: ToolRegistry):
                     f"Error processing response for get_changed_series_data_from_vector: {exc}"
                 )
 
-    @registry.tool()
+    @registry.tool(annotations=READ_ONLY)
     async def get_changed_series_list() -> List[Dict[str, Any]]:
         """
         Get the list of series (vectorId, productId, coordinate, releaseTime)

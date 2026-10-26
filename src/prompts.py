@@ -158,11 +158,11 @@ def get_prompt_text(name: str, args: dict) -> str:
             "  → Rows are capped at 500. Use a narrow key if you need fewer.\n"
             "\n"
             "Step 4 — Analyze the returned rows:\n"
-            '  result = get_sdmx_data(...)  # rows are in result["data"]\n'
-            '  rows = result["data"]\n'
-            "  cols = list(rows[0].keys()) if rows else []\n"
-            '  top10 = sorted(rows, key=lambda r: float(r.get("value","0") or 0), reverse=True)[:10]\n'
-            '  for r in top10: print(r.get("period"), r.get("value"))\n'
+            '  result = get_sdmx_data(...)  # observations grouped in result["series"]\n'
+            '  for s in result["series"]:\n'
+            '      obs = s["observations"]  # [period, value] pairs, numeric values\n'
+            '      print(s["_series_key"], obs[-1])\n'
+            "  # For ranking/growth across series, use query_sdmx instead\n"
             f"  # Goal: {goal}\n"
             "\n"
             "NOTE: wildcard (.) returns every member incl. totals; for sums/rankings use leaf codes (or_key)."

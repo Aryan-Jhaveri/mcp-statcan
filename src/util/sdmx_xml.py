@@ -22,10 +22,13 @@ import re
 import xml.etree.ElementTree as ET
 from typing import Any, Dict, List, Optional
 
+from .sql_helpers import to_number
+
 _STR = "{http://www.sdmx.org/resources/sdmxml/schemas/v2_1/structure}"
 _COM = "{http://www.sdmx.org/resources/sdmxml/schemas/v2_1/common}"
 _XML_LANG = "{http://www.w3.org/XML/1998/namespace}lang"
 _OBS_RESERVED = ("TIME_PERIOD", "OBS_VALUE")
+_MISSING = object()
 
 
 def _norm(component_id: str) -> str:
@@ -147,3 +150,34 @@ def flatten_sdmx_xml(data_xml: str, dsd: Dict[str, Any]) -> List[Dict[str, Any]]
             row.update({_norm(k): label(_norm(k), v) for k, v in o.items() if k not in _OBS_RESERVED})
             rows.append(row)
     return rows
+
+
+def group_rows_by_series(rows: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+    """Compact flat rows for tool output: fields that are constant within a series
+    (dimensions, VECTOR_ID, UOM, ...) appear once per series, followed by
+    "observations" as [period, value] pairs with numeric values. Fields that vary
+    within a series (e.g. a STATUS on some observations) become a third element:
+    [period, value, {field: label}].
+    """
+    by_key: Dict[str, List[Dict[str, Any]]] = {}
+    for row in rows:
+        by_key.setdefault(row.get("_series_key", ""), []).append(row)
+
+    series_list: List[Dict[str, Any]] = []
+    for series_rows in by_key.values():
+        first = series_rows[0]
+        constant = {
+            k: v
+            for k, v in first.items()
+            if k not in ("period", "value") and all(r.get(k, _MISSING) == v for r in series_rows)
+        }
+        observations: List[List[Any]] = []
+        for r in series_rows:
+            obs: List[Any] = [r.get("period"), to_number(r.get("value"))]
+            extra = {k: v for k, v in r.items() if k not in constant and k not in ("period", "value")}
+            if extra:
+                obs.append(extra)
+            observations.append(obs)
+        series_list.append({**constant, "observations": observations})
+    return series_list
+
