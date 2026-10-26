@@ -24,6 +24,8 @@ from ...config import (
     SDMX_BASE_URL,
     SDMX_DATA_XML_ACCEPT,
     SDMX_STRUCTURE_CACHE_TTL,
+    SDMX_SUMMARY_MAX_SERIES,
+    SDMX_SUMMARY_THRESHOLD,
     SDMX_STRUCTURE_TIMEOUT,
     SDMX_XML_ACCEPT,
 )
@@ -42,7 +44,7 @@ from ...models.sdmx_models import (
     SDMXVectorInput,
 )
 from ...util.registry import READ_ONLY as _READ_ONLY, ToolRegistry
-from ...util.sdmx_xml import check_sdmx_key, dataflow_id, flatten_sdmx_xml, group_rows_by_series, parse_dsd_labels
+from ...util.sdmx_xml import check_sdmx_key, dataflow_id, flatten_sdmx_xml, group_rows_by_series, parse_dsd_labels, summarize_series
 from ...util.sql_helpers import to_number
 from ...util.truncation import DEFAULT_MEMBER_LIMIT
 
@@ -258,9 +260,39 @@ async def fetch_sdmx_vector_rows(
     return rows, str(response.url)
 
 
-def _series_result(rows: List[Dict[str, Any]], sdmx_url: str, narrow_hint: str) -> Dict[str, Any]:
-    """Tool output for get_sdmx_data / get_sdmx_vector_data: rows capped at
-    MAX_SDMX_ROWS, then grouped so each series' constant fields appear once."""
+def _series_result(
+    rows: List[Dict[str, Any]],
+    sdmx_url: str,
+    narrow_hint: str,
+    full: bool = False,
+    query_hint: str = "",
+) -> Dict[str, Any]:
+    """Tool output for get_sdmx_data / get_sdmx_vector_data.
+
+    Above SDMX_SUMMARY_THRESHOLD observations (unless `full`), a summary of all rows:
+    every later turn re-reads a tool result, so large row dumps slow the whole
+    conversation (#139). Otherwise rows capped at MAX_SDMX_ROWS, grouped so each
+    series' constant fields appear once.
+    """
+    if not full and len(rows) > SDMX_SUMMARY_THRESHOLD:
+        all_series = group_rows_by_series(rows)
+        summary = summarize_series(all_series, SDMX_SUMMARY_MAX_SERIES)
+        shown = len(summary["series"])
+        return {
+            "_sdmx_url": sdmx_url,
+            "row_count": len(rows),
+            "series_count": len(all_series),
+            "summary": True,
+            **summary,
+            "_truncated": False,
+            "_message": (
+                f"Summary of {len(rows)} observations in {len(all_series)} series"
+                + (f" (first {shown} listed)" if shown < len(all_series) else "")
+                + f". {query_hint}For every observation pass full=true (max {MAX_SDMX_ROWS}), "
+                f"or narrow the request. {narrow_hint}"
+            ),
+        }
+
     truncated = len(rows) > MAX_SDMX_ROWS
     series = group_rows_by_series(rows[:MAX_SDMX_ROWS])
     result: Dict[str, Any] = {
@@ -351,8 +383,10 @@ def register_sdmx_tools(registry: ToolRegistry) -> None:
         values (null = suppressed). A third element {field: label} appears only on
         observations with their own attributes (e.g. a STATUS flag).
 
-        Observations are capped at MAX_SDMX_ROWS (500). For larger result sets,
-        narrow the key or use startPeriod/endPeriod/lastNObservations.
+        Over 100 observations, the result is a summary instead (summary=true): fields
+        shared by all series once in "common", varying dimensions in "varies", and per
+        series count, period_range, latest, min and max. Pass full=true for every
+        observation (capped at 500), or use query_sdmx to compute over all of them.
 
         Growth, percent change, averages, ranking or comparisons? Use query_sdmx instead
         of computing by hand from these values. Fetch each series and period range once:
@@ -373,6 +407,11 @@ def register_sdmx_tools(registry: ToolRegistry) -> None:
             sdmx_url,
             "Narrow your query with a more specific key, or use "
             "lastNObservations / startPeriod / endPeriod.",
+            full=data_input.full,
+            query_hint=(
+                "To compute over all of it (growth, ranking, averages), call query_sdmx with "
+                "the same productId, key and period, plus sql over table 'data'. "
+            ),
         )
 
     @registry.tool(output_model=SDMXQueryOutput, annotations=_READ_ONLY)
@@ -452,7 +491,8 @@ def register_sdmx_tools(registry: ToolRegistry) -> None:
         LIMITATION: StatCan rejects combining lastNObservations with startPeriod/endPeriod (returns 406).
 
         Output has the same shape as get_sdmx_data: one entry in "series" with its
-        constant fields once, then "observations" as [period, value] pairs.
+        constant fields once, then "observations" as [period, value] pairs. Over 100
+        observations it is a summary (latest, min, max) unless full=true.
 
         Growth, percent change or averages? Use query_sdmx instead of computing by hand.
 
@@ -466,7 +506,10 @@ def register_sdmx_tools(registry: ToolRegistry) -> None:
             vector_input.endPeriod,
         )
         return _series_result(
-            rows, sdmx_url, "Use lastNObservations or startPeriod/endPeriod to narrow the query."
+            rows,
+            sdmx_url,
+            "Use lastNObservations or startPeriod/endPeriod to narrow the query.",
+            full=vector_input.full,
         )
 
     @registry.tool(output_model=SDMXKeyForDimensionOutput, annotations=_READ_ONLY)

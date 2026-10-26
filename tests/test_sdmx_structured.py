@@ -69,7 +69,7 @@ async def _call(server, name, args):
 @respx.mock
 async def test_rows_tools():
     mock_sdmx(make_data_xml(first_value="0.0"))
-    meta, sc = await _call(_fresh_server(True), "get_sdmx_data", {"productId": 18100004, "key": "1+2.1"})
+    meta, sc = await _call(_fresh_server(True), "get_sdmx_data", {"productId": 18100004, "key": "1+2.1", "full": True})
     assert sc["row_count"] == 2 * N_PERIODS
     assert sc["_truncated"] is True
     assert meta.annotations.read_only_hint is True
@@ -84,7 +84,7 @@ async def test_rows_tools():
 @respx.mock
 async def test_rows_keep_observation_attributes_and_nulls():
     mock_sdmx(make_data_xml(first_value=None, obs_attr_on=(0, 1)))
-    _, sc = await _call(_fresh_server(True), "get_sdmx_data", {"productId": 18100004, "key": "1+2.1"})
+    _, sc = await _call(_fresh_server(True), "get_sdmx_data", {"productId": 18100004, "key": "1+2.1", "full": True})
     obs = sc["series"][0]["observations"]
     assert obs[0] == ["1700", None]
     assert obs[1] == ["1701", 1.0, {"STATUS_CAN": ".. = not available"}]
@@ -153,3 +153,41 @@ async def test_fetch_sdmx_to_database(tmp_path, monkeypatch):
     )
     assert sc["rows_inserted"] == 2 * N_PERIODS
     assert meta.annotations.destructive_hint is True
+
+
+@pytest.mark.asyncio
+@respx.mock
+async def test_large_result_is_summarized():
+    mock_sdmx(make_data_xml(first_value="0.0"))
+    _, sc = await _call(_fresh_server(True), "get_sdmx_data", {"productId": 18100004, "key": "1+2.1"})
+    assert sc["summary"] is True
+    assert sc["row_count"] == 2 * N_PERIODS and sc["series_count"] == 2
+    assert sc["period_range"] == ["1700", str(1700 + N_PERIODS - 1)]
+    assert sc["common"] == {"Products": "All-items", "UOM": "2002=100"}
+    assert sc["varies"] == {"Geography": {"count": 2, "values": ["Canada", "Ontario"]}}
+    canada = sc["series"][0]
+    assert canada["Geography"] == "Canada" and canada["count"] == N_PERIODS
+    assert canada["latest"] == [str(1700 + N_PERIODS - 1), float(N_PERIODS - 1)]
+    assert canada["min"] == ["1700", 0.0]
+    assert "observations" not in canada
+    assert "query_sdmx" in sc["_message"] and "full=true" in sc["_message"]
+
+
+@pytest.mark.asyncio
+@respx.mock
+async def test_vector_data_full_flag():
+    mock_sdmx(make_data_xml(first_value="0.0"), url=f"{SDMX_BASE_URL}vector/v41690973")
+    _, sc = await _call(_fresh_server(True), "get_sdmx_vector_data", {"vectorId": 41690973, "lastNObservations": 5})
+    # The mock ignores lastN, so 600 obs come back: summary unless full
+    assert sc["summary"] is True
+    _, sc = await _call(
+        _fresh_server(True), "get_sdmx_vector_data", {"vectorId": 41690973, "lastNObservations": 5, "full": True}
+    )
+    assert "summary" not in sc and sc["series"][0]["observations"]
+
+
+def test_full_only_on_row_tools():
+    _fresh_server(False)
+    props = {t.name: t.input_schema["properties"] for t in registry.get_tools()}
+    assert "full" in props["get_sdmx_data"] and "full" in props["get_sdmx_vector_data"]
+    assert "full" not in props["query_sdmx"] and "full" not in props["fetch_sdmx_to_database"]

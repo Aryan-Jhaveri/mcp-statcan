@@ -217,3 +217,45 @@ def group_rows_by_series(rows: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
         series_list.append({**constant, "observations": observations})
     return series_list
 
+
+
+_SUMMARY_DROP = ("DGUID",)  # per-geography ids; long and rarely what the agent needs
+
+
+def summarize_series(series_list: List[Dict[str, Any]], max_series: int, max_values: int = 10) -> Dict[str, Any]:
+    """Summary of group_rows_by_series output, for results too large to return in full.
+
+    Fields with the same value in every series go in "common" once; fields that vary
+    are listed under "varies" with their distinct values. Each of the first
+    `max_series` series keeps only its varying fields plus count, period range,
+    latest, min and max as [period, value].
+    """
+    fields = [k for k in series_list[0] if k != "observations" and k not in _SUMMARY_DROP] if series_list else []
+    common = {k: series_list[0][k] for k in fields if all(s.get(k, _MISSING) == series_list[0][k] for s in series_list)}
+    varies: Dict[str, Dict[str, Any]] = {}
+    for k in fields:
+        if k in common or k in ("_series_key", "VECTOR_ID"):
+            continue
+        distinct = list(dict.fromkeys(s.get(k) for s in series_list))
+        varies[k] = {"count": len(distinct), "values": distinct[:max_values]}
+
+    periods = [o[0] for s in series_list for o in s["observations"]]
+    summaries = []
+    for s in series_list[:max_series]:
+        obs = s["observations"]
+        entry = {k: v for k, v in s.items() if k != "observations" and k not in common and k not in _SUMMARY_DROP}
+        entry["count"] = len(obs)
+        entry["period_range"] = [obs[0][0], obs[-1][0]]
+        entry["latest"] = obs[-1][:2]
+        numeric = [o for o in obs if isinstance(o[1], (int, float))]
+        if numeric:
+            entry["min"] = min(numeric, key=lambda o: o[1])[:2]
+            entry["max"] = max(numeric, key=lambda o: o[1])[:2]
+        summaries.append(entry)
+
+    return {
+        "period_range": [min(periods), max(periods)] if periods else [],
+        "common": common,
+        "varies": varies,
+        "series": summaries,
+    }

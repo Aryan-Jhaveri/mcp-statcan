@@ -50,6 +50,9 @@ SDMX_DATA_XML_ACCEPT = "application/vnd.sdmx.structurespecificdata+xml;version=2
 SDMX_STRUCTURE_CACHE_TTL = 3600  # seconds; DSDs change only when a table is restructured
 SDMX_STRUCTURE_TIMEOUT = 20.0  # DSDs normally return in <1 s; fail fast on a hang and retry
 MAX_SDMX_ROWS = 500  # Safety cap for flattened SDMX rows
+# Above this many observations, get_sdmx_data returns a summary unless full=true (#139)
+SDMX_SUMMARY_THRESHOLD = 100
+SDMX_SUMMARY_MAX_SERIES = 10
 
 # Coordinate padding configuration
 EXPECTED_COORD_DIMENSIONS = 10

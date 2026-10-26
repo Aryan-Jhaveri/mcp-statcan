@@ -12,7 +12,7 @@ from ..db.connection import get_db_connection
 from ..db.store import create_series_view, upsert_sdmx_rows, upsert_wds_points
 from mcp.types import ToolAnnotations
 
-from ..models.sdmx_models import FetchSDMXToDatabaseOutput, SDMXDataInput
+from ..models.sdmx_models import FetchSDMXToDatabaseOutput, SDMXSliceInput
 from .sdmx.sdmx_tools import fetch_sdmx_rows
 
 
@@ -45,7 +45,7 @@ class FetchVectorsInput(BaseModel):
     )
 
 
-class FetchSDMXToDatabaseInput(SDMXDataInput):
+class FetchSDMXToDatabaseInput(SDMXSliceInput):
     table_name: str = Field(
         ...,
         description="Name of the SQLite table to create and populate. "
