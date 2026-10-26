@@ -6,7 +6,7 @@
     "build": "tsc && vite build",
     "typecheck": "tsc",
     "dev": "vite",
-    "test": "node --test test/"
+    "test": "node --test \"test/**/*.test.ts\""
   },
   "type": "module",
   "dependencies": {
