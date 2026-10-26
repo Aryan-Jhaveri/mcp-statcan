@@ -94,6 +94,42 @@ def parse_dsd_labels(structure_xml: str) -> Dict[str, Any]:
     return {"dimensions": [d for _, d in sorted(dims)], "labels": labels}
 
 
+_KEY_CODE_SAMPLE = 5
+
+
+def check_sdmx_key(key: str, dsd: Dict[str, Any], product_id: int) -> Optional[str]:
+    """Return why `key` doesn't fit the table's DSD, or None if it does.
+
+    StatCan's own errors don't say: too few positions is a 400 "Syntax error", too
+    many a 406 "Wrong date format", an unknown code in the first position hangs the
+    connection, and an unknown code elsewhere returns no rows.
+    """
+    dims = dsd["dimensions"]
+    template = ".".join(dims)
+    parts = key.split(".")
+    if len(parts) != len(dims):
+        return (
+            f"Key '{key}' has {len(parts)} position(s); table {product_id} has {len(dims)}: "
+            f"{template}. Use one position per dimension (empty = all members, "
+            f"codes joined by '+' for OR), e.g. '{'.'.join(['1'] + [''] * (len(dims) - 1))}'."
+        )
+    for pos, (part, dim) in enumerate(zip(parts, dims), start=1):
+        codes = dsd["labels"].get(dim)
+        if not part or codes is None:
+            continue
+        unknown = [c for c in part.split("+") if c not in codes]
+        if unknown:
+            # Numeric order puts totals (Canada, All-items) first, unlike DSD order
+            ordered = sorted(codes, key=lambda c: (not c.isdigit(), int(c) if c.isdigit() else 0, c))
+            sample = ", ".join(f"{c} ({codes[c]})" for c in ordered[:_KEY_CODE_SAMPLE])
+            return (
+                f"Unknown code(s) {', '.join(repr(c) for c in unknown)} at position {pos} ({dim}) "
+                f"of table {product_id}. {len(codes)} valid codes, e.g. {sample}. "
+                "See get_sdmx_structure for the full list."
+            )
+    return None
+
+
 def _parse_data(data_xml: str) -> ET.Element:
     """Parse a data message, tolerating StatCan's malformed empty result.
 

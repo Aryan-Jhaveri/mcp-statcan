@@ -15,6 +15,8 @@ import time
 import xml.etree.ElementTree as ET
 from typing import Any, Dict, List, Optional, Tuple
 
+import httpx
+
 from ...config import (
     MAX_CONCURRENT_EPHEMERAL_QUERIES,
     MAX_EPHEMERAL_ROWS,
@@ -40,7 +42,7 @@ from ...models.sdmx_models import (
     SDMXVectorInput,
 )
 from ...util.registry import READ_ONLY as _READ_ONLY, ToolRegistry
-from ...util.sdmx_xml import dataflow_id, flatten_sdmx_xml, group_rows_by_series, parse_dsd_labels
+from ...util.sdmx_xml import check_sdmx_key, dataflow_id, flatten_sdmx_xml, group_rows_by_series, parse_dsd_labels
 from ...util.sql_helpers import to_number
 from ...util.truncation import DEFAULT_MEMBER_LIMIT
 
@@ -198,12 +200,41 @@ async def fetch_sdmx_rows(
     """
     params = _period_params(last_n, start_period, end_period)
     url = f"{SDMX_BASE_URL}data/DF_{product_id}/{key}"
-    response, structure_xml = await asyncio.gather(
-        make_sdmx_get(url, params=params, headers={"Accept": SDMX_DATA_XML_ACCEPT}),
-        fetch_structure_xml(product_id),
+    data_task = asyncio.ensure_future(
+        make_sdmx_get(url, params=params, headers={"Accept": SDMX_DATA_XML_ACCEPT})
     )
-    rows = flatten_sdmx_xml(response.text, parse_dsd_labels(structure_xml))
+    try:
+        dsd = parse_dsd_labels(await fetch_structure_xml(product_id))
+        # A bad key can hang StatCan for over a minute, so stop the data request early
+        problem = check_sdmx_key(key, dsd, product_id)
+        if problem:
+            raise ValueError(problem)
+        try:
+            response = await data_task
+        except httpx.HTTPStatusError as exc:
+            raise _explain_rejection(exc) from exc
+    finally:
+        if not data_task.done():
+            data_task.cancel()
+        elif not data_task.cancelled():
+            data_task.exception()  # mark retrieved, so asyncio doesn't log it at GC
+    rows = flatten_sdmx_xml(response.text, dsd)
     return rows, str(response.url)
+
+
+def _explain_rejection(exc: httpx.HTTPStatusError) -> httpx.HTTPStatusError:
+    """Re-word StatCan's 400/406 for a key that already matches the DSD. Keeps the
+    exception type so callers (the CLI's exit codes) can still branch on status."""
+    status = exc.response.status_code
+    if status not in (400, 406):
+        return exc
+    return httpx.HTTPStatusError(
+        f"StatCan rejected the query (HTTP {status}) for {exc.request.url}. The key matches "
+        "the table's dimensions, so check the period format: '2024' (annual), "
+        "'2024-01' (monthly), '2024-Q1' (quarterly).",
+        request=exc.request,
+        response=exc.response,
+    )
 
 
 async def fetch_sdmx_vector_rows(
