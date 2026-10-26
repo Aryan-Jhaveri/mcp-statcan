@@ -1,0 +1,24 @@
+{
+  "name": "statcan-mcp-ui",
+  "version": "1.0.0",
+  "description": "MCP Apps views for the StatCan MCP server",
+  "scripts": {
+    "build": "tsc && vite build",
+    "typecheck": "tsc",
+    "dev": "vite",
+    "test": "node --test \"test/**/*.test.ts\""
+  },
+  "type": "module",
+  "dependencies": {
+    "@modelcontextprotocol/ext-apps": "2.0.3"
+  },
+  "devDependencies": {
+    "typescript": "7.0.2",
+    "vite": "8.3.5",
+    "vite-plugin-singlefile": "2.3.4"
+  },
+  "private": true,
+  "engines": {
+    "node": ">=22.18"
+  }
+}
