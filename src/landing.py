@@ -343,13 +343,13 @@ hr.section { border: none; border-top: 1px solid #CCCCCC; margin: 14px 0; }
     <div class="endpoint-box">
       <span class="label">MCP Endpoint</span><br>
       <div class="copy-row">
-        <code id="copy-endpoint">https://mcp-statcan.onrender.com/mcp</code>
+        <code id="copy-endpoint">https://mcp-statcan.com/mcp</code>
         <button type="button" class="copy-btn" data-copy="copy-endpoint">Copy</button>
       </div>
       <br>
       <span class="label">Health Check</span><br>
       <div class="copy-row">
-        <code id="copy-health">https://mcp-statcan.onrender.com/health</code>
+        <code id="copy-health">https://mcp-statcan.com/health</code>
         <button type="button" class="copy-btn" data-copy="copy-health">Copy</button>
       </div>
     </div>
@@ -361,7 +361,7 @@ hr.section { border: none; border-top: 1px solid #CCCCCC; margin: 14px 0; }
   "mcpServers": {
     "statcan": {
       "type": "http",
-      "url": "https://mcp-statcan.onrender.com/mcp"
+      "url": "https://mcp-statcan.com/mcp"
     }
   }
 }</pre>
@@ -374,7 +374,7 @@ hr.section { border: none; border-top: 1px solid #CCCCCC; margin: 14px 0; }
   "mcpServers": {
     "statcan": {
       "type": "http",
-      "url": "https://mcp-statcan.onrender.com/mcp"
+      "url": "https://mcp-statcan.com/mcp"
     }
   }
 }</pre>
@@ -383,7 +383,7 @@ hr.section { border: none; border-top: 1px solid #CCCCCC; margin: 14px 0; }
     <h3>Claude Code (command line)</h3>
     <div class="endpoint-box">
       <div class="copy-row">
-        <code id="copy-code-cli">claude mcp add --transport http statcan https://mcp-statcan.onrender.com/mcp</code>
+        <code id="copy-code-cli">claude mcp add --transport http statcan https://mcp-statcan.com/mcp</code>
         <button type="button" class="copy-btn" data-copy="copy-code-cli">Copy</button>
       </div>
     </div>

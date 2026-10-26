@@ -21,7 +21,13 @@
       }
     }
   ],
-  "websiteUrl": "https://github.com/Aryan-Jhaveri/mcp-statcan",
+  "remotes": [
+    {
+      "type": "streamable-http",
+      "url": "https://mcp-statcan.com/mcp"
+    }
+  ],
+  "websiteUrl": "https://mcp-statcan.com",
   "icons": [
     {
       "src": "https://raw.githubusercontent.com/Aryan-Jhaveri/mcp-statcan/main/assets/logo.svg",
