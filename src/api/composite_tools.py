@@ -1,9 +1,11 @@
 import httpx
 import sqlite3
+from urllib.parse import urlencode
 from typing import List, Dict, Any, Optional
 from pydantic import BaseModel, Field
 
 from ..util.registry import ToolRegistry
+from .client import make_get_request
 from ..config import BASE_URL, TIMEOUT_LARGE, TIMEOUT_MEDIUM, VERIFY_SSL
 from ..util.logger import log_ssl_warning, log_data_validation_warning
 from ..db.connection import get_db_connection
@@ -113,17 +115,15 @@ def register_composite_tools(registry: ToolRegistry):
         if input_data.endRefPeriod:
             params["endReferencePeriod"] = input_data.endRefPeriod
 
-        # Fetch data from StatCan API
-        async with httpx.AsyncClient(base_url=BASE_URL, timeout=TIMEOUT_LARGE, verify=VERIFY_SSL) as client:
-            log_ssl_warning(f"SSL verification disabled for fetch_vectors_to_database.")
-            try:
-                response = await client.get("/getDataFromVectorByReferencePeriodRange", params=params)
-                response.raise_for_status()
-                result_list = response.json()
-            except httpx.RequestError as exc:
-                return {"error": f"Network error fetching vectors: {exc}"}
-            except Exception as exc:
-                return {"error": f"Unexpected error fetching vectors: {exc}"}
+        # Fetch data from StatCan API (retries 5xx/429, timeouts and dropped connections)
+        endpoint = "/getDataFromVectorByReferencePeriodRange"
+        source_url = f"{BASE_URL}{endpoint}?{urlencode(params)}"
+        try:
+            result_list = await make_get_request(endpoint, params=params, timeout=TIMEOUT_LARGE)
+        except httpx.HTTPStatusError as exc:
+            return {"error": f"StatCan returned HTTP {exc.response.status_code} fetching vectors."}
+        except httpx.TransportError as exc:
+            return {"error": f"Network error fetching vectors: {str(exc) or type(exc).__name__}"}
 
         if not isinstance(result_list, list):
             return {"error": f"Unexpected API response format (not a list): {type(result_list)}"}
@@ -150,7 +150,7 @@ def register_composite_tools(registry: ToolRegistry):
 
         try:
             with get_db_connection() as conn:
-                stored = upsert_wds_points(conn, vectors, source_url=str(response.url))
+                stored = upsert_wds_points(conn, vectors, source_url=source_url)
                 columns = create_series_view(conn, table_name, stored["series_ids"], stored["date_range"])
                 sample_size = input_data.sample_size or 5
                 sample = [dict(r) for r in conn.execute(f'SELECT * FROM "{table_name}" LIMIT ?', (sample_size,))]
