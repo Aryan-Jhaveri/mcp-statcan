@@ -69,3 +69,6 @@ cli.md
 docs/
 
 ~/src/api/cube_tools.py
+
+# MCP Apps UI build dependencies
+ui/node_modules/
