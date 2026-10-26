@@ -468,10 +468,9 @@ hr.section { border: none; border-top: 1px solid #CCCCCC; margin: 14px 0; }
       <tr class="even"><td class="tool-name">get_changed_series_list</td><td class="category">Change Detection</td><td>List all series with changes since a given date</td></tr>
       <tr class="odd"><td class="tool-name">get_sdmx_structure</td><td class="category">SDMX</td><td>Data Structure Definition as JSON: dimension positions and codelists with hierarchy</td></tr>
       <tr class="even"><td class="tool-name">get_sdmx_data</td><td class="category">SDMX</td><td>Server-side filtered observations by productId + SDMX key string</td></tr>
-      <tr class="odd"><td class="tool-name">get_sdmx_rows</td><td class="category">SDMX</td><td>Inline tabular rows (up to 500) returned directly in the tool response</td></tr>
-      <tr class="even"><td class="tool-name">query_sdmx</td><td class="category">SDMX + SQL</td><td>Fetch observations and run one read-only SQL query server-side in a temporary in-memory table; returns only the result (rank, compare, growth)</td></tr>
-      <tr class="odd"><td class="tool-name">get_sdmx_vector_data</td><td class="category">SDMX</td><td>Single vectorId observations via SDMX</td></tr>
-      <tr class="even"><td class="tool-name">get_sdmx_key_for_dimension</td><td class="category">SDMX</td><td>Returns the full OR-key for a large dimension (avoids wildcard sampling errors)</td></tr>
+      <tr class="odd"><td class="tool-name">query_sdmx</td><td class="category">SDMX + SQL</td><td>Fetch observations and run one read-only SQL query server-side in a temporary in-memory table; returns only the result (rank, compare, growth)</td></tr>
+      <tr class="even"><td class="tool-name">get_sdmx_vector_data</td><td class="category">SDMX</td><td>Single vectorId observations via SDMX</td></tr>
+      <tr class="odd"><td class="tool-name">get_sdmx_key_for_dimension</td><td class="category">SDMX</td><td>Returns the full OR-key for a large dimension (avoids wildcard sampling errors)</td></tr>
     </table>
 
     <hr class="section">

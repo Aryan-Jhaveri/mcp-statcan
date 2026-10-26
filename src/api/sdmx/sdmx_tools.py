@@ -7,7 +7,6 @@ Tools:
   get_sdmx_structure   — fetch Data Structure Definition (DSD) as JSON: dimensions + codelists
   get_sdmx_data        — fetch filtered observations by productId + key
   get_sdmx_vector_data — fetch observations for a single vectorId
-  get_sdmx_rows        — fetch rows inline always (use when building artifacts/widgets)
   query_sdmx           — fetch + run one SQL query server-side, return only the result
 """
 
@@ -185,7 +184,7 @@ async def fetch_sdmx_rows(
 ) -> Tuple[List[Dict[str, Any]], str]:
     """Fetch SDMX data for productId + key and return (flattened rows, request URL).
 
-    Shared by get_sdmx_data, get_sdmx_rows, query_sdmx, fetch_sdmx_to_database and
+    Shared by get_sdmx_data, get_sdmx_vector_data, query_sdmx, fetch_sdmx_to_database and
     the statcan CLI. Rows are not capped — callers decide whether to truncate or
     store them. Data and structure are fetched concurrently; see util/sdmx_xml.py
     for why data comes as XML rather than SDMX-JSON.
@@ -324,42 +323,6 @@ def register_sdmx_tools(registry: ToolRegistry) -> None:
             result["_truncated"] = False
 
         return result
-
-    @registry.tool(output_model=SDMXRowsOutput, annotations=_READ_ONLY)
-    async def get_sdmx_rows(data_input: SDMXDataInput) -> Dict[str, Any]:
-        """
-        Fetch SDMX observations and always return rows inline — use this when you
-        need to embed data in an artifact or widget.
-
-        Use this tool when you need rows embedded directly in an artifact or widget:
-          - Building a chart, table, or widget artifact that needs data at construction time
-          - Sorting/filtering a small result set before embedding
-
-        Same key syntax and time parameters as get_sdmx_data — see that tool's
-        description for key construction rules and wildcard warnings.
-
-        Rows are capped at MAX_SDMX_ROWS. For large dimensions use
-        get_sdmx_key_for_dimension to build a precise OR key before calling this.
-
-        IMPORTANT: In your final response to the user, cite the _sdmx_url, table
-        productId, and key used.
-        """
-        rows, sdmx_url = await fetch_sdmx_rows(
-            data_input.productId,
-            data_input.key,
-            data_input.lastNObservations,
-            data_input.startPeriod,
-            data_input.endPeriod,
-        )
-
-        truncated = len(rows) > MAX_SDMX_ROWS
-        return {
-            "_sdmx_url": sdmx_url,
-            "row_count": len(rows),
-            "data": rows[:MAX_SDMX_ROWS],
-            "_truncated": truncated,
-            **({"_message": f"Capped at {MAX_SDMX_ROWS} rows (total: {len(rows)}). Narrow your key."} if truncated else {}),
-        }
 
     @registry.tool(output_model=SDMXQueryOutput, annotations=_READ_ONLY)
     async def query_sdmx(query_input: SDMXQueryInput) -> Dict[str, Any]:
