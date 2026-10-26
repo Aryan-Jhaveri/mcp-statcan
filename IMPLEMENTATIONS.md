@@ -108,7 +108,7 @@ StatCan's SDMX-JSON encodes series keys and attribute values as indices, and tho
 
 - SDMX tools: `get_sdmx_structure`, `get_sdmx_data`, `get_sdmx_rows`, `get_sdmx_vector_data`, `get_sdmx_key_for_dimension`
 - MCP prompts (`statcan-data-lookup`, `sdmx-key-builder`, …) in stdio and HTTP mode
-- Streamable HTTP transport (stateless) deployed at `mcp-statcan.onrender.com`; stdio for local clients
+- Streamable HTTP transport (stateless) deployed at `mcp-statcan.com`; stdio for local clients
 - WDS discovery, metadata, series resolution, change detection; vector tools
 - SQLite layer (`~/.statcan-mcp/statcan_data.db`, `--db-path` / `STATCAN_DB_FILE`); composite tools `fetch_vectors_to_database`, `store_cube_metadata`
 - `ToolRegistry` decorator → MCP Tool schema; 1-hour TTL cache for the cube list
@@ -174,7 +174,7 @@ Decided against: **GraphQL**. Upstream is REST and the consumers are LLMs callin
 
 ```mermaid
 flowchart TD
-    A[Claude.ai / Claude Desktop / Claude Code / Cursor] -->|Streamable HTTP| B["Hosted server\nmcp-statcan.onrender.com\nstateless, 18 tools"]
+    A[Claude.ai / Claude Desktop / Claude Code / Cursor] -->|Streamable HTTP| B["Hosted server\nmcp-statcan.com\nstateless, 18 tools"]
     A -->|stdio| L["Local server\nuvx statcan-mcp-server"]
     T[Agents with a shell / people] -->|bash| C["statcan CLI\n--json, exit codes"]
 

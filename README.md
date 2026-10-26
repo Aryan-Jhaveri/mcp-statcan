@@ -43,12 +43,12 @@ Connect directly to the public server on Render. No `uv`, no terminal, no local 
 **Claude Desktop / Claude.ai**
 1. Open **Settings → Connectors → Add Custom Connector**
 2. Name: `mcp-statcan`
-3. URL: `https://mcp-statcan.onrender.com/mcp`
+3. URL: `https://mcp-statcan.com/mcp`
 4. Save and restart
 
 **Claude Code**
 ```bash
-claude mcp add statcan --transport http https://mcp-statcan.onrender.com/mcp --scope global
+claude mcp add statcan --transport http https://mcp-statcan.com/mcp --scope global
 ```
 
 > The hosted server provides all WDS + SDMX tools. Database tools (SQLite) require local setup (Option 3) — they are intentionally excluded from the shared server.
@@ -131,11 +131,11 @@ statcan describe                                                  # machine-read
 
 **Claude Desktop** — Settings → Connectors → Add Custom Connector
 - Name: `mcp-statcan`
-- URL: `https://mcp-statcan.onrender.com/mcp`
+- URL: `https://mcp-statcan.com/mcp`
 
 **Claude Code**
 ```bash
-claude mcp add statcan --transport http https://mcp-statcan.onrender.com/mcp --scope global
+claude mcp add statcan --transport http https://mcp-statcan.com/mcp --scope global
 ```
 
 **Cursor** — `.cursor/mcp.json` (project) or `~/.cursor/mcp.json` (global):
@@ -143,7 +143,7 @@ claude mcp add statcan --transport http https://mcp-statcan.onrender.com/mcp --s
 {
   "mcpServers": {
     "statcan": {
-      "url": "https://mcp-statcan.onrender.com/mcp"
+      "url": "https://mcp-statcan.com/mcp"
     }
   }
 }
@@ -155,7 +155,7 @@ claude mcp add statcan --transport http https://mcp-statcan.onrender.com/mcp --s
   "servers": {
     "statcan": {
       "type": "http",
-      "url": "https://mcp-statcan.onrender.com/mcp"
+      "url": "https://mcp-statcan.com/mcp"
     }
   }
 }
@@ -227,7 +227,7 @@ Claude.ai (web) has no bash sandbox — it can't run shell commands. Instead, it
    get_sdmx_key_for_dimension(...)        → OR key for large dimensions
 
 2. Python script (data never enters context):
-   url = "https://mcp-statcan.onrender.com/files/sdmx/<pid>/<key>?lastNObservations=12"
+   url = "https://mcp-statcan.com/files/sdmx/<pid>/<key>?lastNObservations=12"
    → validate URL domain → write to ./statcan_<pid>.csv → print summary only
 
 3. Follow-up script (analysis from local file):

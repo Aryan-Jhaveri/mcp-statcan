@@ -10,6 +10,6 @@ services:
       - key: PORT
         generateValue: false
       - key: RENDER_BASE_URL
-        value: https://mcp-statcan.onrender.com
+        value: https://mcp-statcan.com
     healthCheckPath: /health
     plan: free
