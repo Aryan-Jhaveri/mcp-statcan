@@ -7,12 +7,12 @@ from ..util.registry import ToolRegistry
 from ..config import BASE_URL, TIMEOUT_LARGE, TIMEOUT_MEDIUM, VERIFY_SSL
 from ..util.logger import log_ssl_warning, log_data_validation_warning
 from ..db.connection import get_db_connection
+from ..db.store import create_series_view, upsert_sdmx_rows
 from ..db.schema import create_table_from_data
 from ..models.db_models import TableDataInput
 from mcp.types import ToolAnnotations
 
 from ..models.sdmx_models import FetchSDMXToDatabaseOutput, SDMXDataInput
-from ..util.sql_helpers import to_number
 from .sdmx.sdmx_tools import fetch_sdmx_rows
 
 
@@ -205,8 +205,16 @@ def register_composite_tools(registry: ToolRegistry):
                                     startPeriod="2020-01", table_name="cpi_by_province")
           4. query_database("SELECT ... FROM cpi_by_province ...") → analyze
 
-        Returns a compact summary: table name, columns, rows_inserted, series_count,
-        period range, a small sample, and the _sdmx_url.
+        Storage: observations are upserted into the shared store (_statcan_series +
+        _statcan_observations, one row per series and period, with source and fetch time),
+        and table_name becomes a VIEW over the series and periods this call fetched.
+        Re-fetching updates values in place; new/revised/unchanged report what changed.
+        For cross-table analysis, query the store directly, e.g.
+          SELECT o.period, o.value FROM _statcan_observations o
+          JOIN _statcan_series s USING (series_id) WHERE s.product_id = 18100004
+
+        Returns a compact summary: view name, columns, rows_inserted, series_count,
+        period range, new/revised/unchanged counts, a small sample, and the _sdmx_url.
 
         IMPORTANT: In your final response, cite the _sdmx_url, productId and key used.
         """
@@ -229,34 +237,31 @@ def register_composite_tools(registry: ToolRegistry):
                 "hint": "Check the key against get_sdmx_structure and widen the period range.",
             }
 
-        # SDMX-JSON returns values as strings ("124.3"); store them as REAL so SQL
-        # comparisons and aggregates are numeric rather than lexicographic.
-        for row in rows:
-            row["value"] = to_number(row.get("value"))
-
-        db_result = create_table_from_data(TableDataInput(table_name=table_name, data=rows))
-        if "error" in db_result:
-            return {
-                "error": f"Data fetched ({len(rows)} rows) but failed to store: {db_result['error']}",
-                "_sdmx_url": sdmx_url,
-                "rows_fetched": len(rows),
-                "sample": rows[:3],
-            }
+        try:
+            with get_db_connection() as conn:
+                stored = upsert_sdmx_rows(conn, input_data.productId, rows, sdmx_url)
+                columns = create_series_view(conn, table_name, stored["series_ids"], stored["date_range"])
+                sample_size = input_data.sample_size or 5
+                sample = [dict(r) for r in conn.execute(f'SELECT * FROM "{table_name}" LIMIT ?', (sample_size,))]
+        except ValueError as exc:  # e.g. table_name is a canonical store table
+            return {"error": str(exc), "_sdmx_url": sdmx_url}
+        except sqlite3.Error as exc:
+            return {"error": f"Data fetched ({len(rows)} rows) but failed to store: {exc}", "_sdmx_url": sdmx_url}
 
         periods = [r["period"] for r in rows if r.get("period") is not None]
-        # Count by corrected series key — StatCan's VECTOR_ID attribute indices are
-        # unreliable in multi-series SDMX-JSON responses.
-        series_keys = {r.get("_series_key") for r in rows if r.get("_series_key") is not None}
-        sample_size = input_data.sample_size or 5
         return {
-            "success": db_result["success"],
+            "success": f"Stored {len(rows)} observations for {len(stored['series_ids'])} series; "
+                       f"'{table_name}' is a view over them.",
             "_sdmx_url": sdmx_url,
             "table": table_name,
-            "columns": db_result.get("columns", []),
-            "rows_inserted": db_result.get("rows_inserted", len(rows)),
-            "series_count": len(series_keys),
+            "columns": columns,
+            "rows_inserted": len(rows),
+            "series_count": len(stored["series_ids"]),
             "period_range": [min(periods), max(periods)] if periods else None,
-            "sample": rows[:sample_size],
+            "new": stored["inserted"],
+            "revised": stored["revised"],
+            "unchanged": stored["unchanged"],
+            "sample": sample,
             "next_step": f"Use query_database to analyze: SELECT * FROM {table_name} LIMIT 10",
         }
 

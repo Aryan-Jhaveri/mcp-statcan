@@ -138,5 +138,8 @@ class FetchSDMXToDatabaseOutput(_OpenModel):
     rows_inserted: int
     series_count: int
     period_range: Optional[List[str]] = Field(None, description="[first_period, last_period]")
+    new: int = Field(..., description="Observations not previously stored.")
+    revised: int = Field(..., description="Stored observations whose value changed.")
+    unchanged: int = Field(..., description="Stored observations re-fetched with the same value.")
     sample: List[Dict[str, Any]]
     next_step: str
