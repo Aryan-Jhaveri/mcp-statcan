@@ -219,5 +219,5 @@ fetch_sdmx_rows(productId, key, period)            ─┐
   └─ fetch_structure_xml(pid)  (DSD, cached 1 h)     ├─ asyncio.gather
 flatten_sdmx_xml(data, parse_dsd_labels(dsd))      ─┘
   → rows: {<dimension labels>, _series_key, period, value, <attributes>}
-     used by get_sdmx_data / get_sdmx_rows / query_sdmx / fetch_sdmx_to_database / statcan download
+     used by get_sdmx_data / query_sdmx / fetch_sdmx_to_database / statcan download
 ```

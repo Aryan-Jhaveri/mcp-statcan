@@ -307,7 +307,6 @@ hr.section { border: none; border-top: 1px solid #CCCCCC; margin: 14px 0; }
 
     <div class="news-box">
       <strong>Announcements:</strong><br>
-      <span class="new-badge">NEW</span> v0.14.0 &mdash; interactive charts (MCP Apps): SDMX results render as a chart and table in Claude and other Apps hosts; the model gets a summary while the rows go to the view<br>
       <span class="new-badge">NEW</span> v0.13.0 &mdash; local installs: fetched data accumulates in one observation store (upserts with new/revised counts, shared across SDMX and WDS, cross-table joins); more resilient to StatCan timeouts<br>
       &bull; v0.12.0 &mdash; data correctness: SDMX data now read as XML; wildcards return every series (previously a partial set), and <tt>VECTOR_ID</tt>, <tt>DGUID</tt> and <tt>UOM</tt> are correct per row<br>
       &bull; v0.11.0 &mdash; <tt>statcan</tt> CLI for agents: <tt>--json</tt> envelopes, stable exit codes with hints, <tt>statcan describe</tt>; fixes for single-period monthly dates and frequency labels<br>
@@ -415,20 +414,6 @@ hr.section { border: none; border-top: 1px solid #CCCCCC; margin: 14px 0; }
       while the instance spins up. Subsequent requests are fast.
     </div>
 
-    <!-- MCP APPS VIEW -->
-    <h2>Interactive Charts (MCP Apps)</h2>
-    <p>
-      In hosts that support MCP Apps, <tt>get_sdmx_data</tt>, <tt>get_sdmx_vector_data</tt> and <tt>query_sdmx</tt>
-      open an interactive chart and table in the conversation. The model receives a short summary; the full rows go
-      to the view, so large results don&rsquo;t fill the model&rsquo;s context.
-    </p>
-    <div class="recording">
-      <img src="https://raw.githubusercontent.com/Aryan-Jhaveri/mcp-statcan/main/assets/mcp-app-series-view.png"
-           alt="Interactive MCP Apps view: Consumer Price Index line chart for five geographies with a hover tooltip, legend, Chart/Table tabs, Download CSV and Open source buttons"
-           width="760" loading="lazy">
-      <div class="caption">CPI for five geographies: crosshair tooltip, legend, table view, CSV download</div>
-    </div>
-
     <!-- CLI RECORDINGS -->
     <h2>Command-Line Interface</h2>
     <p>
@@ -483,10 +468,9 @@ hr.section { border: none; border-top: 1px solid #CCCCCC; margin: 14px 0; }
       <tr class="even"><td class="tool-name">get_changed_series_list</td><td class="category">Change Detection</td><td>List all series with changes since a given date</td></tr>
       <tr class="odd"><td class="tool-name">get_sdmx_structure</td><td class="category">SDMX</td><td>Data Structure Definition as JSON: dimension positions and codelists with hierarchy</td></tr>
       <tr class="even"><td class="tool-name">get_sdmx_data</td><td class="category">SDMX</td><td>Server-side filtered observations by productId + SDMX key string</td></tr>
-      <tr class="odd"><td class="tool-name">get_sdmx_rows</td><td class="category">SDMX</td><td>Inline tabular rows (up to 500) returned directly in the tool response</td></tr>
-      <tr class="even"><td class="tool-name">query_sdmx</td><td class="category">SDMX + SQL</td><td>Fetch observations and run one read-only SQL query server-side in a temporary in-memory table; returns only the result (rank, compare, growth)</td></tr>
-      <tr class="odd"><td class="tool-name">get_sdmx_vector_data</td><td class="category">SDMX</td><td>Single vectorId observations via SDMX</td></tr>
-      <tr class="even"><td class="tool-name">get_sdmx_key_for_dimension</td><td class="category">SDMX</td><td>Returns the full OR-key for a large dimension (avoids wildcard sampling errors)</td></tr>
+      <tr class="odd"><td class="tool-name">query_sdmx</td><td class="category">SDMX + SQL</td><td>Fetch observations and run one read-only SQL query server-side in a temporary in-memory table; returns only the result (rank, compare, growth)</td></tr>
+      <tr class="even"><td class="tool-name">get_sdmx_vector_data</td><td class="category">SDMX</td><td>Single vectorId observations via SDMX</td></tr>
+      <tr class="odd"><td class="tool-name">get_sdmx_key_for_dimension</td><td class="category">SDMX</td><td>Returns the full OR-key for a large dimension (avoids wildcard sampling errors)</td></tr>
     </table>
 
     <hr class="section">

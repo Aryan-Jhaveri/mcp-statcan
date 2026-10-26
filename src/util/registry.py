@@ -8,7 +8,6 @@ class ToolRegistry:
     def __init__(self):
         self._tools: List[Tool] = []
         self._handlers: Dict[str, Callable] = {}
-        self._app_summaries: Dict[str, Callable[[Dict[str, Any]], Dict[str, Any]]] = {}
 
     def tool(
         self,
@@ -17,7 +16,6 @@ class ToolRegistry:
         output_model: Optional[type] = None,
         meta: Optional[Dict[str, Any]] = None,
         annotations: Optional[ToolAnnotations] = None,
-        app_summary: Optional[Callable[[Dict[str, Any]], Dict[str, Any]]] = None,
     ):
         """Decorator to register a function as an MCP tool.
 
@@ -25,11 +23,8 @@ class ToolRegistry:
             schema is published as the tool's outputSchema, and the server returns the result
             as structuredContent alongside the JSON text block. The model documents the dict
             the tool already returns — tools keep returning plain dicts.
-        meta: Published as the tool's _meta (e.g. {"ui": {"resourceUri": "ui://..."}} for MCP Apps).
+        meta: Published as the tool's _meta.
         annotations: MCP ToolAnnotations hints (readOnlyHint, openWorldHint, ...).
-        app_summary: For tools with an MCP Apps view (meta ui.resourceUri): builds the
-            text content from the result when the client negotiated Apps, so the model
-            gets a summary while the full result goes to the view as structuredContent.
         """
         def decorator(func: Callable):
             nonlocal name, description
@@ -108,8 +103,6 @@ class ToolRegistry:
             
             self._tools.append(tool_def)
             self._handlers[tool_name] = func
-            if app_summary is not None:
-                self._app_summaries[tool_name] = app_summary
             return func
         return decorator
 
@@ -118,9 +111,6 @@ class ToolRegistry:
 
     def get_tool(self, name: str) -> Optional[Tool]:
         return next((t for t in self._tools if t.name == name), None)
-
-    def get_app_summary(self, name: str) -> Optional[Callable[[Dict[str, Any]], Dict[str, Any]]]:
-        return self._app_summaries.get(name)
 
     async def call_tool(self, name: str, arguments: Dict[str, Any] = None) -> Any:
         handler = self._handlers.get(name)

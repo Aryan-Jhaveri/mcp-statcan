@@ -67,10 +67,9 @@ async def _call(server, name, args):
 
 @pytest.mark.asyncio
 @respx.mock
-@pytest.mark.parametrize("tool", ["get_sdmx_data", "get_sdmx_rows"])
-async def test_rows_tools(tool):
+async def test_rows_tools():
     mock_sdmx(make_data_xml(first_value="0.0"))
-    meta, sc = await _call(_fresh_server(True), tool, {"productId": 18100004, "key": "1+2.1"})
+    meta, sc = await _call(_fresh_server(True), "get_sdmx_data", {"productId": 18100004, "key": "1+2.1"})
     assert sc["row_count"] == 2 * N_PERIODS
     assert sc["_truncated"] is True
     assert meta.annotations.read_only_hint is True

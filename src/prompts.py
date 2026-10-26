@@ -153,12 +153,12 @@ def get_prompt_text(name: str, args: dict) -> str:
             "  → Only the SQL result enters context; no 500-row cap on the fetch.\n"
             "\n"
             "Step 3b — Need the rows themselves (chart, table, artifact)? Fetch inline:\n"
-            '  get_sdmx_rows(productId=<product-id>, key="<key>", lastNObservations=12)\n'
+            '  get_sdmx_data(productId=<product-id>, key="<key>", lastNObservations=12)\n'
             "  → Returns rows directly in the tool response — no external fetch needed.\n"
             "  → Rows are capped at 500. Use a narrow key if you need fewer.\n"
             "\n"
             "Step 4 — Analyze the returned rows:\n"
-            '  result = get_sdmx_rows(...)  # rows are in result["data"]\n'
+            '  result = get_sdmx_data(...)  # rows are in result["data"]\n'
             '  rows = result["data"]\n'
             "  cols = list(rows[0].keys()) if rows else []\n"
             '  top10 = sorted(rows, key=lambda r: float(r.get("value","0") or 0), reverse=True)[:10]\n'
@@ -204,8 +204,8 @@ def get_prompt_text(name: str, args: dict) -> str:
             '  statcan download <product-id> --key "1.1.1" --last 5 --dry-run   # preview SDMX URL before fetching\n'
             "\n"
             "INLINE ROWS VIA MCP TOOL (Claude.ai — use this instead of curl):\n"
-            '  get_sdmx_rows(productId=<product-id>, key="<key>", lastNObservations=12)\n'
-            '  get_sdmx_rows(productId=<product-id>, key="<key>", startPeriod="2020", endPeriod="2024")\n'
+            '  get_sdmx_data(productId=<product-id>, key="<key>", lastNObservations=12)\n'
+            '  get_sdmx_data(productId=<product-id>, key="<key>", startPeriod="2020", endPeriod="2024")\n'
             "  → Returns rows directly — no external URL fetch needed.\n"
             '  → Rows are capped at 500. result["data"] is the list of dicts.\n'
             "\n"
@@ -275,7 +275,7 @@ def get_prompt_text(name: str, args: dict) -> str:
             "  → Only the SQL result enters context.\n"
             "\n"
             "Step 2b — Need the rows themselves? Fetch inline via MCP tool:\n"
-            f'  get_sdmx_rows(productId={pid}, key="<key>", lastNObservations={last_n})\n'
+            f'  get_sdmx_data(productId={pid}, key="<key>", lastNObservations={last_n})\n'
             "  → Returns rows directly in the tool response — no external fetch needed.\n"
             '  → Rows are capped at 500. result["data"] is the list of dicts.\n'
             "\n"
@@ -365,7 +365,7 @@ def get_prompt_text(name: str, args: dict) -> str:
             "  → For large dims, call get_sdmx_key_for_dimension to get a narrow key first.\n"
             "\n"
             "Step 2 — Sample 3 periods to see column layout (MCP tool):\n"
-            f'  get_sdmx_rows(productId={pid}, key="<narrow-key>", lastNObservations=3)\n'
+            f'  get_sdmx_data(productId={pid}, key="<narrow-key>", lastNObservations=3)\n'
             "  → key from Step 1 — wildcards on large dims return many series; narrow for a sample.\n"
             '  → Returns rows in result["data"].\n'
             '  rows = result["data"]\n'
@@ -377,7 +377,7 @@ def get_prompt_text(name: str, args: dict) -> str:
             "\n"
             "Step 3 — Estimate size and decide.\n"
             "  If projected rows are too large, narrow the key further.\n"
-            "  Then call get_sdmx_rows with lastNObservations=12 for the full fetch."
+            "  Then call get_sdmx_data with lastNObservations=12 for the full fetch."
         )
 
     raise ValueError(f"Unknown prompt: {name}")
