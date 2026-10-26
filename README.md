@@ -29,6 +29,7 @@ MCP server and CLI for Statistics Canada's [Web Data Service (WDS)](https://www.
 - [Features & Tools](#features--tools)
 - [Project Structure](#project-structure)
 - [Known Issues](#known-issues)
+- [Contributors](#contributors)
 
 ---
 
@@ -384,8 +385,8 @@ Only the slice you request is returned. No downloading full tables.
 | `get_series_info_from_vector` | Resolve a vectorId to productId, coordinate, titles, frequency. |
 | `get_changed_cube_list` | Tables updated on a specific date. |
 | `get_changed_series_list` | Series updated today (available after 08:30 ET); for historical dates, use `get_changed_cube_list(date)`. |
-| `get_changed_series_data_from_cube_pid_coord` | Data points that changed for a coordinate. |
-| `get_changed_series_data_from_vector` | Data points that changed for a vectorId. |
+| `get_changed_series_data_from_cube_pid_coord` | Data points that changed **today** for a coordinate (`changed: false` before 08:30 ET or if unchanged). |
+| `get_changed_series_data_from_vector` | Data points that changed **today** for a vectorId (`changed: false` before 08:30 ET or if unchanged). |
 | `get_bulk_vector_data_by_range` | Multiple vectors filtered by release date range. |
 
 ### Composite & Database Tools *(local/stdio mode only)*
@@ -496,6 +497,17 @@ src/
 | **`lastNObservations` + `startPeriod`/`endPeriod` → 406** | Active | Use one or the other, not both |
 | **Wildcard/OR rows missing or mislabelled; wrong `VECTOR_ID`/`UOM`** | Fixed in v0.12.0 | Caused by StatCan's SDMX-JSON index encoding; data is now read as structure-specific XML ([#90](https://github.com/Aryan-Jhaveri/mcp-statcan/issues/90)) |
 | **Context overflow may cause data fabrication** | Mitigated | Use `query_sdmx` (hosted) or `fetch_sdmx_to_database` (local) so raw rows never enter context; `get_sdmx_data` caps inline rows at 500 |
+
+---
+
+## Contributors
+
+Thanks to everyone who has contributed code, fixes and bug reports:
+
+- [@Aryan-Jhaveri](https://github.com/Aryan-Jhaveri): creator and maintainer
+- [@dannyward630](https://github.com/dannyward630): fixed `get_changed_series_list` to use StatCan's undated endpoint ([#130](https://github.com/Aryan-Jhaveri/mcp-statcan/pull/130))
+
+Want to help? See [CONTRIBUTING.md](CONTRIBUTING.md).
 
 ---
 

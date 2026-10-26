@@ -76,6 +76,19 @@ async def make_sdmx_get(
                 raise
             await asyncio.sleep(min(1.0 * (2 ** attempt), 10.0))
 
+# getChangedSeriesData* return only today's changes and 404 when there are none
+NO_CHANGE_TODAY_MESSAGE = (
+    "No changes today for this series (or it does not exist). These endpoints return "
+    "only data changed today; StatCan publishes at 08:30 ET. For past releases use "
+    "get_changed_cube_list(date), or fetch the series with get_sdmx_vector_data."
+)
+
+
+def describe_request_error(exc: httpx.RequestError) -> str:
+    """httpx transport errors often have an empty message; name the type instead."""
+    return str(exc) or type(exc).__name__
+
+
 def extract_success_object(result_list: List[Dict[str, Any]], index: int = 0) -> Dict[str, Any]:
     """Extract the 'object' from a successful API response."""
     if result_list and isinstance(result_list, list) and len(result_list) > index:
