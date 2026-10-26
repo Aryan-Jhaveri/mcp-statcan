@@ -348,19 +348,6 @@ For the complete CLI reference see [src/cli/README.md](src/cli/README.md).
 
 ## Features & Tools
 
-### Interactive views (MCP Apps)
-
-In hosts that support [MCP Apps](https://modelcontextprotocol.io/community/seps/1865-mcp-apps-interactive-user-interfaces-for-mcp) (Claude, ChatGPT, VS Code, Goose, ...), `get_sdmx_data`, `get_sdmx_vector_data` and `query_sdmx` render an interactive chart and table right in the conversation. Works on the hosted server and locally.
-
-<img src="assets/mcp-app-series-view.png" alt="Interactive MCP Apps view: Consumer Price Index line chart for five geographies with a hover tooltip, legend, Chart/Table tabs, Download CSV and Open source buttons" width="800">
-
-- **The rows go to the view, not the model.** When the host renders the view, the model receives a short per-series summary (first, last, min, max) and the full rows go to the chart as `structuredContent`, which hosts keep out of the model's context. Hosts without MCP Apps keep getting the full rows as text.
-- **Chart and table**, crosshair tooltip, keyboard navigation, legend to choose up to 8 series at once, light and dark themes from the host.
-- **Download CSV** and **Open source** (the SDMX URL), when the host allows them.
-- **The model knows what you're looking at:** changing the visible series updates the model's context, so follow-up questions refer to the right lines.
-
-The view is a single self-contained HTML file built from [`ui/`](ui/) (TypeScript + [`@modelcontextprotocol/ext-apps`](https://github.com/modelcontextprotocol/ext-apps)) into `src/ui_views/`, which ships in the package. To change it: `cd ui && npm ci && npm test && npm run build`, then commit `src/ui_views/` (CI fails if it's stale).
-
 ### SDMX Tools — server-side filtered data fetch
 
 Only the slice you request is returned. No downloading full tables.
@@ -476,7 +463,6 @@ src/
 │   │   └── vector_tools.py      # vector series, bulk range fetch
 │   ├── sdmx/
 │   │   └── sdmx_tools.py        # get_sdmx_structure, get_sdmx_data, query_sdmx, get_sdmx_key_for_dimension
-│   ├── apps.py                  # MCP Apps: ui:// view resources, tool binding, summary-for-model
 │   ├── composite_tools.py       # fetch_sdmx_to_database, fetch_vectors_to_database, store_cube_metadata (stdio only)
 │   └── metadata_tools.py        # get_code_sets
 ├── cli/
@@ -495,10 +481,8 @@ src/
 │   ├── truncation.py            # Response truncation + pagination guidance
 │   ├── sdmx_xml.py              # SDMX-ML (structure-specific XML) → labelled tabular rows
 │   └── cache.py                 # 1-hour TTL cache for cube list
-├── ui_views/                    # built MCP Apps views (from ui/), shipped in the package
 ├── config.py                    # BASE_URL, SDMX_BASE_URL, RENDER_BASE_URL, TRANSPORT, PORT
 └── server.py                    # create_server(), MCP Prompts, resources, HTTP transport, CLI
-ui/                              # MCP Apps view source (TypeScript, Vite single-file build, node --test)
 ```
 
 ---
