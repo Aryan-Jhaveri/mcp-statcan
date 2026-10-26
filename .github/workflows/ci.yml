@@ -37,4 +37,8 @@ jobs:
       - name: Typecheck and build
         run: npm run build
       - name: Built view is up to date
-        run: git diff --exit-code -- ../src/ui_views || (echo "src/ui_views is stale: run 'npm run build' in ui/ and commit the result" && exit 1)
+        run: |
+          if ! git diff --exit-code -- ../src/ui_views; then
+            echo "src/ui_views is stale. Run 'npm run build' in ui/ and commit the result."
+            exit 1
+          fi
