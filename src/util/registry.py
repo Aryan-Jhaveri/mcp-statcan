@@ -8,6 +8,7 @@ class ToolRegistry:
     def __init__(self):
         self._tools: List[Tool] = []
         self._handlers: Dict[str, Callable] = {}
+        self._model_texts: Dict[str, Callable[[Dict[str, Any]], Any]] = {}
 
     def tool(
         self,
@@ -16,6 +17,7 @@ class ToolRegistry:
         output_model: Optional[type] = None,
         meta: Optional[Dict[str, Any]] = None,
         annotations: Optional[ToolAnnotations] = None,
+        model_text: Optional[Callable[[Dict[str, Any]], Any]] = None,
     ):
         """Decorator to register a function as an MCP tool.
 
@@ -25,6 +27,8 @@ class ToolRegistry:
             the tool already returns — tools keep returning plain dicts.
         meta: Published as the tool's _meta.
         annotations: MCP ToolAnnotations hints (readOnlyHint, openWorldHint, ...).
+        model_text: Builds the text content from a successful dict result, for tools whose
+            structuredContent is meant for a view rather than the model (render_view).
         """
         def decorator(func: Callable):
             nonlocal name, description
@@ -103,6 +107,8 @@ class ToolRegistry:
             
             self._tools.append(tool_def)
             self._handlers[tool_name] = func
+            if model_text is not None:
+                self._model_texts[tool_name] = model_text
             return func
         return decorator
 
@@ -111,6 +117,9 @@ class ToolRegistry:
 
     def get_tool(self, name: str) -> Optional[Tool]:
         return next((t for t in self._tools if t.name == name), None)
+
+    def get_model_text(self, name: str) -> Optional[Callable[[Dict[str, Any]], Any]]:
+        return self._model_texts.get(name)
 
     async def call_tool(self, name: str, arguments: Dict[str, Any] = None) -> Any:
         handler = self._handlers.get(name)

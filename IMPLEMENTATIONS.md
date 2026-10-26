@@ -6,6 +6,16 @@
 
 ## What's Shipped
 
+### Unreleased — agent-built views (`render_view`)
+
+Replaces the fixed series view from v0.14.0 (removed in #118: it forced one chart and swapped the model's rows for a summary).
+
+- **`render_view`** (hosted + stdio): the model writes the view (HTML/JS or a Vega-Lite v6 spec) and names datasets (`productId` + `key` / `vectorId`, optional server-side `sql`, or inline `rows`). The server fetches and binds them; the model gets columns, row counts and 3 sample rows, not every row.
+- **One renderer, two surfaces:** `ui://statcan/canvas.html` (MCP Apps, `_meta.ui.csp` allows four CDNs) and a standalone page with the payload embedded: `/views/<id>` on the hosted server (in-memory, ~1 h, size-bounded, `CSP: sandbox` → opaque origin) or `~/.statcan-mcp/views/*.html` locally.
+- **Bridge** (`window.statcan`): bound data, live `query`/`fetch`/`call` (host-proxied `tools/call` inline; direct stateless `/mcp` calls from hosted pages), `send` (`ui/message`), `download`, theme + palette tokens. Script errors go back to the model via `ui/update-model-context`.
+- **Registry:** `registry.tool(model_text=...)` builds the model's text from the result while `structuredContent` carries the full payload.
+- **Verified:** Python tests (`tests/test_canvas.py`, SDK `Client` + respx); UI unit tests; live checks against StatCan in headless Chrome: hosted pages (d3, Vega-Lite, error capture, live bridge from the opaque origin) and an `AppBridge` test host with a no-`unsafe-eval` CSP (handshake, tool proxy, `ui/message`, model-context errors, auto-resize, Vega interpreter).
+
 ### v0.14.0 — MCP Apps interactive view (Oct 2026) · [#71](https://github.com/Aryan-Jhaveri/mcp-statcan/issues/71)
 
 - **`ui://statcan/series-view.html`**, a self-contained HTML view built from `ui/`:
@@ -136,7 +146,7 @@ StatCan's SDMX-JSON encodes series keys and attribute values as indices, and tho
 Order from the tracking issue [#75](https://github.com/Aryan-Jhaveri/mcp-statcan/issues/75):
 
 1. **[#68](https://github.com/Aryan-Jhaveri/mcp-statcan/issues/68) DuckDB as an optional backend** for stdio and the CLI (`pip install statcan-mcp-server[duckdb]`), separate branch. Not for hosted persistence. Query CSV/Parquet in place. Needs `enable_external_access=false`, `lock_configuration=true` and a watchdog timeout if it ever runs untrusted SQL.
-2. **More MCP Apps views** (follow-ups to #71): an SDMX key builder over `get_sdmx_structure` (pick members, emit the key and the `statcan download` command), search results, and a bar view for ranked `query_sdmx` results without periods.
+2. **`render_view` follow-ups:** persist hosted views beyond restarts (only if needed), a `statcan-visualize` prompt with worked examples, and a key-builder view over `get_sdmx_structure`.
 3. **[#69](https://github.com/Aryan-Jhaveri/mcp-statcan/issues/69) HTTP-mode data handoff.** Short-lived download links / `resource_link` for large slices.
 4. **[#66](https://github.com/Aryan-Jhaveri/mcp-statcan/issues/66) Cache-aware refresh**, **[#67](https://github.com/Aryan-Jhaveri/mcp-statcan/issues/67) DB lifecycle**, **[#73](https://github.com/Aryan-Jhaveri/mcp-statcan/issues/73) shared CLI + MCP storage** (`statcan query`, `--to-db`). All build on the store from #65; #66 can use `revised` counts and `fetched_at`.
 5. **[#74](https://github.com/Aryan-Jhaveri/mcp-statcan/issues/74) TUI explorer.** Low priority; only useful as a human → agent handoff that prints a reproducible command.
@@ -174,7 +184,7 @@ Decided against: **GraphQL**. Upstream is REST and the consumers are LLMs callin
 
 ```mermaid
 flowchart TD
-    A[Claude.ai / Claude Desktop / Claude Code / Cursor] -->|Streamable HTTP| B["Hosted server\nmcp-statcan.com\nstateless, 18 tools"]
+    A[Claude.ai / Claude Desktop / Claude Code / Cursor] -->|Streamable HTTP| B["Hosted server\nmcp-statcan.com\nstateless, 19 tools"]
     A -->|stdio| L["Local server\nuvx statcan-mcp-server"]
     T[Agents with a shell / people] -->|bash| C["statcan CLI\n--json, exit codes"]
 
@@ -208,7 +218,7 @@ flowchart TD
 | Server-side SQL | `query_sdmx` (ephemeral) | `query_sdmx` + persistent `query_database` | — (planned: `statcan query`, #73) |
 | Persistent storage | No | SQLite observation store (upserts, views) | Files |
 | Structured output | `outputSchema` + `structuredContent` | Same | `--json` envelopes + exit codes |
-| Interactive view (MCP Apps) | Yes (chart + table; summary to the model) | Yes | — |
+| Model-built views (`render_view`) | Yes (inline MCP Apps + hosted link) | Yes (inline + local HTML file) | — |
 | MCP Prompts | Yes | Yes | — |
 
 ### Data path (SDMX)

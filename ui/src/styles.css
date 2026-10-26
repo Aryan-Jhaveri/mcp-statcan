@@ -1,0 +1,101 @@
+/* Design tokens for model-written views. Host style variables (--color-*, --font-*)
+   win when the host provides them; otherwise the fallbacks apply. The series colors
+   are a validated categorical palette, stepped separately for dark. */
+:root {
+  color-scheme: light;
+  --sc-bg: var(--color-background-primary, #fcfcfb);
+  --sc-surface: var(--color-background-secondary, #f4f3f0);
+  --sc-fg: var(--color-text-primary, #0b0b0b);
+  --sc-muted: var(--color-text-secondary, #52514e);
+  --sc-border: var(--color-border-primary, #dcdbd6);
+  --sc-accent: #d52b1e;
+  --sc-font: var(--font-sans, system-ui, -apple-system, "Segoe UI", sans-serif);
+  --sc-mono: var(--font-mono, ui-monospace, "SF Mono", Menlo, monospace);
+  --sc-series-1: #2a78d6;
+  --sc-series-2: #eb6834;
+  --sc-series-3: #1baf7a;
+  --sc-series-4: #eda100;
+  --sc-series-5: #e87ba4;
+  --sc-series-6: #008300;
+  --sc-series-7: #6250d6;
+  --sc-series-8: #e34948;
+}
+@media (prefers-color-scheme: dark) {
+  :root:where(:not([data-theme="light"])) {
+    color-scheme: dark;
+    --sc-bg: var(--color-background-primary, #1a1a19);
+    --sc-surface: var(--color-background-secondary, #242422);
+    --sc-fg: var(--color-text-primary, #f0efec);
+    --sc-muted: var(--color-text-secondary, #c3c2b7);
+    --sc-border: var(--color-border-primary, #3a3a37);
+    --sc-accent: #e8574b;
+    --sc-series-1: #3987e5;
+    --sc-series-2: #d95926;
+    --sc-series-3: #199e70;
+    --sc-series-4: #c98500;
+    --sc-series-5: #d55181;
+    --sc-series-6: #008300;
+    --sc-series-7: #9085e9;
+    --sc-series-8: #e66767;
+  }
+}
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --sc-bg: var(--color-background-primary, #1a1a19);
+  --sc-surface: var(--color-background-secondary, #242422);
+  --sc-fg: var(--color-text-primary, #f0efec);
+  --sc-muted: var(--color-text-secondary, #c3c2b7);
+  --sc-border: var(--color-border-primary, #3a3a37);
+  --sc-accent: #e8574b;
+  --sc-series-1: #3987e5;
+  --sc-series-2: #d95926;
+  --sc-series-3: #199e70;
+  --sc-series-4: #c98500;
+  --sc-series-5: #d55181;
+  --sc-series-6: #008300;
+  --sc-series-7: #9085e9;
+  --sc-series-8: #e66767;
+}
+
+html, body {
+  margin: 0;
+  background: var(--sc-bg);
+  color: var(--sc-fg);
+  font-family: var(--sc-font);
+  font-size: 14px;
+  line-height: 1.45;
+}
+#sc-root { padding: 16px; }
+.sc-vega { width: 100%; }
+
+/* Canvas chrome (status, errors, footer): kept small so the view is the model's */
+.sc-chrome { font: 12px/1.4 var(--sc-font); margin: 0; padding: 8px 16px; }
+#sc-status { color: var(--sc-muted); padding-top: 16px; }
+#sc-errors {
+  border-left: 3px solid var(--sc-accent);
+  background: var(--sc-surface);
+  color: var(--sc-fg);
+  font-family: var(--sc-mono);
+  margin: 8px 16px 0;
+  white-space: pre-wrap;
+}
+#sc-errors > div + div { margin-top: 4px; }
+#sc-footer {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 12px;
+  align-items: center;
+  color: var(--sc-muted);
+  border-top: 1px solid var(--sc-border);
+}
+#sc-footer a { color: inherit; }
+#sc-footer button {
+  font: inherit;
+  color: inherit;
+  background: none;
+  border: 1px solid var(--sc-border);
+  border-radius: 4px;
+  padding: 1px 8px;
+  cursor: pointer;
+}
+[hidden] { display: none !important; }

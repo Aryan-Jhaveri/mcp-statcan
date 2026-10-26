@@ -7,11 +7,14 @@ from mcp.types import (
     Icon,
     ImageContent,
     ListPromptsResult,
+    ListResourcesResult,
     ListToolsResult,
     Prompt,
     PromptArgument,
     PromptMessage,
+    ReadResourceResult,
     TextContent,
+    TextResourceContents,
     Tool,
 )
 import argparse
@@ -40,6 +43,7 @@ from . import config
 from .api.cube import register_cube_tools
 from .api.vector import register_vector_tools
 from .api.metadata_tools import register_metadata_tools
+from .api.canvas import APP_MIME_TYPE, EXTENSION_ID, list_view_resources, read_view, register_canvas_tools, resource_meta
 from .api.composite_tools import register_composite_tools
 from .api.sdmx import register_sdmx_tools
 from .db.queries import register_db_tools
@@ -71,6 +75,9 @@ def create_server(http_mode: bool = False):
         log_server_debug("Registering SDMX tools...")
         register_sdmx_tools(registry)
 
+        log_server_debug("Registering canvas tools...")
+        register_canvas_tools(registry, http_mode=http_mode)
+
         if not http_mode:
             log_server_debug("Registering db tools...")
             register_db_tools(registry)
@@ -98,7 +105,13 @@ def create_server(http_mode: bool = False):
             # non-ASCII such as French accents) is ~25-40% fewer characters than indent=2.
             if isinstance(result, (list, dict)):
                 import json
-                text = json.dumps(result, separators=(",", ":"), ensure_ascii=False, default=str)
+                # Tools whose structuredContent feeds a view (render_view) give the model a summary
+                model_text = registry.get_model_text(name)
+                if model_text is not None and isinstance(result, dict) and "error" not in result:
+                    shown = model_text(result)
+                else:
+                    shown = result
+                text = json.dumps(shown, separators=(",", ":"), ensure_ascii=False, default=str)
                 content = [TextContent(type="text", text=text)]
             elif result is None:
                 content = [TextContent(type="text", text="Tool executed successfully with no output.")]
@@ -124,6 +137,19 @@ def create_server(http_mode: bool = False):
                 content=[TextContent(type="text", text=f"Error: {str(e) or type(e).__name__}")],
                 is_error=True,
             )
+
+    # ── MCP Apps view (ui://statcan/canvas.html) for render_view ─────────
+    async def _on_list_resources(ctx, params) -> ListResourcesResult:
+        return ListResourcesResult(resources=list_view_resources())
+
+    async def _on_read_resource(ctx, params) -> ReadResourceResult:
+        uri = str(params.uri)
+        html = read_view(uri)
+        if html is None:
+            raise ValueError(f"Unknown resource: {uri}")
+        return ReadResourceResult(
+            contents=[TextResourceContents(uri=uri, mime_type=APP_MIME_TYPE, text=html, meta=resource_meta())]
+        )
 
     async def _on_list_prompts(ctx, params) -> ListPromptsResult:
         return ListPromptsResult(prompts=list(_PROMPTS.values()))
@@ -162,7 +188,11 @@ def create_server(http_mode: bool = False):
         on_call_tool=_on_call_tool,
         on_list_prompts=_on_list_prompts,
         on_get_prompt=_on_get_prompt,
+        on_list_resources=_on_list_resources,
+        on_read_resource=_on_read_resource,
     )
+    # Advertise MCP Apps support (SEP-2133 extension capability)
+    server.extensions[EXTENSION_ID] = {}
     log_server_debug("MCP Server instance created.")
 
     log_server_debug("Returning server instance from create_server.")
@@ -191,7 +221,7 @@ def _run_http(host: str, port: int):
         from starlette.applications import Starlette
         from starlette.middleware.cors import CORSMiddleware
         from starlette.requests import Request
-        from starlette.responses import JSONResponse, Response
+        from starlette.responses import HTMLResponse, JSONResponse, Response
         from starlette.routing import Mount, Route
     except ImportError as e:
         print(f"HTTP transport requires uvicorn and starlette: {e}", file=sys.stderr)
@@ -229,11 +259,32 @@ def _run_http(host: str, port: int):
             "license": "MIT",
         })
 
+    async def view_page(request: Request) -> Response:
+        """Standalone render_view page. Agent-written code: sandboxed to an opaque origin."""
+        from .api.canvas import view_store
+        html = view_store.get(request.path_params["view_id"])
+        headers = {
+            "Content-Security-Policy": "sandbox allow-scripts allow-popups allow-popups-to-escape-sandbox allow-downloads allow-modals allow-forms",
+            "Cache-Control": "no-store",
+            "X-Robots-Tag": "noindex",
+            "Referrer-Policy": "no-referrer",
+        }
+        if html is None:
+            return HTMLResponse(
+                "<!doctype html><meta charset=utf-8><title>View expired</title>"
+                "<p style='font-family:system-ui;margin:2rem'>This view has expired (views are kept for about an hour). "
+                "Ask the assistant to render it again.</p>",
+                status_code=404,
+                headers=headers,
+            )
+        return HTMLResponse(html, headers=headers)
+
     async def robots_txt(request: Request) -> Response:
         return Response(
             content=(
                 "User-agent: *\n"
                 "Disallow: /mcp/\n"
+                "Disallow: /views/\n"
                 "Allow: /\n"
                 "Allow: /health\n"
                 "Allow: /.well-known/\n"
@@ -282,6 +333,7 @@ def _run_http(host: str, port: int):
             Route("/health", health),
             Route("/robots.txt", robots_txt),
             Route("/.well-known/mcp.json", well_known_mcp),
+            Route("/views/{view_id}", view_page),
             Mount("/mcp", app=handle_mcp),
             *oauth_routes,
         ],

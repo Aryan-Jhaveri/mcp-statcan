@@ -348,6 +348,27 @@ For the complete CLI reference see [src/cli/README.md](src/cli/README.md).
 
 ## Features & Tools
 
+### Agent-built views — `render_view`
+
+The model designs the UI. It writes a view (any HTML/JS, or a Vega-Lite spec) and names the data it needs; the server fetches that data from StatCan and binds it into the page, so rows don't pass through the model's context to be drawn.
+
+- **Shows up everywhere:** inline in MCP Apps hosts (Claude, ChatGPT, VS Code, Goose), plus a `url` for every client: a page on the hosted server (kept about an hour) or a local HTML file in `~/.statcan-mcp/views/` (stdio).
+- **Any library:** d3, Observable Plot, Plotly, Chart.js, Leaflet, ... from cdn.jsdelivr.net, cdnjs, unpkg or esm.sh. Vega-Lite runs with Vega's CSP-safe interpreter.
+- **Data, shaped server-side:** each dataset is `productId` + `key` or a `vectorId`, with an optional `sql` (as in `query_sdmx`) to aggregate or pivot first, or inline `rows`. Rows get a numeric `value` and a parsed ISO `date`.
+- **A live bridge** (`window.statcan`): `statcan.data.<name>`, `statcan.query({...sql})` for live SQL when the user changes a control, `statcan.fetch`, `statcan.call(tool, args)`, `statcan.send(text)` to post a follow-up into the chat, `statcan.download`, theme + palette CSS variables (`--sc-*`).
+- **Self-correcting:** script errors are shown in the view and sent back to the model as context, so it can fix its code and re-render.
+
+```jsonc
+// render_view
+{
+  "title": "Shelter vs All-items CPI",
+  "html": "<svg id=c></svg><script src='https://cdn.jsdelivr.net/npm/d3@7.9.0'></script><script>/* draw statcan.data.cpi */</script>",
+  "data": { "cpi": { "productId": 18100004, "key": "2.2+79", "startPeriod": "2019-01" } }
+}
+```
+
+The renderer is one self-contained HTML file built from [`ui/`](ui/) (TypeScript + [`@modelcontextprotocol/ext-apps`](https://github.com/modelcontextprotocol/ext-apps)) into `src/ui_views/canvas.html`, which ships in the package. To change it: `cd ui && npm ci && npm test && npm run build`, then commit `src/ui_views/` (CI fails if it's stale). Hosted pages are served from an opaque origin (`Content-Security-Policy: sandbox`).
+
 ### SDMX Tools — server-side filtered data fetch
 
 Only the slice you request is returned. No downloading full tables.
@@ -463,6 +484,7 @@ src/
 │   │   └── vector_tools.py      # vector series, bulk range fetch
 │   ├── sdmx/
 │   │   └── sdmx_tools.py        # get_sdmx_structure, get_sdmx_data, query_sdmx, get_sdmx_key_for_dimension
+│   ├── canvas.py                # render_view: model-built views (MCP Apps ui:// + hosted/local links)
 │   ├── composite_tools.py       # fetch_sdmx_to_database, fetch_vectors_to_database, store_cube_metadata (stdio only)
 │   └── metadata_tools.py        # get_code_sets
 ├── cli/
@@ -481,8 +503,10 @@ src/
 │   ├── truncation.py            # Response truncation + pagination guidance
 │   ├── sdmx_xml.py              # SDMX-ML (structure-specific XML) → labelled tabular rows
 │   └── cache.py                 # 1-hour TTL cache for cube list
+├── ui_views/canvas.html         # built render_view renderer (from ui/), shipped in the package
 ├── config.py                    # BASE_URL, SDMX_BASE_URL, RENDER_BASE_URL, TRANSPORT, PORT
 └── server.py                    # create_server(), MCP Prompts, resources, HTTP transport, CLI
+ui/                              # render_view renderer source (TypeScript, Vite single-file build, node --test)
 ```
 
 ---

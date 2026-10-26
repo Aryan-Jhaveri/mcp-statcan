@@ -34,6 +34,9 @@ if _db_parent:
         pass  # Will be retried (with a real error) at connection time
 
 # API configuration
+# Standalone HTML pages written by render_view in stdio mode
+VIEWS_DIR = os.environ.get("STATCAN_VIEWS_DIR", os.path.join(_default_db_dir, "views"))
+
 BASE_URL = "https://www150.statcan.gc.ca/t1/wds/rest"
 TIMEOUT_SMALL = 30.0  # For simple queries
 TIMEOUT_MEDIUM = 60.0  # For list endpoints

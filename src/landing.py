@@ -290,7 +290,7 @@ hr.section { border: none; border-top: 1px solid #CCCCCC; margin: 14px 0; }
 
   <!-- STATUS BAR -->
   <div id="statusbar">
-    SERVER STATUS: ONLINE &nbsp;|&nbsp; VERSION %%VERSION%% &nbsp;|&nbsp; TOOLS: 18 REGISTERED
+    SERVER STATUS: ONLINE &nbsp;|&nbsp; VERSION %%VERSION%% &nbsp;|&nbsp; TOOLS: 19 REGISTERED
   </div>
 
   <!-- CONTENT -->

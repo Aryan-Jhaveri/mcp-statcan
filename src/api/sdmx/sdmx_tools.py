@@ -341,6 +341,9 @@ def register_sdmx_tools(registry: ToolRegistry) -> None:
         Rows are capped at MAX_SDMX_ROWS. For large dimensions use
         get_sdmx_key_for_dimension to build a precise OR key before calling this.
 
+        To show the user a chart, dashboard or other view, prefer render_view: it binds
+        the data into the page server-side, so the rows don't pass through your context.
+
         IMPORTANT: In your final response to the user, cite the _sdmx_url, table
         productId, and key used.
         """
