@@ -383,7 +383,7 @@ Only the slice you request is returned. No downloading full tables.
 | `get_series_info` | Resolve `{productId, coordinate}` pairs to vectorId + metadata. |
 | `get_series_info_from_vector` | Resolve a vectorId to productId, coordinate, titles, frequency. |
 | `get_changed_cube_list` | Tables updated on a specific date. |
-| `get_changed_series_list` | Series updated on a specific date. |
+| `get_changed_series_list` | Series updated today (available after 08:30 ET); for historical dates, use `get_changed_cube_list(date)`. |
 | `get_changed_series_data_from_cube_pid_coord` | Data points that changed for a coordinate. |
 | `get_changed_series_data_from_vector` | Data points that changed for a vectorId. |
 | `get_bulk_vector_data_by_range` | Multiple vectors filtered by release date range. |

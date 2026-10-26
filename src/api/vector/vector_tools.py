@@ -1,18 +1,18 @@
+from typing import Any, Dict, List, Optional, Union
+
 import httpx
-import datetime
-from typing import List, Dict, Any, Optional, Union
 from pydantic import BaseModel
 
-from ...util.registry import ToolRegistry
+from ...config import BASE_URL, TIMEOUT_LARGE, TIMEOUT_MEDIUM, VERIFY_SSL
 from ...models.api_models import (
+    DEFAULT_TRUNCATION_LIMIT,
+    BulkVectorRangeInput,
     VectorIdInput,
     VectorLatestNInput,
     VectorRangeInput,
-    BulkVectorRangeInput,
-    DEFAULT_TRUNCATION_LIMIT,
 )
-from ...config import BASE_URL, TIMEOUT_MEDIUM, TIMEOUT_LARGE, VERIFY_SSL
-from ...util.logger import log_ssl_warning, log_data_validation_warning
+from ...util.logger import log_data_validation_warning, log_ssl_warning
+from ...util.registry import ToolRegistry
 from ...util.truncation import truncate_response
 
 
@@ -57,7 +57,9 @@ def register_vector_tools(registry: ToolRegistry):
                 return result_list[0].get("object", {})
             api_message = (
                 result_list[0].get("object")
-                if result_list and isinstance(result_list, list) and len(result_list) > 0
+                if result_list
+                and isinstance(result_list, list)
+                and len(result_list) > 0
                 else "Unknown API Error or Malformed Response"
             )
             raise ValueError(
@@ -274,7 +276,9 @@ def register_vector_tools(registry: ToolRegistry):
                 per_vector["endDataPointReleaseDate"] = (
                     bulk_range_input.endDataPointReleaseDate
                 )
-            post_data = [{"vectorId": vid, **per_vector} for vid in bulk_range_input.vectorIds]
+            post_data = [
+                {"vectorId": vid, **per_vector} for vid in bulk_range_input.vectorIds
+            ]
             try:
                 response = await client.post(
                     "/getBulkVectorDataByRange", json=post_data
@@ -408,50 +412,58 @@ def register_vector_tools(registry: ToolRegistry):
                 )
 
     @registry.tool()
-    async def get_changed_series_list(date: str) -> List[Dict[str, Any]]:
+    async def get_changed_series_list() -> List[Dict[str, Any]]:
         """
         Get the list of series (vectorId, productId, coordinate, releaseTime)
-        that were updated on a specific date (YYYY-MM-DD).
+        updated today. Statistics Canada publishes this list after 08:30 ET; the
+        endpoint does not accept a date. For a historical release date, use
+        get_changed_cube_list(date) to list the cubes updated on that date.
         Disables SSL Verification.
-        Corresponds to: GET /getChangedSeriesList/{date}
+        Corresponds to: GET /getChangedSeriesList
 
         Returns:
             List[Dict[str, Any]]: A list of dictionaries describing changed series objects.
         Raises:
-            httpx.HTTPStatusError: If the API returns an error status code.
-            ValueError: If date format is invalid or API response format is unexpected.
-            Exception: For other network or unexpected errors.
+            Exception: If the API returns an unexpected status code or network error.
+            ValueError: If today's list has not been released or the response format is unexpected.
 
         IMPORTANT: In your final response to the user, you MUST cite the source of your data.
         For changed series, this means including the VectorId.
         """
-        try:
-            datetime.date.fromisoformat(date)  # Validate date format
-        except ValueError:
-            raise ValueError(
-                f"Invalid date format for get_changed_series_list. Expected YYYY-MM-DD, got {date}"
-            )
-
         async with httpx.AsyncClient(
             base_url=BASE_URL, timeout=TIMEOUT_MEDIUM, verify=VERIFY_SSL
         ) as client:
             log_ssl_warning("SSL verification disabled for get_changed_series_list.")
             try:
-                response = await client.get(f"/getChangedSeriesList/{date}")
+                response = await client.get("/getChangedSeriesList")
+                if response.status_code == 409:
+                    result = response.json()
+                    message = (
+                        result.get("message") if isinstance(result, dict) else None
+                    )
+                    if (
+                        isinstance(message, str)
+                        and message.casefold() == "the product is not released yet"
+                    ):
+                        raise ValueError(
+                            "No changed series have been released yet today; "
+                            "StatCan publishes this list at 08:30 ET. For a historical "
+                            "release date, use get_changed_cube_list(date)."
+                        )
+
                 response.raise_for_status()
                 result = response.json()  # API returns a single status/object wrapper
                 if isinstance(result, dict) and result.get("status") == "SUCCESS":
                     # The 'object' contains the list of changed series
                     return result.get("object", [])
-                else:
-                    api_message = (
-                        result.get("object", "Unknown API Error")
-                        if isinstance(result, dict)
-                        else "Malformed Response"
-                    )
-                    raise ValueError(
-                        f"API did not return SUCCESS status for get_changed_series_list date {date}: {api_message}"
-                    )
+                api_message = (
+                    result.get("object", "Unknown API Error")
+                    if isinstance(result, dict)
+                    else "Malformed Response"
+                )
+                raise ValueError(
+                    f"API did not return SUCCESS status for get_changed_series_list: {api_message}"
+                )
             except httpx.RequestError as exc:
                 raise Exception(f"Network error calling get_changed_series_list: {exc}")
             except (

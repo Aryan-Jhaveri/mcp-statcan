@@ -1,6 +1,8 @@
 """Landing page served at / for the HTTP deployment."""
 
-from importlib.metadata import version as _pkg_version, PackageNotFoundError as _PNF
+from importlib.metadata import PackageNotFoundError as _PNF
+from importlib.metadata import version as _pkg_version
+
 try:
     _SERVER_VERSION = _pkg_version("statcan-mcp-server")
 except _PNF:
@@ -465,7 +467,7 @@ hr.section { border: none; border-top: 1px solid #CCCCCC; margin: 14px 0; }
       <tr class="odd"><td class="tool-name">get_changed_series_data_from_vector</td><td class="category">Change Detection</td><td>Detect data changes for a vector since a given date</td></tr>
       <tr class="even"><td class="tool-name">get_changed_series_data_from_cube_pid_coord</td><td class="category">Change Detection</td><td>Detect changes for a specific series by coordinate</td></tr>
       <tr class="odd"><td class="tool-name">get_changed_cube_list</td><td class="category">Change Detection</td><td>List all tables with data changes since a given date</td></tr>
-      <tr class="even"><td class="tool-name">get_changed_series_list</td><td class="category">Change Detection</td><td>List all series with changes since a given date</td></tr>
+      <tr class="even"><td class="tool-name">get_changed_series_list</td><td class="category">Change Detection</td><td>List series updated today after 08:30 ET</td></tr>
       <tr class="odd"><td class="tool-name">get_sdmx_structure</td><td class="category">SDMX</td><td>Data Structure Definition as JSON: dimension positions and codelists with hierarchy</td></tr>
       <tr class="even"><td class="tool-name">get_sdmx_data</td><td class="category">SDMX</td><td>Server-side filtered observations by productId + SDMX key string</td></tr>
       <tr class="odd"><td class="tool-name">query_sdmx</td><td class="category">SDMX + SQL</td><td>Fetch observations and run one read-only SQL query server-side in a temporary in-memory table; returns only the result (rank, compare, growth)</td></tr>
@@ -582,4 +584,5 @@ _HTML = _HTML_TEMPLATE.replace("%%VERSION%%", _SERVER_VERSION)
 
 async def landing_page(request) -> object:
     from starlette.responses import HTMLResponse
+
     return HTMLResponse(content=_HTML)
