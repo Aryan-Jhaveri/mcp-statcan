@@ -97,6 +97,10 @@ def _cube(pid, title, archived):
         "cubeStartDate": "2000-01-01", "cubeEndDate": "2026-09-01", "frequencyCode": 6,
         "releaseTime": "2026-10-21T12:30", "archived": archived, "subjectCode": ["18"],
         "surveyCode": ["2301"], "corrections": [{"note": "long correction text"}],
+        "dimensions": [
+            {"dimensionNameEn": "Products and product groups", "dimensionPositionId": 2},
+            {"dimensionNameEn": "Geography", "dimensionPositionId": 1},
+        ],
     }
 
 
@@ -106,7 +110,7 @@ async def test_search_is_slim_current_first_and_always_an_envelope(server):
     from src.util import cache
 
     cache.invalidate_cache()
-    respx.get(f"{WDS}/getAllCubesListLite").mock(return_value=Response(200, json=[
+    respx.get(f"{WDS}/getAllCubesList").mock(return_value=Response(200, json=[
         _cube(1, "Consumer Price Index, old", "1"),
         _cube(2, "Consumer Price Index, monthly", "2"),
         _cube(3, "Labour force", "2"),
@@ -117,13 +121,35 @@ async def test_search_is_slim_current_first_and_always_an_envelope(server):
         assert [c["productId"] for c in result["data"]] == [2, 1]
         assert result["data"][1] == {
             "productId": 1, "cubeTitleEn": "Consumer Price Index, old", "cubeStartDate": "2000-01-01",
-            "cubeEndDate": "2026-09-01", "frequencyCode": 6, "releaseTime": "2026-10-21T12:30", "archived": True,
+            "cubeEndDate": "2026-09-01", "frequencyCode": 6, "releaseTime": "2026-10-21", "archived": True,
+            "key_template": "Geography.Products_and_product_groups",
         }
 
         # French titles still match; no matches is an envelope too
         assert (await registry.call_tool("search_cubes_by_title", {"search_term": "titre labour"}))["showing"] == 1
         empty = await registry.call_tool("search_cubes_by_title", {"search_term": "zzz"})
         assert empty == {"data": [], "total_matches": 0, "showing": 0}
+    finally:
+        cache.invalidate_cache()
+
+
+@pytest.mark.asyncio
+@respx.mock
+async def test_search_pages_and_templates_only_top_hits(server):
+    from src.util import cache
+
+    cache.invalidate_cache()
+    respx.get(f"{WDS}/getAllCubesList").mock(
+        return_value=Response(200, json=[_cube(i, f"Labour force {i}", "2") for i in range(1, 26)])
+    )
+    try:
+        first = await registry.call_tool("search_cubes_by_title", {"search_term": "labour"})
+        assert first["total_matches"] == 25 and first["showing"] == 10 and first["next_offset"] == 10
+        assert [("key_template" in c) for c in first["data"]] == [True] * 3 + [False] * 7
+
+        last = await registry.call_tool("search_cubes_by_title", {"search_term": "labour", "offset": 20})
+        assert [c["productId"] for c in last["data"]] == list(range(21, 26))
+        assert "next_offset" not in last and "message" not in last
     finally:
         cache.invalidate_cache()
 

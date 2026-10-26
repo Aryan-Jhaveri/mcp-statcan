@@ -1,5 +1,6 @@
 """Cube discovery tools — search and list cubes."""
 
+import re
 import time
 from typing import Dict, Any, List, Union
 
@@ -14,24 +15,44 @@ from ...util.truncation import truncate_response
 
 
 _SEARCH_FIELDS = ("productId", "cubeTitleEn", "cubeStartDate", "cubeEndDate", "frequencyCode", "releaseTime")
+_DATE_FIELDS = ("cubeStartDate", "cubeEndDate", "releaseTime")
+# Search results that also get the table's SDMX key layout, so the agent can often skip get_sdmx_structure
+_KEY_TEMPLATE_HITS = 3
 
 
-def _slim_cube(cube: Dict[str, Any]) -> Dict[str, Any]:
+def _cache_cube(cube: Dict[str, Any]) -> Dict[str, Any]:
+    """What search keeps from getAllCubesList: titles, dates, status and dimension names.
+    About 3 MB for the whole catalogue, versus 23 MB for the parsed full list."""
+    kept = {k: cube.get(k) for k in (*_SEARCH_FIELDS, "cubeTitleFr", "archived")}
+    dims = sorted(cube.get("dimensions") or [], key=lambda d: d.get("dimensionPositionId", 0))
+    # Same normalization as SDMX dimension ids (e.g. "Products and product groups" ->
+    # "Products_and_product_groups"), so the template matches key-error messages
+    kept["key_template"] = ".".join(re.sub(r"[^0-9A-Za-z_]", "_", d.get("dimensionNameEn", "")) for d in dims)
+    return kept
+
+
+def _slim_cube(cube: Dict[str, Any], with_key_template: bool = False) -> Dict[str, Any]:
     """Search result fields: enough to pick a table; get_cube_metadata has the rest."""
     slim = {k: cube.get(k) for k in _SEARCH_FIELDS}
+    for k in _DATE_FIELDS:
+        if isinstance(slim[k], str):
+            slim[k] = slim[k][:10]  # YYYY-MM-DD; the time of day doesn't help pick a table
     slim["archived"] = cube.get("archived") == "1"  # WDS: "1" = archived, "2" = current
+    if with_key_template and cube.get("key_template"):
+        slim["key_template"] = cube["key_template"]
     return slim
 
 
 def register_cube_discovery_tools(registry: ToolRegistry):
     """Register cube discovery tools."""
 
-    async def _fetch_all_cubes_list_lite_raw() -> List[Dict[str, Any]]:
-        """Raw API fetch for cache use — returns full unpaginated list."""
+    async def _fetch_search_catalogue() -> List[Dict[str, Any]]:
+        """Catalogue for the search cache. getAllCubesList rather than the lite list
+        for its dimension names (key_template); about 1.3 MB gzipped vs 0.9 MB."""
         async with httpx.AsyncClient(base_url=BASE_URL, timeout=TIMEOUT_LARGE, verify=VERIFY_SSL) as client:
-            response = await client.get("/getAllCubesListLite")
+            response = await client.get("/getAllCubesList")
             response.raise_for_status()
-            return response.json()
+            return [_cache_cube(c) for c in response.json()]
 
     @registry.tool(annotations=READ_ONLY)
     async def get_all_cubes_list(list_input: CubeListInput) -> Union[List[Dict[str, Any]], Dict[str, Any]]:
@@ -90,30 +111,28 @@ def register_cube_discovery_tools(registry: ToolRegistry):
         the provided search term (case-insensitive).
 
         Multiple keywords use AND logic (e.g., "tobacco smoking age" finds cubes
-        containing ALL three words). Results are capped at max_results (default 25).
+        containing ALL three words). Returns max_results matches (default 10) from offset.
 
-        Returns {"data": [...], "total_matches": N, "showing": M}. Each result has
-        productId, cubeTitleEn, cubeStartDate, cubeEndDate, frequencyCode, releaseTime
-        and archived (true = discontinued table). Current tables are listed first.
-        Use get_cube_metadata(productId) for dimensions and notes.
+        Returns {"data": [...], "total_matches": N, "showing": M, ?"next_offset"}. Each
+        result has productId, cubeTitleEn, cubeStartDate, cubeEndDate, frequencyCode,
+        releaseTime and archived (true = discontinued table); current tables come first.
+        The top 3 also have key_template: the table's SDMX dimensions in key order
+        (e.g. "Geography.Products_and_product_groups"), one key position each.
 
         IMPORTANT: In your final response to the user, you MUST cite the source of your data.
         For cubes, this means including the ProductId (pid) and the Title.
-
-        Raises:
-            httpx.HTTPStatusError: If the underlying API call fails.
-            Exception: For other network or unexpected errors during the fetch.
         """
         start_time = time.time()
         search_term = search_input.search_term
         max_results = search_input.max_results
+        offset = max(search_input.offset, 0)
         log_search_progress(f"Searching for cubes with title containing: '{search_term}'")
 
-        all_cubes_lite = await get_cached_cubes_list_lite(_fetch_all_cubes_list_lite_raw)
+        catalogue = await get_cached_cubes_list_lite(_fetch_search_catalogue)
 
         search_terms = search_term.lower().split()
         matching_cubes = []
-        for cube in all_cubes_lite:
+        for cube in catalogue:
             title_en = (cube.get("cubeTitleEn", "") or "").lower()
             title_fr = (cube.get("cubeTitleFr", "") or "").lower()
 
@@ -121,24 +140,27 @@ def register_cube_discovery_tools(registry: ToolRegistry):
             match_fr = all(term in title_fr for term in search_terms)
 
             if match_en or match_fr:
-                matching_cubes.append(_slim_cube(cube))
+                matching_cubes.append(cube)
 
         # Current tables before archived ones; stable sort keeps catalogue order within each
-        matching_cubes.sort(key=lambda c: c["archived"])
+        matching_cubes.sort(key=lambda c: c.get("archived") == "1")
 
         elapsed = time.time() - start_time
         total_found = len(matching_cubes)
         log_search_progress(f"Found {total_found} cubes matching keywords '{search_terms}' in {elapsed:.2f}s")
 
+        page = matching_cubes[offset:offset + max_results]
         result: Dict[str, Any] = {
-            "data": matching_cubes[:max_results],
+            "data": [
+                _slim_cube(c, with_key_template=offset + i < _KEY_TEMPLATE_HITS) for i, c in enumerate(page)
+            ],
             "total_matches": total_found,
-            "showing": min(total_found, max_results),
+            "showing": len(page),
         }
-        if total_found > max_results:
+        if offset + len(page) < total_found:
+            result["next_offset"] = offset + len(page)
             result["message"] = (
-                f"Showing {max_results} of {total_found} matches. "
-                "Add keywords to narrow, or increase max_results to see more."
+                f"Showing {offset + 1}-{offset + len(page)} of {total_found} matches. "
+                "Adding a keyword usually beats paging; otherwise pass offset=next_offset."
             )
         return result
-
