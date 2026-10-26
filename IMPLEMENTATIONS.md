@@ -1,10 +1,29 @@
 # Implementation Status & Roadmap
 
-*Updated October 26, 2026 · current release v0.13.0 · tracking issue [#75](https://github.com/Aryan-Jhaveri/mcp-statcan/issues/75)*
+*Updated October 26, 2026 · current release v0.14.0 · tracking issue [#75](https://github.com/Aryan-Jhaveri/mcp-statcan/issues/75)*
 
 ---
 
 ## What's Shipped
+
+### v0.14.0 — MCP Apps interactive view (Oct 2026) · [#71](https://github.com/Aryan-Jhaveri/mcp-statcan/issues/71)
+
+- **`ui://statcan/series-view.html`**, a self-contained HTML view built from `ui/`:
+  - Stack: TypeScript, Vite single-file build, `@modelcontextprotocol/ext-apps` 2.0.3. About 420 KB, 100 KB gzipped, no network access.
+  - Chart: canvas line chart with one y axis, crosshair tooltip, keyboard navigation, direct labels for ≤ 4 series, and up to 8 series at once using the validated categorical palette (light and dark steps). Colour follows the series.
+  - Table view; host theme; Download CSV (`downloadFile`) and Open source (`openLinks`).
+  - Fetches the table title through the server (`tools/call` → `get_sdmx_structure`) and reports visible series to the model (`ui/update-model-context`).
+- **Server:**
+  - Advertises `io.modelcontextprotocol/ui` and serves the view via `resources/list` / `resources/read` (`text/html;profile=mcp-app`).
+  - `get_sdmx_data`, `get_sdmx_vector_data` and `query_sdmx` carry `_meta.ui.resourceUri`.
+- **Summary for the model:** `registry.tool(app_summary=...)`. When the client negotiated Apps (`client_supports_apps`), the text content is a per-series summary and the full rows go only to the view as `structuredContent`.
+  - Verified over local **stateless HTTP** (the hosted mode): 947 vs 2,963 characters for 12 rows, growing with row count.
+  - Clients without Apps are unchanged. `query_sdmx` keeps its result text.
+- **Tests:**
+  - Python, with an Apps-capable SDK `Client`.
+  - UI unit tests (`node --test`).
+  - Browser harness (puppeteer-core): plays the host side of the protocol with live data, in light and dark themes, at 1/3/5/30 series. It caught clipped axis ticks, `[hidden]` overridden by CSS, and an edge label cut off.
+- **CI** (new `ci.yml`): pytest, UI tests, typecheck + build, and a check that `src/ui_views/` matches a fresh build.
 
 ### v0.13.0 — Canonical observation store (Oct 2026) · [#65](https://github.com/Aryan-Jhaveri/mcp-statcan/issues/65)
 
@@ -117,7 +136,7 @@ StatCan's SDMX-JSON encodes series keys and attribute values as indices, and tho
 Order from the tracking issue [#75](https://github.com/Aryan-Jhaveri/mcp-statcan/issues/75):
 
 1. **[#68](https://github.com/Aryan-Jhaveri/mcp-statcan/issues/68) DuckDB as an optional backend** for stdio and the CLI (`pip install statcan-mcp-server[duckdb]`), separate branch. Not for hosted persistence. Query CSV/Parquet in place. Needs `enable_external_access=false`, `lock_configuration=true` and a watchdog timeout if it ever runs untrusted SQL.
-2. **[#71](https://github.com/Aryan-Jhaveri/mcp-statcan/issues/71) MCP Apps (TypeScript `ui://` views).** Unblocked by #70: the Python server only needs to serve the bundled HTML resource and set `_meta.ui.resourceUri`. Candidates are a series chart/table, an SDMX key builder over `get_sdmx_structure`, and search results. DuckDB-WASM in the iframe is an option (verify host CSP first).
+2. **More MCP Apps views** (follow-ups to #71): an SDMX key builder over `get_sdmx_structure` (pick members, emit the key and the `statcan download` command), search results, and a bar view for ranked `query_sdmx` results without periods.
 3. **[#69](https://github.com/Aryan-Jhaveri/mcp-statcan/issues/69) HTTP-mode data handoff.** Short-lived download links / `resource_link` for large slices.
 4. **[#66](https://github.com/Aryan-Jhaveri/mcp-statcan/issues/66) Cache-aware refresh**, **[#67](https://github.com/Aryan-Jhaveri/mcp-statcan/issues/67) DB lifecycle**, **[#73](https://github.com/Aryan-Jhaveri/mcp-statcan/issues/73) shared CLI + MCP storage** (`statcan query`, `--to-db`). All build on the store from #65; #66 can use `revised` counts and `fetched_at`.
 5. **[#74](https://github.com/Aryan-Jhaveri/mcp-statcan/issues/74) TUI explorer.** Low priority; only useful as a human → agent handoff that prints a reproducible command.
@@ -129,6 +148,8 @@ Decided against: **GraphQL**. Upstream is REST and the consumers are LLMs callin
 ## Backlog
 
 ### Quality
+- [ ] Shrink the view bundle (420 KB): import only what `App` needs instead of `app-with-deps`, once the SDK exposes a lighter entry
+- [ ] Test the view in real hosts (Claude, ChatGPT, VS Code); the browser harness implements the protocol but isn't a host
 - [ ] `store_cube_metadata` → fill `_statcan_series` (all vectorIds + labels for a table) instead of separate `_statcan_members`
 - [ ] Persist the DSD cache on disk (e.g. `~/.statcan-mcp/cache/`) so CLI runs don't re-download it
 - [ ] DuckDB backend (#68) behind the same store functions (`upsert_*`, `create_series_view`)
@@ -187,6 +208,7 @@ flowchart TD
 | Server-side SQL | `query_sdmx` (ephemeral) | `query_sdmx` + persistent `query_database` | — (planned: `statcan query`, #73) |
 | Persistent storage | No | SQLite observation store (upserts, views) | Files |
 | Structured output | `outputSchema` + `structuredContent` | Same | `--json` envelopes + exit codes |
+| Interactive view (MCP Apps) | Yes (chart + table; summary to the model) | Yes | — |
 | MCP Prompts | Yes | Yes | — |
 
 ### Data path (SDMX)
