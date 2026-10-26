@@ -99,7 +99,7 @@ async def test_invalid_table_name(registry):
 async def test_get_sdmx_data_still_caps_rows(registry):
     mock_sdmx(make_data_xml())
 
-    result = await registry.call_tool("get_sdmx_data", {"productId": 18100004, "key": "1+2.1"})
+    result = await registry.call_tool("get_sdmx_data", {"productId": 18100004, "key": "1+2.1", "full": True})
 
     assert result["row_count"] == 2 * N_PERIODS
     assert sum(len(s["observations"]) for s in result["series"]) == config.MAX_SDMX_ROWS

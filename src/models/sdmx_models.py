@@ -6,7 +6,8 @@ class SDMXStructureInput(BaseModel):
     productId: int
 
 
-class SDMXDataInput(BaseModel):
+class SDMXSliceInput(BaseModel):
+    """productId + key + period: the request shared by data, query and store tools."""
     productId: int
     key: str = Field(
         ...,
@@ -30,7 +31,17 @@ class SDMXDataInput(BaseModel):
     )
 
 
-class SDMXQueryInput(SDMXDataInput):
+class SDMXDataInput(SDMXSliceInput):
+    full: bool = Field(
+        False,
+        description=(
+            "Return every observation (max 500). Default: results over 100 observations "
+            "come back as a per-series summary (latest, min, max, period range)."
+        ),
+    )
+
+
+class SDMXQueryInput(SDMXSliceInput):
     sql: str = Field(
         ...,
         description=(
@@ -53,6 +64,13 @@ class SDMXVectorInput(BaseModel):
     lastNObservations: Optional[int] = Field(
         None,
         description="Return only the last N observations (e.g. 5 for last 5 periods).",
+    )
+    full: bool = Field(
+        False,
+        description=(
+            "Return every observation (max 500). Default: results over 100 observations "
+            "come back as a per-series summary (latest, min, max, period range)."
+        ),
     )
 
 
@@ -79,9 +97,9 @@ class _OpenModel(BaseModel):
 
 class SDMXSeries(_OpenModel):
     """One series: its constant fields (dimension labels, VECTOR_ID, UOM, ...) once."""
-    series_key: str = Field(..., alias="_series_key", description="Dot-separated SDMX key of this series.")
-    observations: List[List[Any]] = Field(
-        ...,
+    series_key: Optional[str] = Field(None, alias="_series_key", description="Dot-separated SDMX key of this series.")
+    observations: Optional[List[List[Any]]] = Field(
+        None,
         description=(
             "[period, value] pairs; value is a number or null (suppressed). Observations with "
             "their own attributes add a third element {field: label}."
@@ -95,7 +113,7 @@ class SDMXRowsOutput(_OpenModel):
     series_count: int = Field(..., description="Number of series in `series`.")
     series: List[SDMXSeries] = Field(..., description="Observations grouped by series.")
     truncated: bool = Field(..., alias="_truncated", description="True if observations were capped at 500.")
-    message: Optional[str] = Field(None, alias="_message", description="Truncation guidance, when truncated.")
+    message: Optional[str] = Field(None, alias="_message", description="Summary or truncation guidance.")
 
 
 class SDMXQueryOutput(_OpenModel):
