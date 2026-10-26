@@ -1,0 +1,261 @@
+{
+  "schemaVersion": 1,
+  "origin": "remote",
+  "source": "https://raw.githubusercontent.com/postmanlabs/postman-plugin/main/",
+  "fetchedAt": "2026-10-26T06:51:07.780Z",
+  "etag": "W/\"30d2b857bb0e72aba778fc3fcc9e667ec6a27009a3fe2790be7077cef3bcf45c\"",
+  "skills": {
+    "api-engineer": {
+      "files": {
+        "SKILL.md": {
+          "source": "bd6a4b985511b3ce68c5d8837eb4f98b085bda28d1a7da68c6715b4a0dd5c642",
+          "written": "bd6a4b985511b3ce68c5d8837eb4f98b085bda28d1a7da68c6715b4a0dd5c642"
+        }
+      }
+    },
+    "ai-readiness": {
+      "files": {
+        "SKILL.md": {
+          "source": "ac93e38506048982897f70d47db53165759922dc050e8d8b51e54678ef208d25",
+          "written": "ac93e38506048982897f70d47db53165759922dc050e8d8b51e54678ef208d25"
+        }
+      }
+    },
+    "api-discovery": {
+      "files": {
+        "SKILL.md": {
+          "source": "c9d5257a4642b278cbd7f0b4f5c796da4bfde0b956ca93d96aaf4ef99a939f22",
+          "written": "c9d5257a4642b278cbd7f0b4f5c796da4bfde0b956ca93d96aaf4ef99a939f22"
+        },
+        "reference/orbit.md": {
+          "source": "792c6c96db431afb508435e60c1f957cbb6a629320b7b61c26a8f78d477844dc",
+          "written": "792c6c96db431afb508435e60c1f957cbb6a629320b7b61c26a8f78d477844dc"
+        }
+      }
+    },
+    "api-documentation": {
+      "files": {
+        "SKILL.md": {
+          "source": "4f01faa4a8b4acfc6e3d397a7063df3905e8f174bd740ab56300b30b51053c81",
+          "written": "4f01faa4a8b4acfc6e3d397a7063df3905e8f174bd740ab56300b30b51053c81"
+        },
+        "reference/rest-api-best-practices.md": {
+          "source": "af4f5bb2ec4f7ece778c3f9bf47743b3a3c7959ae19152b6f04b91587122a3c5",
+          "written": "af4f5bb2ec4f7ece778c3f9bf47743b3a3c7959ae19152b6f04b91587122a3c5"
+        }
+      }
+    },
+    "api-mocking": {
+      "files": {
+        "SKILL.md": {
+          "source": "39a04d60e23863eafe7893a8b6bd380d32263d22ac0ca7979074ba91fc222409",
+          "written": "39a04d60e23863eafe7893a8b6bd380d32263d22ac0ca7979074ba91fc222409"
+        }
+      }
+    },
+    "api-monitoring": {
+      "files": {
+        "SKILL.md": {
+          "source": "fe63b4d1015cede7b1fd242375ff3a179a8c405eb5af50770fa37e0aa6513085",
+          "written": "fe63b4d1015cede7b1fd242375ff3a179a8c405eb5af50770fa37e0aa6513085"
+        }
+      }
+    },
+    "api-simulation": {
+      "files": {
+        "SKILL.md": {
+          "source": "271b69bc61835b7aa08365d48d4064614aa108bef391d0b69b3bb118a10afb10",
+          "written": "271b69bc61835b7aa08365d48d4064614aa108bef391d0b69b3bb118a10afb10"
+        },
+        "reference/context_file.md": {
+          "source": "01b81e84bcad0c8f0ea9c44c80a524e603073aeb90b82ffd26173a73c63beb7b",
+          "written": "01b81e84bcad0c8f0ea9c44c80a524e603073aeb90b82ffd26173a73c63beb7b"
+        },
+        "reference/sim_yaml_schema.md": {
+          "source": "a80e83487165b16c1732f1ee3365785dc74e6a1c1123c324da571f53f8efa1c6",
+          "written": "a80e83487165b16c1732f1ee3365785dc74e6a1c1123c324da571f53f8efa1c6"
+        }
+      }
+    },
+    "api-testing": {
+      "files": {
+        "SKILL.md": {
+          "source": "5875263235d39428949f5d2d36ca9ddb0f01b59fb82829e52edaf8bde77138be",
+          "written": "5875263235d39428949f5d2d36ca9ddb0f01b59fb82829e52edaf8bde77138be"
+        }
+      }
+    },
+    "application-testing": {
+      "files": {
+        "SKILL.md": {
+          "source": "2531d4485bf5097313d9bc1ffefe22e432d7ba624d5f6c1973f3d7a945c44409",
+          "written": "2531d4485bf5097313d9bc1ffefe22e432d7ba624d5f6c1973f3d7a945c44409"
+        }
+      }
+    },
+    "bootstrap": {
+      "files": {
+        "SKILL.md": {
+          "source": "5b2dc72aa03334a6057c362154a4d59e63e9df8183f0b5ffd312580cc5982b0a",
+          "written": "5b2dc72aa03334a6057c362154a4d59e63e9df8183f0b5ffd312580cc5982b0a"
+        },
+        "reference/cli_installation.md": {
+          "source": "1542ad092d0b5a301dde216f01bc406495bad248415e1957a7d7e3d5660f734b",
+          "written": "1542ad092d0b5a301dde216f01bc406495bad248415e1957a7d7e3d5660f734b"
+        }
+      }
+    },
+    "ci-integration": {
+      "files": {
+        "SKILL.md": {
+          "source": "8726a8e7225e40e77253a2bbd4aeb36001af964275a931abff16c8c155cbf50f",
+          "written": "8726a8e7225e40e77253a2bbd4aeb36001af964275a931abff16c8c155cbf50f"
+        }
+      }
+    },
+    "collection-schema-v3": {
+      "files": {
+        "SKILL.md": {
+          "source": "95f2349ba42f46e8ea6fdb3b8f01297ddfea63817883fe859f9d213e23a10370",
+          "written": "95f2349ba42f46e8ea6fdb3b8f01297ddfea63817883fe859f9d213e23a10370"
+        },
+        "reference/environment.md": {
+          "source": "9b9fc2fe582596a9d2873476be63190a89042de2da30609cabb2c8ad0473f693",
+          "written": "9b9fc2fe582596a9d2873476be63190a89042de2da30609cabb2c8ad0473f693"
+        },
+        "reference/http.md": {
+          "source": "9db348b1ca9c0e6eba70f3864210df92de5aba5d1c8a4e9a8cc794fb73997787",
+          "written": "9db348b1ca9c0e6eba70f3864210df92de5aba5d1c8a4e9a8cc794fb73997787"
+        },
+        "reference/other_protocols.md": {
+          "source": "c27c63240d8608016c1c54a9200e63ca6bac9d77acc71712c9697189e2f62d6a",
+          "written": "c27c63240d8608016c1c54a9200e63ca6bac9d77acc71712c9697189e2f62d6a"
+        }
+      }
+    },
+    "datasets": {
+      "files": {
+        "SKILL.md": {
+          "source": "0845b92bc9149af595ad16b7a1ca3f004295da893a9ecea16a8a7ee30177bac7",
+          "written": "0845b92bc9149af595ad16b7a1ca3f004295da893a9ecea16a8a7ee30177bac7"
+        },
+        "reference/spreadsheets.md": {
+          "source": "c2a058263b3bfa12c453c11df9d24343d7274dbb338ed7ad99d9a82894f337f1",
+          "written": "c2a058263b3bfa12c453c11df9d24343d7274dbb338ed7ad99d9a82894f337f1"
+        }
+      }
+    },
+    "flows": {
+      "files": {
+        "SKILL.md": {
+          "source": "8768eca644a26e8e79e65a1134e80d2bbc3a517cb55e8ea6e6a38bd2f111cf6a",
+          "written": "8768eca644a26e8e79e65a1134e80d2bbc3a517cb55e8ea6e6a38bd2f111cf6a"
+        },
+        "reference/flow_cli_flags.md": {
+          "source": "aa75d1ad929351bc4ef37e96b2a1cfef80ec1cced0003242bd1129f00618e221",
+          "written": "aa75d1ad929351bc4ef37e96b2a1cfef80ec1cced0003242bd1129f00618e221"
+        }
+      }
+    },
+    "performance-testing": {
+      "files": {
+        "SKILL.md": {
+          "source": "7f76f94adcd2df847f59e8ad2a7e5bb71e3ad5772b928d6344e1c72a9a58b36a",
+          "written": "7f76f94adcd2df847f59e8ad2a7e5bb71e3ad5772b928d6344e1c72a9a58b36a"
+        },
+        "references/jmeter-import/README.md": {
+          "source": "7990ff904b234e40078d9ed29609f29b3c7df7340b77ef10618fd2fbc3aed3fd",
+          "written": "7990ff904b234e40078d9ed29609f29b3c7df7340b77ef10618fd2fbc3aed3fd"
+        },
+        "references/jmeter-import/import-report.md": {
+          "source": "76e83f73c932003294cdc7832c4c63071a0dde487a687cfbe9d4e68b6b9366a5",
+          "written": "76e83f73c932003294cdc7832c4c63071a0dde487a687cfbe9d4e68b6b9366a5"
+        },
+        "references/jmeter-import/mapping-table.md": {
+          "source": "f4dd409b97354fe68b870f6daf234b4e1d678d2c6d6fb074bd2aa75c8c6551d3",
+          "written": "f4dd409b97354fe68b870f6daf234b4e1d678d2c6d6fb074bd2aa75c8c6551d3"
+        },
+        "references/jmeter-import/postman-perf-capabilities.md": {
+          "source": "9791ef71c13bc3c55c60c3965f16743409ba1547a4dad1630c5b523c49b57c46",
+          "written": "9791ef71c13bc3c55c60c3965f16743409ba1547a4dad1630c5b523c49b57c46"
+        },
+        "references/jmeter-import/script-translation.md": {
+          "source": "0d3e4a91aabb136808c01d94fe8919d28286a3683d4a0b16ec5f2e1c413c81fc",
+          "written": "0d3e4a91aabb136808c01d94fe8919d28286a3683d4a0b16ec5f2e1c413c81fc"
+        }
+      }
+    },
+    "postman-mcp-server": {
+      "files": {
+        "SKILL.md": {
+          "source": "2e306eb4bd705b27a64ba48358e97eb0e5220b057807d74a0f196a85411ff5c1",
+          "written": "2e306eb4bd705b27a64ba48358e97eb0e5220b057807d74a0f196a85411ff5c1"
+        },
+        "references/docs.md": {
+          "source": "2cc306e7de00fa9bec323059b8909132b3006e50ff1d6aad041e492abf86309b",
+          "written": "2cc306e7de00fa9bec323059b8909132b3006e50ff1d6aad041e492abf86309b"
+        },
+        "references/learn.md": {
+          "source": "8c9ba33a56a35dbd11e44c762d476686017b6f666ae721bbc95a869cde1bae58",
+          "written": "8c9ba33a56a35dbd11e44c762d476686017b6f666ae721bbc95a869cde1bae58"
+        },
+        "references/mcp-limitations.md": {
+          "source": "953620dd3367af85616d3b4daa46dbfaec27cfec360e58268d1af0617ab3212a",
+          "written": "953620dd3367af85616d3b4daa46dbfaec27cfec360e58268d1af0617ab3212a"
+        },
+        "references/mock.md": {
+          "source": "68a3da1536218debc58d0efee1d0c675bf08d4fe26ed3ff39adb5cd44a00893a",
+          "written": "68a3da1536218debc58d0efee1d0c675bf08d4fe26ed3ff39adb5cd44a00893a"
+        },
+        "references/search.md": {
+          "source": "7e090b75ec025daa9110bbddd3243b19049c3da16d930397d422d88c87355c02",
+          "written": "7e090b75ec025daa9110bbddd3243b19049c3da16d930397d422d88c87355c02"
+        },
+        "references/security.md": {
+          "source": "4686052ba4902e80d7bc8d7aae2ad7bc132a3076e7f22b1f2f6d1f1ce99e2a4a",
+          "written": "4686052ba4902e80d7bc8d7aae2ad7bc132a3076e7f22b1f2f6d1f1ce99e2a4a"
+        },
+        "references/setup.md": {
+          "source": "8bda834d23ab125c3c556086972300d58b10f20c877a08e7b8236668f7bd6bf3",
+          "written": "8bda834d23ab125c3c556086972300d58b10f20c877a08e7b8236668f7bd6bf3"
+        },
+        "references/sync.md": {
+          "source": "427ffa5b02a888185e38c75efeece5e85c4418e2ebbfe45dfe937d3ee1ebd21e",
+          "written": "427ffa5b02a888185e38c75efeece5e85c4418e2ebbfe45dfe937d3ee1ebd21e"
+        },
+        "references/test.md": {
+          "source": "b8a0996727d8990a95dd767d88c984fbd6cc1c63b9cc7ad6029a6f4d1d102d02",
+          "written": "b8a0996727d8990a95dd767d88c984fbd6cc1c63b9cc7ad6029a6f4d1d102d02"
+        }
+      }
+    },
+    "variables": {
+      "files": {
+        "SKILL.md": {
+          "source": "b9d1c26d4d97bbfa7cf69d96c5d5f486c310c261daa05abc61e8369771e726b8",
+          "written": "b9d1c26d4d97bbfa7cf69d96c5d5f486c310c261daa05abc61e8369771e726b8"
+        }
+      }
+    },
+    "webhook-testing": {
+      "files": {
+        "SKILL.md": {
+          "source": "0f7b600d8c2a9954b1ef35707ccfa407c366d73dd2b8fbe5bd4bed4c4b15ba94",
+          "written": "0f7b600d8c2a9954b1ef35707ccfa407c366d73dd2b8fbe5bd4bed4c4b15ba94"
+        },
+        "reference/forwarding.md": {
+          "source": "ab14ce650ea96b6ad2d41dcb82629048054db0a86ba599db124804adca0d1f14",
+          "written": "ab14ce650ea96b6ad2d41dcb82629048054db0a86ba599db124804adca0d1f14"
+        },
+        "reference/outbound_webhooks.md": {
+          "source": "3eaaf849da1ee7a38de09c2dc6303fef5c044f6ec6e0a6ffe6e9dedf3d99e4a3",
+          "written": "3eaaf849da1ee7a38de09c2dc6303fef5c044f6ec6e0a6ffe6e9dedf3d99e4a3"
+        },
+        "reference/webhook_scripts.md": {
+          "source": "afc392d3e0573ef9f9b3061fe12b777eee2b8b93be7d660f4657ed251fc057b2",
+          "written": "afc392d3e0573ef9f9b3061fe12b777eee2b8b93be7d660f4657ed251fc057b2"
+        }
+      }
+    }
+  }
+}
