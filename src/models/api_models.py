@@ -55,7 +55,8 @@ class CubeListInput(BaseModel):
 
 class CubeSearchInput(BaseModel):
     search_term: str = Field(..., description="Text to search for in cube titles. Multiple keywords use AND logic.")
-    max_results: int = Field(25, description="Max matching cubes to return. Default 25.")
+    max_results: int = Field(10, description="Max matching cubes to return. Default 10.")
+    offset: int = Field(0, description="Skip this many matches; use next_offset from the previous page.")
 
 class FullTableDownloadCSVInput(BaseModel):
     productId: int
