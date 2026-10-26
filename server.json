@@ -24,10 +24,24 @@
   "websiteUrl": "https://github.com/Aryan-Jhaveri/mcp-statcan",
   "icons": [
     {
-      "src": "https://raw.githubusercontent.com/Aryan-Jhaveri/mcp-statcan/main/assets/Flag.jpg",
-      "mimeType": "image/jpeg",
+      "src": "https://raw.githubusercontent.com/Aryan-Jhaveri/mcp-statcan/main/assets/logo.svg",
+      "mimeType": "image/svg+xml",
       "sizes": [
-        "206x109"
+        "any"
+      ]
+    },
+    {
+      "src": "https://raw.githubusercontent.com/Aryan-Jhaveri/mcp-statcan/main/assets/logo-512.png",
+      "mimeType": "image/png",
+      "sizes": [
+        "512x512"
+      ]
+    },
+    {
+      "src": "https://raw.githubusercontent.com/Aryan-Jhaveri/mcp-statcan/main/assets/logo-48.png",
+      "mimeType": "image/png",
+      "sizes": [
+        "48x48"
       ]
     }
   ]

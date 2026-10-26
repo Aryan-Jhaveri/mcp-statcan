@@ -14,6 +14,8 @@ _HTML_TEMPLATE = """<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//E
 <meta name="description" content="Statistics Canada MCP Server — Web Data Service Interface for Large Language Models">
 <meta name="keywords" content="Statistics Canada, MCP, API, WDS, SDMX, data, Canada">
 <title>Statistics Canada MCP Server :: Web Data Service Interface</title>
+<link rel="icon" type="image/svg+xml" href="https://raw.githubusercontent.com/Aryan-Jhaveri/mcp-statcan/main/assets/logo.svg">
+<link rel="icon" type="image/png" sizes="48x48" href="https://raw.githubusercontent.com/Aryan-Jhaveri/mcp-statcan/main/assets/logo-48.png">
 <style type="text/css">
 body {
   background-color: #FFFEF5;
@@ -37,6 +39,12 @@ a:hover { color: #CC0000; }
   color: #FFFFFF;
   padding: 12px 16px 8px 16px;
   border-bottom: 3px solid #CC9900;
+}
+#header .logo {
+  float: left;
+  width: 56px;
+  height: 56px;
+  margin: 2px 12px 0 0;
 }
 #header h1 {
   margin: 0 0 2px 0;
@@ -261,6 +269,7 @@ hr.section { border: none; border-top: 1px solid #CCCCCC; margin: 14px 0; }
 
   <!-- HEADER -->
   <div id="header">
+    <img class="logo" src="https://raw.githubusercontent.com/Aryan-Jhaveri/mcp-statcan/main/assets/logo.svg" alt="Maple leaf flag logo">
     <h1>Statistics Canada MCP Server</h1>
     <div class="subtitle">Web Data Service &amp; SDMX REST Interface for Large Language Models</div>
     <div class="byline">
@@ -268,6 +277,7 @@ hr.section { border: none; border-top: 1px solid #CCCCCC; margin: 14px 0; }
       Transport: Streamable HTTP (stateless) &nbsp;|&nbsp;
       MCP endpoint: <tt>/mcp</tt>
     </div>
+    <div style="clear: both;"></div>
   </div>
 
   <!-- NAV -->
