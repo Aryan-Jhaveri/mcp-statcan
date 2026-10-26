@@ -122,7 +122,8 @@ def create_server(http_mode: bool = False):
         except Exception as e:
             log_server_debug(f"Error calling tool {name}: {e}")
             return CallToolResult(
-                content=[TextContent(type="text", text=f"Error: {str(e)}")],
+                # httpx transport errors often have an empty message; name the type instead
+                content=[TextContent(type="text", text=f"Error: {str(e) or type(e).__name__}")],
                 is_error=True,
             )
 

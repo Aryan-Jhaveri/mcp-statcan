@@ -48,6 +48,7 @@ SDMX_XML_ACCEPT = "application/vnd.sdmx.structure+xml;version=2.1"
 # keys and attributes (issue #90); the XML carries codes and attributes inline.
 SDMX_DATA_XML_ACCEPT = "application/vnd.sdmx.structurespecificdata+xml;version=2.1"
 SDMX_STRUCTURE_CACHE_TTL = 3600  # seconds; DSDs change only when a table is restructured
+SDMX_STRUCTURE_TIMEOUT = 20.0  # DSDs normally return in <1 s; fail fast on a hang and retry
 MAX_SDMX_ROWS = 500  # Safety cap for flattened SDMX rows
 
 # Coordinate padding configuration

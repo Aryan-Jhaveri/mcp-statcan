@@ -23,6 +23,7 @@ from ...config import (
     SDMX_BASE_URL,
     SDMX_DATA_XML_ACCEPT,
     SDMX_STRUCTURE_CACHE_TTL,
+    SDMX_STRUCTURE_TIMEOUT,
     SDMX_XML_ACCEPT,
 )
 from ..client import make_sdmx_get
@@ -152,7 +153,7 @@ async def fetch_structure_xml(product_id: int) -> str:
     if cached and time.monotonic() - cached[0] < SDMX_STRUCTURE_CACHE_TTL:
         return cached[1]
     url = f"{SDMX_BASE_URL}structure/Data_Structure_{product_id}"
-    response = await make_sdmx_get(url, headers={"Accept": SDMX_XML_ACCEPT})
+    response = await make_sdmx_get(url, headers={"Accept": SDMX_XML_ACCEPT}, timeout=SDMX_STRUCTURE_TIMEOUT)
     _structure_cache[product_id] = (time.monotonic(), response.text)
     return response.text
 

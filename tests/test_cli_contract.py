@@ -132,7 +132,8 @@ def test_upstream_status_mapping(status, code, monkeypatch):
 
 
 @respx.mock
-def test_network_error_is_unavailable():
+def test_network_error_is_unavailable(monkeypatch):
+    monkeypatch.setattr("src.api.client.asyncio.sleep", _no_sleep)  # skip retry backoff
     mock_sdmx(side_effect=httpx.ConnectError("boom"))
     result = runner.invoke(app, ["--json", "download", "18100004", "--key", "1+2.1"])
     assert result.exit_code == ExitCode.UPSTREAM_UNAVAILABLE
@@ -196,3 +197,14 @@ def test_describe_lists_commands_options_and_exit_codes():
     assert key["flags"] == ["--key"]
     assert any(p["name"] == "json_mode" for p in d["global_options"])
     assert d["contract"]["exit_codes"]["6"]["name"] == "empty"
+
+
+@respx.mock
+def test_dropped_connection_is_retried(monkeypatch):
+    """StatCan's SDMX endpoints sometimes hang then drop the connection; GETs are retried."""
+    monkeypatch.setattr("src.api.client.asyncio.sleep", _no_sleep)
+    route = mock_sdmx()
+    route.side_effect = [httpx.RemoteProtocolError("dropped"), Response(200, text=make_data_xml(first_value="0.0"))]
+    result = runner.invoke(app, ["--json", "download", "18100004", "--key", "1+2.1"])
+    assert result.exit_code == ExitCode.OK, result.stderr
+    assert route.call_count == 2
