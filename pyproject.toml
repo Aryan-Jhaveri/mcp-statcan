@@ -27,7 +27,7 @@ dependencies = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/Aryan-Jhaveri/mcp-statcan"
+Homepage = "https://mcp-statcan.com"
 Repository = "https://github.com/Aryan-Jhaveri/mcp-statcan"
 GitHub = "https://github.com/Aryan-Jhaveri"
 LinkedIn = "https://www.linkedin.com/in/aryanjhaveri/"
