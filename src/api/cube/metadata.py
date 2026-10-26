@@ -7,14 +7,14 @@ import httpx
 from ...config import BASE_URL, TIMEOUT_MEDIUM, VERIFY_SSL
 from ...models.api_models import CubeMetadataInput
 from ...util.logger import log_ssl_warning
-from ...util.registry import ToolRegistry
+from ...util.registry import READ_ONLY, ToolRegistry
 from ...util.truncation import summarize_cube_metadata
 
 
 def register_cube_metadata_tools(registry: ToolRegistry):
     """Register cube metadata tools."""
 
-    @registry.tool()
+    @registry.tool(annotations=READ_ONLY)
     async def get_cube_metadata(metadata_input: CubeMetadataInput) -> Dict[str, Any]:
         """
         Retrieves detailed metadata for a specific data table/cube using its ProductId.

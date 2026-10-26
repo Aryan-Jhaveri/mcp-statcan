@@ -356,9 +356,9 @@ Only the slice you request is returned. No downloading full tables.
 | Tool | Description |
 |---|---|
 | `get_sdmx_structure` | Dimension codelists + key syntax for a table. Call before `get_sdmx_data`. |
-| `get_sdmx_data` | Filtered observations by `productId` + key, returned inline (capped at 500 rows). |
+| `get_sdmx_data` | Filtered observations by `productId` + key, returned inline and grouped by series: each series' labels, `VECTOR_ID` and `UOM` once, then numeric `[period, value]` pairs (capped at 500 observations). |
 | `query_sdmx` | Fetch observations and run one read-only SQL query server-side in a temporary in-memory table — returns only the result. Works on the hosted server; no row cap on the fetch. |
-| `get_sdmx_vector_data` | Observations for a single vectorId via SDMX. |
+| `get_sdmx_vector_data` | Observations for a single vectorId via SDMX (same series-grouped output). |
 | `get_sdmx_key_for_dimension` | All leaf member IDs for a dimension as a ready-to-paste OR key — excludes totals and subtotals, so sums and rankings don't double-count (e.g. NOC, CMAs). |
 
 **Key syntax** (passed to `get_sdmx_data`):
@@ -372,10 +372,10 @@ Only the slice you request is returned. No downloading full tables.
 
 | Tool | Description |
 |---|---|
-| `search_cubes_by_title` | Full-text search across all StatCan tables. AND logic, capped at 25 results. |
+| `search_cubes_by_title` | Full-text search across all StatCan tables. AND logic, capped at 25 results; current tables before archived ones. |
 | `get_all_cubes_list` / `_lite` | Paginated table inventory (`offset`/`limit`, default 100/page). |
 | `get_cube_metadata` | Dimension info, member lists, date ranges. `summary=True` caps members at 10 per dimension. |
-| `get_code_sets` | Decode StatCan numeric codes (frequency, UOM, scalar factor, status). |
+| `get_code_sets` | Decode StatCan numeric codes. Summary by default; `code_set="uom", search="percent"` for large sets. |
 
 ### WDS Series Resolution & Change Detection
 

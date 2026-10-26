@@ -77,13 +77,24 @@ class _OpenModel(BaseModel):
     model_config = ConfigDict(extra="allow", populate_by_name=True)
 
 
+class SDMXSeries(_OpenModel):
+    """One series: its constant fields (dimension labels, VECTOR_ID, UOM, ...) once."""
+    series_key: str = Field(..., alias="_series_key", description="Dot-separated SDMX key of this series.")
+    observations: List[List[Any]] = Field(
+        ...,
+        description=(
+            "[period, value] pairs; value is a number or null (suppressed). Observations with "
+            "their own attributes add a third element {field: label}."
+        ),
+    )
+
+
 class SDMXRowsOutput(_OpenModel):
     sdmx_url: str = Field(..., alias="_sdmx_url", description="SDMX request URL — cite as the data source.")
-    row_count: int = Field(..., description="Total rows returned by StatCan (before truncation).")
-    data: List[Dict[str, Any]] = Field(
-        ..., description="Observation rows: dimension columns, period, value, and SDMX attributes."
-    )
-    truncated: bool = Field(..., alias="_truncated", description="True if data was capped at 500 rows.")
+    row_count: int = Field(..., description="Total observations returned by StatCan (before truncation).")
+    series_count: int = Field(..., description="Number of series in `series`.")
+    series: List[SDMXSeries] = Field(..., description="Observations grouped by series.")
+    truncated: bool = Field(..., alias="_truncated", description="True if observations were capped at 500.")
     message: Optional[str] = Field(None, alias="_message", description="Truncation guidance, when truncated.")
 
 

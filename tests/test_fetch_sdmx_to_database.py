@@ -102,7 +102,8 @@ async def test_get_sdmx_data_still_caps_rows(registry):
     result = await registry.call_tool("get_sdmx_data", {"productId": 18100004, "key": "1+2.1"})
 
     assert result["row_count"] == 2 * N_PERIODS
-    assert len(result["data"]) == config.MAX_SDMX_ROWS
+    assert sum(len(s["observations"]) for s in result["series"]) == config.MAX_SDMX_ROWS
+    assert [len(s["observations"]) for s in result["series"]] == [N_PERIODS, config.MAX_SDMX_ROWS - N_PERIODS]
     assert result["_truncated"] is True
 
 

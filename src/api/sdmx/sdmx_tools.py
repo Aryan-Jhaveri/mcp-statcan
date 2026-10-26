@@ -27,7 +27,6 @@ from ...config import (
 )
 from ..client import make_sdmx_get
 from ...db.ephemeral import run_ephemeral_query
-from mcp.types import ToolAnnotations
 
 from ...models.sdmx_models import (
     SDMXDataInput,
@@ -40,8 +39,8 @@ from ...models.sdmx_models import (
     SDMXStructureOutput,
     SDMXVectorInput,
 )
-from ...util.registry import ToolRegistry
-from ...util.sdmx_xml import dataflow_id, flatten_sdmx_xml, parse_dsd_labels
+from ...util.registry import READ_ONLY as _READ_ONLY, ToolRegistry
+from ...util.sdmx_xml import dataflow_id, flatten_sdmx_xml, group_rows_by_series, parse_dsd_labels
 from ...util.sql_helpers import to_number
 from ...util.truncation import DEFAULT_MEMBER_LIMIT
 
@@ -74,6 +73,11 @@ def _find_ref_id(element: ET.Element) -> Optional[str]:
     return None
 
 
+def _code_sort_key(code: Dict[str, Any]) -> Tuple[bool, int, str]:
+    code_id = code["id"]
+    return ("parent" in code, int(code_id) if code_id.isdigit() else 2**31, code_id)
+
+
 def _parse_structure_xml(xml_text: str, product_id: int) -> Dict[str, Any]:
     """Parse SDMX 2.1 Structure XML into a JSON-serialisable summary dict."""
     root = ET.fromstring(xml_text)
@@ -96,6 +100,9 @@ def _parse_structure_xml(xml_text: str, product_id: int) -> Dict[str, Any]:
                 if parent_id:
                     entry["parent"] = parent_id
             codes.append(entry)
+        # Top-level codes (e.g. "Canada") first, then numeric order, so the truncated
+        # preview shows the totals rather than whatever the DSD happens to list first
+        codes.sort(key=_code_sort_key)
         codelists[cl_id] = codes
 
     # ── Locate the DataStructure element ───────────────────────────────────
@@ -220,8 +227,24 @@ async def fetch_sdmx_vector_rows(
     return rows, str(response.url)
 
 
-# Read-only calls to the public StatCan API
-_READ_ONLY = ToolAnnotations(readOnlyHint=True, openWorldHint=True)
+def _series_result(rows: List[Dict[str, Any]], sdmx_url: str, narrow_hint: str) -> Dict[str, Any]:
+    """Tool output for get_sdmx_data / get_sdmx_vector_data: rows capped at
+    MAX_SDMX_ROWS, then grouped so each series' constant fields appear once."""
+    truncated = len(rows) > MAX_SDMX_ROWS
+    series = group_rows_by_series(rows[:MAX_SDMX_ROWS])
+    result: Dict[str, Any] = {
+        "_sdmx_url": sdmx_url,
+        "row_count": len(rows),
+        "series_count": len(series),
+        "series": series,
+        "_truncated": truncated,
+    }
+    if truncated:
+        result["_message"] = (
+            f"Response capped at {MAX_SDMX_ROWS} observations (total: {len(rows)}). {narrow_hint}"
+        )
+    return result
+
 
 # Shared across requests: caps how many ephemeral queries run at once
 _query_slots = asyncio.Semaphore(MAX_CONCURRENT_EPHEMERAL_QUERIES)
@@ -291,11 +314,18 @@ def register_sdmx_tools(registry: ToolRegistry) -> None:
 
         LIMITATION: StatCan rejects combining lastNObservations with startPeriod/endPeriod (returns 406).
 
-        Output rows contain: dimension values, "period", "value", SCALAR_FACTOR,
-        UOM, VECTOR_ID, STATUS, and other SDMX attributes.
+        Output is grouped by series: each entry in "series" holds the fields that are
+        constant for that series once (dimension labels, _series_key, VECTOR_ID, UOM,
+        SCALAR_FACTOR, ...) plus "observations" as [period, value] pairs with numeric
+        values (null = suppressed). A third element {field: label} appears only on
+        observations with their own attributes (e.g. a STATUS flag).
 
-        Rows are returned inline, capped at MAX_SDMX_ROWS (500). For larger result sets,
+        Observations are capped at MAX_SDMX_ROWS (500). For larger result sets,
         narrow the key or use startPeriod/endPeriod/lastNObservations.
+
+        Growth, percent change, averages, ranking or comparisons? Use query_sdmx instead
+        of computing by hand from these values. Fetch each series and period range once:
+        do not re-fetch periods you already have from get_sdmx_vector_data.
 
         IMPORTANT: In your final response to the user, you MUST cite the source of your data.
         This means including the _sdmx_url, table information and productId/key in your response.
@@ -307,22 +337,12 @@ def register_sdmx_tools(registry: ToolRegistry) -> None:
             data_input.startPeriod,
             data_input.endPeriod,
         )
-
-        result: Dict[str, Any] = {"_sdmx_url": sdmx_url, "row_count": len(rows)}
-
-        if len(rows) > MAX_SDMX_ROWS:
-            result["data"] = rows[:MAX_SDMX_ROWS]
-            result["_truncated"] = True
-            result["_message"] = (
-                f"Response capped at {MAX_SDMX_ROWS} rows (total: {len(rows)}). "
-                "Narrow your query with a more specific key, or use "
-                "lastNObservations / startPeriod / endPeriod."
-            )
-        else:
-            result["data"] = rows
-            result["_truncated"] = False
-
-        return result
+        return _series_result(
+            rows,
+            sdmx_url,
+            "Narrow your query with a more specific key, or use "
+            "lastNObservations / startPeriod / endPeriod.",
+        )
 
     @registry.tool(output_model=SDMXQueryOutput, annotations=_READ_ONLY)
     async def query_sdmx(query_input: SDMXQueryInput) -> Dict[str, Any]:
@@ -391,7 +411,7 @@ def register_sdmx_tools(registry: ToolRegistry) -> None:
         Fetch time-series observations for a single StatCan vector via SDMX REST.
 
         Simpler alternative to get_sdmx_data when you already know the vectorId.
-        Use get_series_info_from_cube_pid_coord or get_cube_metadata to find vectorIds.
+        Use get_series_info (productId + coordinate) to find vectorIds.
 
         Time filtering (use one or the other, not both):
           lastNObservations=5   → last 5 periods
@@ -400,11 +420,13 @@ def register_sdmx_tools(registry: ToolRegistry) -> None:
 
         LIMITATION: StatCan rejects combining lastNObservations with startPeriod/endPeriod (returns 406).
 
-        Output rows contain: dimension values, "period", "value", SCALAR_FACTOR,
-        UOM, VECTOR_ID, STATUS, and other SDMX attributes.
+        Output has the same shape as get_sdmx_data: one entry in "series" with its
+        constant fields once, then "observations" as [period, value] pairs.
 
-        IMPORTANT: In your final response to the user, you MUST cite the source of your data. 
-        This means including the _sdmx_url,and vectorId in your response.
+        Growth, percent change or averages? Use query_sdmx instead of computing by hand.
+
+        IMPORTANT: In your final response to the user, you MUST cite the source of your data.
+        This means including the _sdmx_url and vectorId in your response.
         """
         rows, sdmx_url = await fetch_sdmx_vector_rows(
             vector_input.vectorId,
@@ -412,20 +434,9 @@ def register_sdmx_tools(registry: ToolRegistry) -> None:
             vector_input.startPeriod,
             vector_input.endPeriod,
         )
-
-        result: Dict[str, Any] = {"_sdmx_url": sdmx_url, "row_count": len(rows)}
-        if len(rows) > MAX_SDMX_ROWS:
-            result["data"] = rows[:MAX_SDMX_ROWS]
-            result["_truncated"] = True
-            result["_message"] = (
-                f"Response capped at {MAX_SDMX_ROWS} rows (total: {len(rows)}). "
-                "Use lastNObservations or startPeriod/endPeriod to narrow the query."
-            )
-        else:
-            result["data"] = rows
-            result["_truncated"] = False
-
-        return result
+        return _series_result(
+            rows, sdmx_url, "Use lastNObservations or startPeriod/endPeriod to narrow the query."
+        )
 
     @registry.tool(output_model=SDMXKeyForDimensionOutput, annotations=_READ_ONLY)
     async def get_sdmx_key_for_dimension(

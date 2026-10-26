@@ -73,6 +73,22 @@ async def test_rows_tools():
     assert sc["row_count"] == 2 * N_PERIODS
     assert sc["_truncated"] is True
     assert meta.annotations.read_only_hint is True
+    canada = sc["series"][0]
+    assert {k: v for k, v in canada.items() if k != "observations"} == {
+        "Geography": "Canada", "Products": "All-items", "_series_key": "1.1", "VECTOR_ID": "41690973", "UOM": "2002=100",
+    }
+    assert canada["observations"][:2] == [["1700", 0.0], ["1701", 1.0]]
+
+
+@pytest.mark.asyncio
+@respx.mock
+async def test_rows_keep_observation_attributes_and_nulls():
+    mock_sdmx(make_data_xml(first_value=None, obs_attr_on=(0, 1)))
+    _, sc = await _call(_fresh_server(True), "get_sdmx_data", {"productId": 18100004, "key": "1+2.1"})
+    obs = sc["series"][0]["observations"]
+    assert obs[0] == ["1700", None]
+    assert obs[1] == ["1701", 1.0, {"STATUS_CAN": ".. = not available"}]
+    assert "STATUS_CAN" not in sc["series"][0]
 
 
 @pytest.mark.asyncio
@@ -112,6 +128,8 @@ async def test_structure():
     _, sc = await _call(_fresh_server(True), "get_sdmx_structure", {"productId": 18100004})
     geo, products = sc["dimensions"]
     assert geo["codes"][1] == {"id": "2", "name": "Ontario", "parent": "1"}
+    # parentless first, then numeric (not string) order
+    assert [c["id"] for c in products["codes"]] == [str(i) for i in range(1, 11)]
     assert products["_truncated"] is True and products["_code_count"] == 12
 
 

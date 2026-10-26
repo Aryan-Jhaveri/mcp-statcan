@@ -4,6 +4,12 @@ from typing import Any, Callable, Dict, List, Optional, Union, get_type_hints
 from mcp.types import Tool, ToolAnnotations
 from pydantic import BaseModel, TypeAdapter
 
+# Read-only calls to the public StatCan API
+READ_ONLY = ToolAnnotations(readOnlyHint=True, openWorldHint=True)
+# Read-only queries against the local SQLite database
+LOCAL_READ_ONLY = ToolAnnotations(readOnlyHint=True, openWorldHint=False)
+
+
 class ToolRegistry:
     def __init__(self):
         self._tools: List[Tool] = []

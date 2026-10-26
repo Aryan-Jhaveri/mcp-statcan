@@ -1,7 +1,9 @@
 import sqlite3
 import json
 from typing import List, Dict, Any
-from ..util.registry import ToolRegistry
+from mcp.types import ToolAnnotations
+
+from ..util.registry import LOCAL_READ_ONLY, ToolRegistry
 from .connection import get_db_connection
 from ..models.db_models import TableDataInput, TableNameInput, QueryInput
 from ..util.sql_helpers import convert_value_for_sql
@@ -14,9 +16,11 @@ def register_db_tools(registry: ToolRegistry):
     """Register database tools with the MCP server."""
 
     # Add create_table_from_data from schema module
-    registry.tool()(create_table_from_data)
+    registry.tool(annotations=ToolAnnotations(readOnlyHint=False, destructiveHint=True, openWorldHint=False))(
+        create_table_from_data
+    )
 
-    @registry.tool()
+    @registry.tool(annotations=ToolAnnotations(readOnlyHint=False, destructiveHint=False, openWorldHint=False))
     def insert_data_into_table(table_input: TableDataInput) -> Dict[str, str]:
         """
         Appends rows (list of dicts) into an ALREADY EXISTING SQLite table.
@@ -130,7 +134,7 @@ def register_db_tools(registry: ToolRegistry):
         except Exception as e:
             return {"error": f"Unexpected error inserting into '{table_name}': {e}"}
 
-    @registry.tool()
+    @registry.tool(annotations=LOCAL_READ_ONLY)
     def list_tables() -> Dict[str, Any]:
         """
         Lists all user-created tables and views in the SQLite database, plus the size of
@@ -166,7 +170,7 @@ def register_db_tools(registry: ToolRegistry):
         except Exception as e:
             return {"error": f"Unexpected error listing tables: {e}"}
 
-    @registry.tool()
+    @registry.tool(annotations=LOCAL_READ_ONLY)
     def get_table_schema(table_name_input: TableNameInput) -> Dict[str, Any]:
         """
         Retrieves the schema (column names and types) for a specific table.
@@ -205,7 +209,7 @@ def register_db_tools(registry: ToolRegistry):
         except Exception as e:
             return {"error": f"Unexpected error getting schema for '{table_name}': {e}"}
 
-    @registry.tool()
+    @registry.tool(annotations=ToolAnnotations(readOnlyHint=False, destructiveHint=True, idempotentHint=True, openWorldHint=False))
     def drop_table(table_name_input: TableNameInput) -> Dict[str, Any]:
         """
         Permanently deletes (drops) a table or view from the SQLite database.
@@ -250,7 +254,7 @@ def register_db_tools(registry: ToolRegistry):
         except Exception as e:
             return {"error": f"Unexpected error dropping table '{table_name}': {e}"}
 
-    @registry.tool()
+    @registry.tool(annotations=LOCAL_READ_ONLY)
     def query_database(query_input: QueryInput) -> Dict[str, Any]:
         """
         Executes a read-only SQL query (SELECT or PRAGMA) against the database and returns the results.
