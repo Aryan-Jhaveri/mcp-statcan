@@ -7,6 +7,7 @@ from ..models.db_models import TableDataInput, TableNameInput, QueryInput
 from ..util.sql_helpers import convert_value_for_sql
 from ..config import MAX_QUERY_ROWS
 from .schema import create_table_from_data
+from .store import CANONICAL_TABLES, OBS_TABLE, SERIES_TABLE
 from ..util.logger import log_data_validation_warning, log_sql_debug
 
 def register_db_tools(registry: ToolRegistry):
@@ -132,21 +133,34 @@ def register_db_tools(registry: ToolRegistry):
     @registry.tool()
     def list_tables() -> Dict[str, Any]:
         """
-        Lists all user-created tables in the SQLite database.
+        Lists all user-created tables and views in the SQLite database, plus the size of
+        the canonical observation store.
+
+        fetch_sdmx_to_database and fetch_vectors_to_database create VIEWS (listed under both
+        "tables" and "views") over the shared store tables _statcan_series and
+        _statcan_observations, which you can also query directly for cross-table analysis.
 
         Returns:
-            Dict[str, Any]: Dictionary containing a list of table names or an error message.
+            Dict[str, Any]: {"tables": [all table and view names], "views": [view names],
+            "store": {"series": n, "observations": n}} or an error message.
 
         IMPORTANT: The database is persistent. Use this to check for old tables that might need cleaning.
         """
         try:
             with get_db_connection() as conn:
                 cursor = conn.cursor()
-                # Select names of tables, excluding sqlite system tables
-                cursor.execute("SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%';")
-                # Fetch all results as dictionaries (due to row_factory)
-                tables = [row['name'] for row in cursor.fetchall()]
-                return {"tables": tables}
+                cursor.execute(
+                    "SELECT name, type FROM sqlite_master "
+                    "WHERE type IN ('table', 'view') AND name NOT LIKE 'sqlite_%' ORDER BY name"
+                )
+                rows = cursor.fetchall()
+                (n_series,) = cursor.execute(f"SELECT COUNT(*) FROM {SERIES_TABLE}").fetchone()
+                (n_obs,) = cursor.execute(f"SELECT COUNT(*) FROM {OBS_TABLE}").fetchone()
+                return {
+                    "tables": [row["name"] for row in rows],
+                    "views": [row["name"] for row in rows if row["type"] == "view"],
+                    "store": {"series": n_series, "observations": n_obs},
+                }
         except sqlite3.Error as e:
             return {"error": f"SQLite error listing tables: {e}"}
         except Exception as e:
@@ -194,10 +208,13 @@ def register_db_tools(registry: ToolRegistry):
     @registry.tool()
     def drop_table(table_name_input: TableNameInput) -> Dict[str, Any]:
         """
-        Permanently deletes (drops) a table from the SQLite database.
+        Permanently deletes (drops) a table or view from the SQLite database.
 
         Use this to free up space or remove tables that are no longer needed.
-        This action is irreversible — all data in the table will be lost.
+        This action is irreversible — all data in the table will be lost. Dropping a
+        view created by a fetch tool removes only the view; its observations stay in
+        the shared store. The store tables themselves (_statcan_series,
+        _statcan_observations) can't be dropped with this tool.
 
         Args:
             table_name_input: Object containing the table_name to drop.
@@ -209,20 +226,25 @@ def register_db_tools(registry: ToolRegistry):
         if not table_name.isidentifier():
             return {"error": f"Invalid table name: '{table_name}'. Use alphanumeric characters and underscores."}
 
+        if table_name in CANONICAL_TABLES:
+            return {"error": f"'{table_name}' is part of the shared observation store and can't be dropped."}
+
         try:
             with get_db_connection() as conn:
                 cursor = conn.cursor()
-                # Verify the table exists before dropping
+                # Verify the table or view exists before dropping
                 cursor.execute(
-                    "SELECT name FROM sqlite_master WHERE type='table' AND name=?",
+                    "SELECT type FROM sqlite_master WHERE type IN ('table', 'view') AND name=?",
                     (table_name,),
                 )
-                if not cursor.fetchone():
+                row = cursor.fetchone()
+                if not row:
                     return {"error": f"Table '{table_name}' not found."}
 
-                cursor.execute(f'DROP TABLE "{table_name}"')
+                kind = row["type"]
+                cursor.execute(f'DROP {kind.upper()} "{table_name}"')
                 conn.commit()
-                return {"success": f"Table '{table_name}' has been permanently deleted."}
+                return {"success": f"{kind.capitalize()} '{table_name}' has been permanently deleted."}
         except sqlite3.Error as e:
             return {"error": f"SQLite error dropping table '{table_name}': {e}"}
         except Exception as e:
