@@ -7,9 +7,7 @@ from ..util.registry import ToolRegistry
 from ..config import BASE_URL, TIMEOUT_LARGE, TIMEOUT_MEDIUM, VERIFY_SSL
 from ..util.logger import log_ssl_warning, log_data_validation_warning
 from ..db.connection import get_db_connection
-from ..db.store import create_series_view, upsert_sdmx_rows
-from ..db.schema import create_table_from_data
-from ..models.db_models import TableDataInput
+from ..db.store import create_series_view, upsert_sdmx_rows, upsert_wds_points
 from mcp.types import ToolAnnotations
 
 from ..models.sdmx_models import FetchSDMXToDatabaseOutput, SDMXDataInput
@@ -88,9 +86,15 @@ def register_composite_tools(registry: ToolRegistry):
             input_data.startRefPeriod: Optional start date (YYYY-MM-DD).
             input_data.endRefPeriod: Optional end date (YYYY-MM-DD).
 
+        Storage: observations are upserted into the shared store (_statcan_series +
+        _statcan_observations) and table_name becomes a VIEW with columns: dimension labels
+        (when the series was also fetched via SDMX), series_key, period, ref_date, value,
+        VECTOR_ID, UOM, SCALAR_FACTOR, STATUS, SYMBOL, release_time, product_id, fetched_at.
+        The same series fetched via fetch_sdmx_to_database shares rows with this tool.
+
         Returns:
-            Dict with table name, columns, rows_inserted, and a 5-row sample so you
-            can verify the data looks right before querying.
+            Dict with view name, columns, rows_inserted, new/revised/unchanged counts, and a
+            small sample so you can verify the data looks right before querying.
 
         IMPORTANT: In your final response cite the vectorIds and reference period used.
         """
@@ -121,36 +125,22 @@ def register_composite_tools(registry: ToolRegistry):
             except Exception as exc:
                 return {"error": f"Unexpected error fetching vectors: {exc}"}
 
-        # Process the response — flatten each vector's data points
-        flat_rows: List[Dict[str, Any]] = []
-        failures = []
         if not isinstance(result_list, list):
             return {"error": f"Unexpected API response format (not a list): {type(result_list)}"}
 
+        vectors: List[Dict[str, Any]] = []
+        failures = []
         for item in result_list:
             if not isinstance(item, dict):
                 continue
-            if item.get("status") == "SUCCESS":
-                obj = item.get("object", {})
-                vector_id = obj.get("vectorId")
-                product_id = obj.get("productId")
-                coordinate = obj.get("coordinate")
-                data_points = obj.get("vectorDataPoint", [])
-                if isinstance(data_points, list):
-                    for point in data_points:
-                        if isinstance(point, dict):
-                            row = dict(point)
-                            row["vectorId"] = vector_id
-                            if product_id is not None:
-                                row["productId"] = product_id
-                            if coordinate is not None:
-                                row["coordinate"] = coordinate
-                            flat_rows.append(row)
+            if item.get("status") == "SUCCESS" and isinstance(item.get("object"), dict):
+                vectors.append(item["object"])
             else:
                 failures.append(item)
                 log_data_validation_warning(f"Vector fetch partial failure: {item}")
 
-        if not flat_rows:
+        n_points = sum(len(v.get("vectorDataPoint") or []) for v in vectors)
+        if not n_points:
             failure_detail = failures[:3] if failures else "No data returned."
             return {
                 "error": "No data points retrieved from the API.",
@@ -158,25 +148,28 @@ def register_composite_tools(registry: ToolRegistry):
                 "hint": "Check that vectorIds are correct and the date range contains data.",
             }
 
-        # Store in SQLite via create_table_from_data (creates + inserts in one shot)
-        db_result = create_table_from_data(TableDataInput(table_name=table_name, data=flat_rows))
+        try:
+            with get_db_connection() as conn:
+                stored = upsert_wds_points(conn, vectors, source_url=str(response.url))
+                columns = create_series_view(conn, table_name, stored["series_ids"], stored["date_range"])
+                sample_size = input_data.sample_size or 5
+                sample = [dict(r) for r in conn.execute(f'SELECT * FROM "{table_name}" LIMIT ?', (sample_size,))]
+        except ValueError as exc:  # e.g. table_name is a canonical store table
+            return {"error": str(exc)}
+        except sqlite3.Error as exc:
+            return {"error": f"Data fetched ({n_points} points) but failed to store: {exc}"}
 
-        if "error" in db_result:
-            return {
-                "error": f"Data fetched ({len(flat_rows)} rows) but failed to store: {db_result['error']}",
-                "rows_fetched": len(flat_rows),
-                "sample": flat_rows[:3],
-            }
-
-        # Return a summary with a small sample so the LLM can verify structure
-        sample_size = input_data.sample_size or 5
         return {
-            "success": db_result["success"],
+            "success": f"Stored {n_points} observations for {len(stored['series_ids'])} series; "
+                       f"'{table_name}' is a view over them.",
             "table": table_name,
-            "columns": db_result.get("columns", []),
-            "rows_inserted": db_result.get("rows_inserted", len(flat_rows)),
+            "columns": columns,
+            "rows_inserted": n_points,
+            "new": stored["inserted"],
+            "revised": stored["revised"],
+            "unchanged": stored["unchanged"],
             "partial_failures": len(failures),
-            "sample": flat_rows[:sample_size],
+            "sample": sample,
             "next_step": f"Use query_database to analyze: SELECT * FROM {table_name} LIMIT 10",
         }
 
