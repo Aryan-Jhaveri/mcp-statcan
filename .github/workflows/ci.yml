@@ -1,0 +1,40 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  python:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+      - name: Run tests
+        run: uv run --extra dev pytest tests -q
+
+  ui:
+    # The built MCP Apps view (src/ui_views/) ships in the Python package, so it must
+    # match the TypeScript source in ui/.
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ui
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: ui/package-lock.json
+      - run: npm ci
+      - name: Unit tests
+        run: npm test
+      - name: Typecheck and build
+        run: npm run build
+      - name: Built view is up to date
+        run: git diff --exit-code -- ../src/ui_views || (echo "src/ui_views is stale: run 'npm run build' in ui/ and commit the result" && exit 1)
