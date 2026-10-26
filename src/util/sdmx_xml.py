@@ -91,9 +91,23 @@ def parse_dsd_labels(structure_xml: str) -> Dict[str, Any]:
     return {"dimensions": [d for _, d in sorted(dims)], "labels": labels}
 
 
+def _parse_data(data_xml: str) -> ET.Element:
+    """Parse a data message, tolerating StatCan's malformed empty result.
+
+    When a query matches nothing, StatCan returns a stray closing tag with no
+    opening one: '<message:DataSet ...></Series> </message:DataSet>'.
+    """
+    try:
+        return ET.fromstring(data_xml)
+    except ET.ParseError:
+        if "<Series " not in data_xml and "</Series>" in data_xml:
+            return ET.fromstring(data_xml.replace("</Series>", ""))
+        raise
+
+
 def dataflow_id(data_xml: str) -> Optional[str]:
     """The dataflow id (e.g. 'DF_18100004') from a data message header."""
-    root = ET.fromstring(data_xml)
+    root = _parse_data(data_xml)
     for el in root.iter():
         if _local(el.tag) == "Ref" and el.get("id", "").startswith("DF_"):
             return el.get("id")
@@ -105,7 +119,7 @@ def flatten_sdmx_xml(data_xml: str, dsd: Dict[str, Any]) -> List[Dict[str, Any]]
 
     dsd is the output of parse_dsd_labels for the same table.
     """
-    root = ET.fromstring(data_xml)
+    root = _parse_data(data_xml)
     dim_ids: List[str] = dsd["dimensions"]
     labels: Dict[str, Dict[str, str]] = dsd["labels"]
 

@@ -126,3 +126,12 @@ def test_dimensions_outside_dimension_list_ignored():
     extra = '<str:Constraints><str:ContentConstraint><str:Dimension/></str:ContentConstraint></str:Constraints>'
     dsd = DSD_XML.replace("<str:DataStructures>", extra + "<str:DataStructures>")
     assert parse_dsd_labels(dsd)["dimensions"] == ["Geography", "Products_and_product_groups"]
+
+
+def test_statcan_malformed_empty_result_parses_as_empty():
+    """Live (DF_18100006, unmatched key): StatCan closes a <Series> it never opened."""
+    data = DATA_XML.split("<message:DataSet>")[0] + (
+        '<message:DataSet ss:dataScope="DataStructure"></Series> </message:DataSet> </message:StructureSpecificData>'
+    ).replace(' ss:dataScope="DataStructure"', "")
+    assert flatten_sdmx_xml(data, parse_dsd_labels(DSD_XML)) == []
+    assert dataflow_id(data) == "DF_18100004"
