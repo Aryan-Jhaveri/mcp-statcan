@@ -464,8 +464,8 @@ hr.section { border: none; border-top: 1px solid #CCCCCC; margin: 14px 0; }
       <tr class="even"><td class="tool-name">get_series_info</td><td class="category">Series</td><td>Resolve dimension coordinates to vectorId, frequency, UOM</td></tr>
       <tr class="odd"><td class="tool-name">get_series_info_from_vector</td><td class="category">Series</td><td>Look up series metadata by vectorId</td></tr>
       <tr class="even"><td class="tool-name">get_bulk_vector_data_by_range</td><td class="category">Vector</td><td>Fetch multiple vectors filtered by release-date range</td></tr>
-      <tr class="odd"><td class="tool-name">get_changed_series_data_from_vector</td><td class="category">Change Detection</td><td>Detect data changes for a vector since a given date</td></tr>
-      <tr class="even"><td class="tool-name">get_changed_series_data_from_cube_pid_coord</td><td class="category">Change Detection</td><td>Detect changes for a specific series by coordinate</td></tr>
+      <tr class="odd"><td class="tool-name">get_changed_series_data_from_vector</td><td class="category">Change Detection</td><td>Data points changed today for a vector (after 08:30 ET)</td></tr>
+      <tr class="even"><td class="tool-name">get_changed_series_data_from_cube_pid_coord</td><td class="category">Change Detection</td><td>Data points changed today for a series by coordinate</td></tr>
       <tr class="odd"><td class="tool-name">get_changed_cube_list</td><td class="category">Change Detection</td><td>List all tables with data changes since a given date</td></tr>
       <tr class="even"><td class="tool-name">get_changed_series_list</td><td class="category">Change Detection</td><td>List series updated today after 08:30 ET</td></tr>
       <tr class="odd"><td class="tool-name">get_sdmx_structure</td><td class="category">SDMX</td><td>Data Structure Definition as JSON: dimension positions and codelists with hierarchy</td></tr>

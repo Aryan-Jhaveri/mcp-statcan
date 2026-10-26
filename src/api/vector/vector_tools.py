@@ -14,6 +14,7 @@ from ...models.api_models import (
 from ...util.logger import log_data_validation_warning, log_ssl_warning
 from ...util.registry import ToolRegistry
 from ...util.truncation import truncate_response
+from ..client import NO_CHANGE_TODAY_MESSAGE, describe_request_error
 
 
 def register_vector_tools(registry: ToolRegistry):
@@ -262,23 +263,22 @@ def register_vector_tools(registry: ToolRegistry):
                 "SSL verification disabled for get_bulk_vector_data_by_range."
             )
 
-            # StatCan WDS expects an array of per-vector objects:
-            # [{"vectorId": 123, "startDataPointReleaseDate": "...", "endDataPointReleaseDate": "..."}]
-            # NOT a single flat object with a vectorIds array.
+            # StatCan WDS expects ONE object with vectorIds as strings (an array of
+            # per-vector objects is rejected with 406 "JSON syntax error"):
+            # {"vectorIds": ["123"], "startDataPointReleaseDate": "...", "endDataPointReleaseDate": "..."}
             # Do NOT set explicit Accept/Content-Type headers — httpx sets Content-Type: application/json
             # automatically when json= is used, and a strict Accept header can itself trigger 406.
-            per_vector: Dict[str, Any] = {}
+            post_data: Dict[str, Any] = {
+                "vectorIds": [str(vid) for vid in bulk_range_input.vectorIds]
+            }
             if bulk_range_input.startDataPointReleaseDate:
-                per_vector["startDataPointReleaseDate"] = (
+                post_data["startDataPointReleaseDate"] = (
                     bulk_range_input.startDataPointReleaseDate
                 )
             if bulk_range_input.endDataPointReleaseDate:
-                per_vector["endDataPointReleaseDate"] = (
+                post_data["endDataPointReleaseDate"] = (
                     bulk_range_input.endDataPointReleaseDate
                 )
-            post_data = [
-                {"vectorId": vid, **per_vector} for vid in bulk_range_input.vectorIds
-            ]
             try:
                 response = await client.post(
                     "/getBulkVectorDataByRange", json=post_data
@@ -342,7 +342,7 @@ def register_vector_tools(registry: ToolRegistry):
                 return truncate_response(processed_data, offset, limit)
             except httpx.RequestError as exc:
                 raise Exception(
-                    f"Network error calling get_bulk_vector_data_by_range: {exc}"
+                    f"Network error calling get_bulk_vector_data_by_range: {describe_request_error(exc)}"
                 )
             except ValueError as exc:
                 raise ValueError(
@@ -354,12 +354,15 @@ def register_vector_tools(registry: ToolRegistry):
         vector_input: VectorIdInput,
     ) -> Dict[str, Any]:
         """
-        Get changed series data (data points that have changed) for a series
-        identified by Vector ID. Disables SSL Verification.
+        Get the data points of a series (by Vector ID) that changed TODAY only.
+        StatCan publishes at 08:30 ET; before then, or on a day the series did not
+        change, this returns changed=false. For past releases use get_changed_cube_list(date).
+        Disables SSL Verification.
         Corresponds to: POST /getChangedSeriesDataFromVector
 
         Returns:
-            Dict[str, Any]: A dictionary containing the changed series data object.
+            Dict[str, Any]: The changed series data object, or {"vectorId", "changed": false,
+            "message"} when nothing changed today.
         Raises:
             httpx.HTTPStatusError: If the API returns an error status code.
             ValueError: If the API response format is unexpected or status is not SUCCESS.
@@ -380,6 +383,12 @@ def register_vector_tools(registry: ToolRegistry):
                 response = await client.post(
                     "/getChangedSeriesDataFromVector", json=post_data
                 )
+                if response.status_code == 404:
+                    return {
+                        "vectorId": vector_input.vectorId,
+                        "changed": False,
+                        "message": NO_CHANGE_TODAY_MESSAGE,
+                    }
                 response.raise_for_status()
                 result_list = response.json()
                 if (
@@ -404,7 +413,7 @@ def register_vector_tools(registry: ToolRegistry):
                     )
             except httpx.RequestError as exc:
                 raise Exception(
-                    f"Network error calling get_changed_series_data_from_vector: {exc}"
+                    f"Network error calling get_changed_series_data_from_vector: {describe_request_error(exc)}"
                 )
             except ValueError as exc:
                 raise ValueError(

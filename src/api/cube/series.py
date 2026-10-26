@@ -19,6 +19,7 @@ from ...util.coordinate import pad_coordinate
 from ...util.logger import log_ssl_warning, log_data_validation_warning
 from ...util.registry import ToolRegistry
 from ...util.truncation import truncate_with_guidance
+from ..client import NO_CHANGE_TODAY_MESSAGE, describe_request_error
 
 
 def register_cube_series_tools(registry: ToolRegistry):
@@ -122,13 +123,15 @@ def register_cube_series_tools(registry: ToolRegistry):
     @registry.tool()
     async def get_changed_series_data_from_cube_pid_coord(input_data: CubeCoordInput) -> Dict[str, Any]:
         """
-        Retrieves changed series data (data points that have changed) using Cube ProductId
-        and Coordinate string.
+        Get the data points of a series (by ProductId + Coordinate) that changed TODAY only.
+        StatCan publishes at 08:30 ET; before then, or on a day the series did not
+        change, this returns changed=false. For past releases use get_changed_cube_list(date).
         Coordinates are automatically padded to 10 dimensions. Disables SSL Verification.
         Corresponds to: POST /getChangedSeriesDataFromCubePidCoord
 
         Returns:
-            Dict[str, Any]: A dictionary containing the changed series data object.
+            Dict[str, Any]: The changed series data object, or {"productId", "coordinate",
+            "changed": false, "message"} when nothing changed today.
         Raises:
             httpx.HTTPStatusError: If the API returns an error status code.
             ValueError: If the API response format is unexpected or status is not SUCCESS.
@@ -146,6 +149,13 @@ def register_cube_series_tools(registry: ToolRegistry):
             }]
             try:
                 response = await client.post("/getChangedSeriesDataFromCubePidCoord", json=post_data)
+                if response.status_code == 404:
+                    return {
+                        "productId": input_data.productId,
+                        "coordinate": padded_coord,
+                        "changed": False,
+                        "message": NO_CHANGE_TODAY_MESSAGE,
+                    }
                 response.raise_for_status()
                 result_list = response.json()
                 if result_list and isinstance(result_list, list) and len(result_list) > 0 and result_list[0].get("status") == "SUCCESS":
@@ -154,7 +164,7 @@ def register_cube_series_tools(registry: ToolRegistry):
                     api_message = result_list[0].get("object") if (result_list and isinstance(result_list, list) and len(result_list) > 0) else "Unknown API Error or Malformed Response"
                     raise ValueError(f"API did not return SUCCESS status for changed series cube coord: pid={input_data.productId}, coord={input_data.coordinate}: {api_message}")
             except httpx.RequestError as exc:
-                raise Exception(f"Network error calling get_changed_series_data_from_cube_pid_coord: {exc}")
+                raise Exception(f"Network error calling get_changed_series_data_from_cube_pid_coord: {describe_request_error(exc)}")
             except ValueError as exc:
                 raise ValueError(f"Error processing response for get_changed_series_data_from_cube_pid_coord: {exc}")
 
