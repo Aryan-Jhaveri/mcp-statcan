@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 4800 4800" width="512" height="512">
+  <title>Statistics Canada MCP Server</title>
+  <defs>
+    <clipPath id="r"><rect width="4800" height="4800" rx="720"/></clipPath>
+  </defs>
+  <g clip-path="url(#r)">
+    <rect width="4800" height="4800" fill="#fff"/>
+    <rect width="960" height="4800" fill="#d52b1e"/>
+    <rect x="3840" width="960" height="4800" fill="#d52b1e"/>
+  </g>
+  <path fill="#d52b1e" transform="translate(2400 2440) scale(0.68) translate(-2400 -2400)" d="m2490 4430-45-863a95 95 0 0 1 111-98l859 151-116-320a65 65 0 0 1 20-73l941-762-212-99a65 65 0 0 1-34-79l186-572-542 115a65 65 0 0 1-73-38l-105-247-423 454a65 65 0 0 1-111-57l204-1052-327 189a65 65 0 0 1-91-27l-332-652-332 652a65 65 0 0 1-91 27l-327-189 204 1052a65 65 0 0 1-111 57l-423-454-105 247a65 65 0 0 1-73 38l-542-115 186 572a65 65 0 0 1-34 79l-212 99 941 762a65 65 0 0 1 20 73l-116 320 859-151a95 95 0 0 1 111 98l-45 863z"/>
+</svg>

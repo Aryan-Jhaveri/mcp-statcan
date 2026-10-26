@@ -28,16 +28,14 @@ import sys
 _access_logger = logging.getLogger("statcan.access")
 
 
-# StatCan flag icon advertised in serverInfo.icons on every initialize response.
+# Maple leaf flag icon advertised in serverInfo.icons on every initialize response.
 # In mcp SDK v1.x this required a private-API monkey-patch on ServerSession
 # (no public API for icons). Since mcp v2.x, `Server(icons=...)` and
 # `Tool/Prompt(icons=...)` accept Icon objects directly, so the patch is gone.
 _SERVER_ICONS = [
-    Icon(
-        src="https://raw.githubusercontent.com/Aryan-Jhaveri/mcp-statcan/main/assets/Flag.jpg",
-        mime_type="image/jpeg",
-        sizes=["206x109"],
-    )
+    Icon(src="https://raw.githubusercontent.com/Aryan-Jhaveri/mcp-statcan/main/assets/logo.svg", mime_type="image/svg+xml", sizes=["any"]),
+    Icon(src="https://raw.githubusercontent.com/Aryan-Jhaveri/mcp-statcan/main/assets/logo-512.png", mime_type="image/png", sizes=["512x512"]),
+    Icon(src="https://raw.githubusercontent.com/Aryan-Jhaveri/mcp-statcan/main/assets/logo-48.png", mime_type="image/png", sizes=["48x48"]),
 ]
 
 # Use relative imports within the src package
