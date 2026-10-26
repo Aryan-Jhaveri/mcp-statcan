@@ -26,6 +26,7 @@ from ...config import (
     SDMX_STRUCTURE_TIMEOUT,
     SDMX_XML_ACCEPT,
 )
+from ..apps import SERIES_VIEW_URI, summarize_rows_result, ui_meta
 from ..client import make_sdmx_get
 from ...db.ephemeral import run_ephemeral_query
 from mcp.types import ToolAnnotations
@@ -263,7 +264,9 @@ def register_sdmx_tools(registry: ToolRegistry) -> None:
         result["_sdmx_url"] = url
         return result
 
-    @registry.tool(output_model=SDMXRowsOutput, annotations=_READ_ONLY)
+    @registry.tool(
+        output_model=SDMXRowsOutput, annotations=_READ_ONLY, meta=ui_meta(SERIES_VIEW_URI), app_summary=summarize_rows_result
+    )
     async def get_sdmx_data(data_input: SDMXDataInput) -> Dict[str, Any]:
         """
         Fetch filtered time-series observations from a StatCan table via SDMX REST.
@@ -361,7 +364,9 @@ def register_sdmx_tools(registry: ToolRegistry) -> None:
             **({"_message": f"Capped at {MAX_SDMX_ROWS} rows (total: {len(rows)}). Narrow your key."} if truncated else {}),
         }
 
-    @registry.tool(output_model=SDMXQueryOutput, annotations=_READ_ONLY)
+    @registry.tool(
+        output_model=SDMXQueryOutput, annotations=_READ_ONLY, meta=ui_meta(SERIES_VIEW_URI)
+    )
     async def query_sdmx(query_input: SDMXQueryInput) -> Dict[str, Any]:
         """
         Fetch SDMX observations and run ONE read-only SQL query over them server-side,
@@ -422,7 +427,9 @@ def register_sdmx_tools(registry: ToolRegistry) -> None:
             result = await asyncio.to_thread(run_ephemeral_query, rows, query_input.sql)
         return {"_sdmx_url": sdmx_url, "fetched_row_count": len(rows), **result}
 
-    @registry.tool(output_model=SDMXRowsOutput, annotations=_READ_ONLY)
+    @registry.tool(
+        output_model=SDMXRowsOutput, annotations=_READ_ONLY, meta=ui_meta(SERIES_VIEW_URI), app_summary=summarize_rows_result
+    )
     async def get_sdmx_vector_data(vector_input: SDMXVectorInput) -> Dict[str, Any]:
         """
         Fetch time-series observations for a single StatCan vector via SDMX REST.

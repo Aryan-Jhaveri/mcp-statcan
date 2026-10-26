@@ -7,11 +7,14 @@ from mcp.types import (
     Icon,
     ImageContent,
     ListPromptsResult,
+    ListResourcesResult,
     ListToolsResult,
     Prompt,
     PromptArgument,
     PromptMessage,
+    ReadResourceResult,
     TextContent,
+    TextResourceContents,
     Tool,
 )
 import argparse
@@ -42,6 +45,7 @@ from . import config
 from .api.cube import register_cube_tools
 from .api.vector import register_vector_tools
 from .api.metadata_tools import register_metadata_tools
+from .api.apps import APP_MIME_TYPE, EXTENSION_ID, client_supports_apps, list_view_resources, read_view, resource_meta
 from .api.composite_tools import register_composite_tools
 from .api.sdmx import register_sdmx_tools
 from .db.queries import register_db_tools
@@ -115,6 +119,14 @@ def create_server(http_mode: bool = False):
             # Tools with an outputSchema also return the result as structuredContent
             tool = registry.get_tool(name)
             if tool is not None and tool.output_schema is not None and isinstance(result, dict):
+                # MCP Apps: when the client renders the tool's view, the full result goes to
+                # the view (structuredContent stays out of model context) and the model's
+                # text is a summary. Clients without Apps keep the full JSON text.
+                summarize = registry.get_app_summary(name)
+                if summarize is not None and client_supports_apps(ctx):
+                    import json
+                    text = json.dumps(summarize(result), separators=(",", ":"), ensure_ascii=False, default=str)
+                    content = [TextContent(type="text", text=text)]
                 return CallToolResult(content=content, structured_content=result)
 
             return CallToolResult(content=content)
@@ -126,6 +138,19 @@ def create_server(http_mode: bool = False):
                 content=[TextContent(type="text", text=f"Error: {str(e) or type(e).__name__}")],
                 is_error=True,
             )
+
+    # ── MCP Apps views (ui:// resources) ──────────────────────────────────
+    async def _on_list_resources(ctx, params) -> ListResourcesResult:
+        return ListResourcesResult(resources=list_view_resources())
+
+    async def _on_read_resource(ctx, params) -> ReadResourceResult:
+        uri = str(params.uri)
+        html = read_view(uri)
+        if html is None:
+            raise ValueError(f"Unknown resource: {uri}")
+        return ReadResourceResult(
+            contents=[TextResourceContents(uri=uri, mime_type=APP_MIME_TYPE, text=html, meta=resource_meta())]
+        )
 
     async def _on_list_prompts(ctx, params) -> ListPromptsResult:
         return ListPromptsResult(prompts=list(_PROMPTS.values()))
@@ -164,7 +189,11 @@ def create_server(http_mode: bool = False):
         on_call_tool=_on_call_tool,
         on_list_prompts=_on_list_prompts,
         on_get_prompt=_on_get_prompt,
+        on_list_resources=_on_list_resources,
+        on_read_resource=_on_read_resource,
     )
+    # Advertise MCP Apps support (SEP-2133 extension capability)
+    server.extensions[EXTENSION_ID] = {}
     log_server_debug("MCP Server instance created.")
 
     log_server_debug("Returning server instance from create_server.")
