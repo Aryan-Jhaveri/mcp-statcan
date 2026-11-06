@@ -221,26 +221,22 @@ claude mcp add statcan --scope global -- uvx statcan-mcp-server
 
 ## How Claude.ai Uses This Server
 
-Claude.ai (web) has no bash sandbox — it can't run shell commands. Instead, it uses MCP tools for discovery and its **Python script tool** to fetch data without bloating the context window.
+Claude.ai (web) has no bash, and its code sandbox can't reach StatCan, so all data comes through the connector's MCP tools.
 
 **The pattern:**
 
 ```
-1. MCP tools (small payloads — metadata only):
-   search_cubes_by_title("labour force")  → productId
-   get_sdmx_structure(productId=...)      → dimension layout + codes
+1. Discovery (small payloads):
+   search_cubes_by_title("labour force")  → productId + key_template
    get_sdmx_structure(productId=..., search="Ontario;Employment")  → codes by label
 
-2. Python script (data never enters context):
-   url = "https://mcp-statcan.com/files/sdmx/<pid>/<key>?lastNObservations=12"
-   → validate URL domain → write to ./statcan_<pid>.csv → print summary only
-
-3. Follow-up script (analysis from local file):
-   rows = list(csv.DictReader(open("./statcan_<pid>.csv")))
-   → filter / sort / aggregate → print only the result
+2. Answers: get_sdmx_data(..., sql="SELECT ...")  → only the result comes back
+3. Files: get_sdmx_data(..., format="csv")        → copy the CSV verbatim into a file
 ```
 
-For questions that need computation (rank, compare, growth), `get_sdmx_data(..., sql=...)` runs the SQL on the server and returns only the answer, so raw rows never enter the context window.
+Use `sql` for rankings, growth and averages; use `format="csv"` only when the rows need to go into a file.
+
+After a server update, disconnect and reconnect the connector in claude.ai to refresh the tool list.
 
 **Claude Code (bash sandbox)** uses the `statcan` CLI instead:
 
@@ -255,13 +251,13 @@ awk -F',' 'NR>1 && $1=="Canada"' ./lfs.csv | sort -t',' -rn -k5 | head -10
 
 ## MCP Prompts
 
-The server ships five prompts accessible as slash commands in supported clients. Each has dual instructions — Claude Code (bash) and Claude.ai web (Python script).
+The server ships five prompts accessible as slash commands in supported clients. Each has two sets of instructions: Claude Code (the `statcan` CLI in bash) and Claude.ai web (the MCP tools, with `sql` and `format="csv"` to keep rows out of context).
 
 | Prompt | What it teaches |
 |---|---|
-| `/statcan-data-lookup` | End-to-end: search → structure → build key → fetch to local file → analyze |
+| `/statcan-data-lookup` | End-to-end: search → structure → build key → fetch (CLI to a file, or MCP tools with `sql`) → analyze |
 | `/sdmx-key-builder` | SDMX key syntax: wildcards, OR keys, time parameters, download URL format |
-| `/statcan-download` | Download a specific table: CLI commands + Python script alternative |
+| `/statcan-download` | Download a specific table: CLI commands, or the MCP tools on Claude.ai |
 | `/statcan-explore` | Sample before committing: 3-period fetch, column layout, size estimate |
 | `/statcan-vector-pipeline` | Multi-series download and cross-series comparison |
 
@@ -361,9 +357,15 @@ Five tools, in the default `core` toolset:
 |---|---|
 | `search_cubes_by_title` | Find tables by title keywords (English or French; all must appear). Paged (`offset`, `max_results`, default 10); every result includes `key_template`, the dimension order of the SDMX key. |
 | `get_sdmx_structure` | A table's dimensions in key order with their codes (id, name, parent). `search="Ontario;Employment"` finds codes by label across all dimensions; `dimension=<position>` lists one full dimension plus its `leaf_key` (lowest-level codes as a `+` OR). |
-| `get_sdmx_data` | Observations for `productId` + `key`, or one `vectorId`. Over 100 observations you get a per-series summary unless `full=true` (max 500 rows). Pass `sql` to run one read-only SELECT over the table `data` server-side (growth, averages, rankings) and get back only the result. |
+| `get_sdmx_data` | Observations for `productId` + `key`, or one `vectorId`. Over 100 observations you get a per-series summary unless `full=true` (max 500 rows). Pass `sql` to run one read-only SELECT over the table `data` server-side (growth, averages, rankings) and get back only the result. `format="csv"` returns compact CSV instead of JSON (see below). |
 | `get_series_info` | `productId` + `coordinates`, or `vectorIds`: decoded frequency, unit and scalar, English and French title, and the SDMX key. |
 | `get_changes` | Tables released on a date (default today), or the new data points for one series (`vectorId`, or `productId` + `coordinate`). |
+
+**CSV output:** `get_sdmx_data(format="csv")` returns one row per series and one column per period, with fields shared by every series written once as `# name: value` lines. It always returns the rows (ignores `full`, max 500 observations) and works with `sql`. It is about 3x smaller than `full=true` JSON (table 15100032, key `7...`: 7,892 to 2,637 characters; 18100004, key `.2`, last 12: 13,247 to 3,630).
+
+```
+get_sdmx_data(productId=18100004, key=".2", lastNObservations=12, format="csv")
+```
 
 **Key syntax** (passed to `get_sdmx_data`):
 - `"1.2.1"` — Geography=1, Gender=2, Age=1
@@ -509,6 +511,7 @@ src/
 | **`lastNObservations` + `startPeriod`/`endPeriod` → 406** | Active | Use one or the other, not both |
 | **Wildcard/OR rows missing or mislabelled; wrong `VECTOR_ID`/`UOM`** | Fixed in v0.12.0 | Caused by StatCan's SDMX-JSON index encoding; data is now read as structure-specific XML ([#90](https://github.com/Aryan-Jhaveri/mcp-statcan/issues/90)) |
 | **Context overflow may cause data fabrication** | Mitigated | Use `get_sdmx_data` with `sql` (hosted) or `fetch_sdmx_to_database` (local) so raw rows never enter context; `get_sdmx_data` caps inline rows at 500 |
+| **Slow or stalled StatCan requests** | Mitigated | Stalled requests retry after about 10 s. An incomplete SDMX structure isn't cached, and labels fall back to WDS metadata (the result's `_message` says so) |
 
 ---
 
