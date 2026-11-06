@@ -49,10 +49,13 @@ async def test_truncated_body_is_retried_and_not_cached():
 @pytest.mark.asyncio
 async def test_truncated_every_time_raises_clear_error_and_caches_nothing():
     route = respx.get(STRUCTURE_URL).mock(return_value=Response(200, text=TRUNCATED))
-    with pytest.raises(httpx.ReadError, match="incomplete structure"):
+    # The WDS fallback (#175) fails too, so the original error still surfaces
+    respx.post(f"{config.BASE_URL}/getCubeMetadata").mock(return_value=Response(500))
+    with pytest.raises(httpx.ReadError, match="incomplete structure.*WDS metadata failed"):
         await fetch_structure_xml(18100004)
     assert route.call_count == config.SDMX_STRUCTURE_ATTEMPTS
     assert 18100004 not in sdmx_tools._structure_cache
+    assert 18100004 not in sdmx_tools._fallback_structure_cache
 
 
 @respx.mock

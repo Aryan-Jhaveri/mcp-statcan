@@ -153,6 +153,26 @@ def dataflow_id(data_xml: str) -> Optional[str]:
     return None
 
 
+def align_dimension_ids(dsd: Dict[str, Any], data_xml: str) -> Dict[str, Any]:
+    """Rename dimension ids to the ones the data message uses, matching by key position.
+
+    For a structure built from WDS metadata (#175): its ids come from WDS dimension
+    names, which occasionally differ from the SDMX ids (32100125: 'Livestock_estimates'
+    vs 'Livestock_statistics'). StatCan's <Series> lists the dimensions first, in key
+    order, then the attributes, so the first N attribute names are the real ids.
+    """
+    dims: List[str] = dsd["dimensions"]
+    series = next((el for el in _parse_data(data_xml).iter() if _local(el.tag) == "Series"), None)
+    if series is None:
+        return dsd
+    names = [_norm(k) for k in series.attrib]
+    if all(d in names for d in dims) or len(names) < len(dims):
+        return dsd
+    renamed = dict(zip(dims, names[: len(dims)]))
+    labels = {renamed.get(k, k): v for k, v in dsd["labels"].items()}
+    return {"dimensions": [renamed[d] for d in dims], "labels": labels}
+
+
 def flatten_sdmx_xml(data_xml: str, dsd: Dict[str, Any]) -> List[Dict[str, Any]]:
     """Flatten a structure-specific SDMX-ML data message into tabular rows.
 
