@@ -85,8 +85,13 @@ def _code_sort_key(code: Dict[str, Any]) -> Tuple[bool, int, str]:
     return ("parent" in code, int(code_id) if code_id.isdigit() else 2**31, code_id)
 
 
-def _parse_structure_xml(xml_text: str, product_id: int) -> Dict[str, Any]:
-    """Parse SDMX 2.1 Structure XML into a JSON-serialisable summary dict."""
+def _parse_structure_xml(
+    xml_text: str, product_id: int, member_limit: Optional[int] = DEFAULT_MEMBER_LIMIT
+) -> Dict[str, Any]:
+    """Parse SDMX 2.1 Structure XML into a JSON-serialisable summary dict.
+
+    Codes per dimension are capped at member_limit (None = every code).
+    """
     root = ET.fromstring(xml_text)
 
     # ── Collect all codelists ───────────────────────────────────────────────
@@ -132,20 +137,20 @@ def _parse_structure_xml(xml_text: str, product_id: int) -> Dict[str, Any]:
 
                 codes_list = codelists.get(cl_id, []) if cl_id else []
                 total = len(codes_list)
-                truncated = total > DEFAULT_MEMBER_LIMIT
+                truncated = member_limit is not None and total > member_limit
 
                 dim_info: Dict[str, Any] = {
                     "id": dim_id,
                     "name": codelist_names.get(cl_id, "") if cl_id else "",
                     "position": pos,
                     "codelist": cl_id,
-                    "codes": codes_list[:DEFAULT_MEMBER_LIMIT] if truncated else codes_list,
+                    "codes": codes_list[:member_limit] if truncated else codes_list,
                     "_code_count": total,
                     "_truncated": truncated,
                 }
                 if truncated:
                     dim_info["_message"] = (
-                        f"Showing first {DEFAULT_MEMBER_LIMIT} of {total} codes. "
+                        f"Showing first {member_limit} of {total} codes. "
                         f"Use '+' for OR or omit for wildcard in key at position {pos}."
                     )
                 dimensions.append(dim_info)
@@ -344,6 +349,31 @@ def _series_result(
 _query_slots = asyncio.Semaphore(MAX_CONCURRENT_EPHEMERAL_QUERIES)
 
 
+async def query_rows(rows: List[Dict[str, Any]], sdmx_url: str, sql: str) -> Dict[str, Any]:
+    """Run one read-only SQL query over fetched rows in a temporary table `data`.
+    Shared by query_sdmx and the core get_sdmx_data(sql=...)."""
+    if not rows:
+        return {
+            "error": "No observations returned for this query.",
+            "_sdmx_url": sdmx_url,
+            "hint": "Check the key against get_sdmx_structure and widen the period range.",
+        }
+    if len(rows) > MAX_EPHEMERAL_ROWS:
+        return {
+            "error": f"Query fetched {len(rows):,} rows, above the {MAX_EPHEMERAL_ROWS:,}-row limit.",
+            "_sdmx_url": sdmx_url,
+            "hint": "Narrow the key or the period range.",
+        }
+
+    for row in rows:
+        row["value"] = to_number(row.get("value"))
+
+    # Run off the event loop so a slow query can't stall other requests on the HTTP server
+    async with _query_slots:
+        result = await asyncio.to_thread(run_ephemeral_query, rows, sql)
+    return {"_sdmx_url": sdmx_url, "fetched_row_count": len(rows), **result}
+
+
 def register_sdmx_tools(registry: ToolRegistry) -> None:
     """Register all SDMX REST API tools with the MCP server."""
 
@@ -484,27 +514,7 @@ def register_sdmx_tools(registry: ToolRegistry) -> None:
             query_input.startPeriod,
             query_input.endPeriod,
         )
-
-        if not rows:
-            return {
-                "error": "No observations returned for this query.",
-                "_sdmx_url": sdmx_url,
-                "hint": "Check the key against get_sdmx_structure and widen the period range.",
-            }
-        if len(rows) > MAX_EPHEMERAL_ROWS:
-            return {
-                "error": f"Query fetched {len(rows):,} rows, above the {MAX_EPHEMERAL_ROWS:,}-row limit.",
-                "_sdmx_url": sdmx_url,
-                "hint": "Narrow the key or the period range.",
-            }
-
-        for row in rows:
-            row["value"] = to_number(row.get("value"))
-
-        # Run off the event loop so a slow query can't stall other requests on the HTTP server
-        async with _query_slots:
-            result = await asyncio.to_thread(run_ephemeral_query, rows, query_input.sql)
-        return {"_sdmx_url": sdmx_url, "fetched_row_count": len(rows), **result}
+        return await query_rows(rows, sdmx_url, query_input.sql)
 
     @registry.tool(output_model=SDMXRowsOutput, annotations=_READ_ONLY)
     async def get_sdmx_vector_data(vector_input: SDMXVectorInput) -> Dict[str, Any]:
