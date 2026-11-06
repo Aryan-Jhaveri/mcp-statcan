@@ -3,13 +3,15 @@ from mcp.types import Prompt, PromptArgument
 from . import config
 import re
 
+from .toolset import resolve_toolset
+
 _PROMPTS = {
     "statcan-data-lookup": Prompt(
         name="statcan-data-lookup",
         description=(
             "End-to-end workflow for finding and analyzing Statistics Canada data. "
             "Claude Code (bash): statcan CLI + awk pipelines. "
-            "Claude.ai web: MCP tools for discovery, Python script fetches data to a local file — never floods context."
+            "Claude.ai web: MCP tools fetch the data; sql computes server-side so rows stay out of context."
         ),
         arguments=[
             PromptArgument(
@@ -36,7 +38,7 @@ _PROMPTS = {
         description=(
             "Download a Statistics Canada table to CSV and analyze it. "
             "Claude Code (bash): statcan CLI + awk. "
-            "Claude.ai web: Python script fetches to a local file — data never enters context."
+            "Claude.ai web: MCP tools fetch; sql or a narrow key keeps rows out of context."
         ),
         arguments=[
             PromptArgument(
@@ -80,7 +82,7 @@ _PROMPTS = {
         description=(
             "Sample and inspect a Statistics Canada table before committing to a full download. "
             "Claude Code (bash): statcan CLI. "
-            "Claude.ai web: Python script samples to a local file — see column layout without flooding context."
+            "Claude.ai web: MCP tools sample 3 periods to show the layout without flooding context."
         ),
         arguments=[
             PromptArgument(
@@ -93,7 +95,125 @@ _PROMPTS = {
 }
 
 
-def get_prompt_text(name: str, args: dict) -> str:
+_WEB_HEADER_CORE = "━━━ Claude.ai web (MCP tools) ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n"
+
+
+_LOOKUP_WEB_CORE = (
+    "The claude.ai sandbox can't reach StatCan, so the MCP tools do the fetching.\n"
+    "Keep data out of context: compute with sql, and request rows only when you need them.\n"
+    "\n"
+    "Step 1 — Find the table:\n"
+    '  search_cubes_by_title(search_term="<keywords>")\n'
+    "  → Note the productId; the top results include key_template (the key's dimension order).\n"
+    "\n"
+    "Step 2 — Find the codes for the slice you want (small payload, no data):\n"
+    '  get_sdmx_structure(productId=<id>, search="Ontario;Employment")\n'
+    "  → Looks up codes by label instead of guessing. Build the key from the ids, in position order.\n"
+    "  → dimension=N lists one full dimension, plus leaf_key (its lowest-level codes as a '+' OR).\n"
+    "\n"
+    "Step 3a — Computing an answer (rank, compare, growth, averages)? Do it server-side:\n"
+    '  get_sdmx_data(productId=<id>, key="<key>", startPeriod="2020-01",\n'
+    '                sql=\'SELECT "Geography", AVG(value) FROM data GROUP BY 1\')\n'
+    "  → Only the SQL result enters context.\n"
+    "\n"
+    "Step 3b — Need the rows themselves (chart, table, artifact)?\n"
+    '  get_sdmx_data(productId=<id>, key="<key>", lastNObservations=12, full=true)\n'
+    "  → Over 100 observations you get a per-series summary unless full=true (max 500 rows).\n"
+    "  → One series by vectorId: get_sdmx_data(vectorId=<id>, lastNObservations=12)\n"
+    "\n"
+    "Step 4 — Analyze the returned rows:\n"
+    '  for s in result["series"]:\n'
+    '      obs = s["observations"]  # [period, value] pairs, numeric values\n'
+    '      print(s["_series_key"], obs[-1])\n'
+    "  # For ranking/growth across series, pass sql instead\n"
+    "NOTE: wildcard (.) returns every member incl. totals; for sums/rankings use leaf codes (leaf_key)."
+)
+
+_EXPLORE_WEB_CORE = (
+    "Step 1 — Check structure without fetching data (MCP tool):\n"
+    "  get_sdmx_structure(productId={pid})\n"
+    "  → Count dimensions and codes. Note large dims (>10 codes are cut short).\n"
+    '  → Find codes by label: get_sdmx_structure(productId={pid}, search="Ontario;Employment")\n'
+    "  → One full dimension plus its leaf_key: get_sdmx_structure(productId={pid}, dimension=N)\n"
+    "\n"
+    "Step 2 — Sample 3 periods to see the layout (MCP tool):\n"
+    '  get_sdmx_data(productId={pid}, key="<narrow-key>", lastNObservations=3, full=true)\n'
+    "  → Wildcards on large dims return many series; narrow the key for a sample.\n"
+    '  → Returns series in result["series"].\n'
+    "\n"
+    "Step 3 — Estimate size and decide.\n"
+    "  If projected rows are too large, narrow the key further, or compute server-side:\n"
+    '  get_sdmx_data(productId={pid}, key="<key>", lastNObservations=12, sql="SELECT ... FROM data")'
+)
+
+_DOWNLOAD_WEB_CORE = (
+    "Step 1 — Get the codes to build a key:\n"
+    "  get_sdmx_structure(productId={pid})\n"
+    '  → Find codes by label: get_sdmx_structure(productId={pid}, search="Ontario;Employment")\n'
+    "  → One full dimension plus its leaf_key: get_sdmx_structure(productId={pid}, dimension=N)\n"
+    "\n"
+    "Step 2a — Computing an answer (rank, compare, growth)? Use SQL server-side:\n"
+    '  get_sdmx_data(productId={pid}, key="<key>", lastNObservations={last_n}, sql="SELECT ... FROM data")\n'
+    "  → Only the SQL result enters context.\n"
+    "\n"
+    "Step 2b — Need the rows themselves? Fetch inline via MCP tool:\n"
+    '  get_sdmx_data(productId={pid}, key="<key>", lastNObservations={last_n}, full=true)\n'
+    "  → Over 100 observations you get a summary unless full=true (max 500 rows).\n"
+    "\n"
+    "Step 3 — Analyze the returned series:\n"
+    '  for s in result["series"]: print(s["_series_key"], s["observations"][-1])'
+)
+
+_KEY_WHICH_CORE = (
+    "WHICH CODES TO USE:\n"
+    "  - Find ids by label: get_sdmx_structure(productId, search=\"Ontario;Employment\")\n"
+    "  - WDS memberIds == SDMX codelist codes — same numbers, no translation needed\n"
+    "  - Do NOT use the positional index of a code within get_sdmx_structure() output\n"
+)
+_KEY_LEAF_CORE = (
+    "  get_sdmx_structure(productId, dimension=N) → leaf_key of leaf codes.\n"
+    "  Large wildcards return a summary over 100 observations — pass sql to compute server-side.\n"
+)
+_KEY_OR_CORE = (
+    '  leaf_key from get_sdmx_structure = "7+11+12+13+..." → paste at the right position:\n'
+    '  key = f"7.3.1.1.1.{leaf_key}.1"\n'
+)
+_KEY_INLINE_CORE = (
+    "INLINE ROWS VIA MCP TOOL (Claude.ai — use this instead of curl):\n"
+    '  get_sdmx_data(productId=<product-id>, key="<key>", lastNObservations=12, full=true)\n'
+    '  get_sdmx_data(productId=<product-id>, key="<key>", startPeriod="2020", endPeriod="2024")\n'
+    "  get_sdmx_data(vectorId=<vector-id>, lastNObservations=12)   # one series\n"
+    "  → Returns rows directly — no external URL fetch needed.\n"
+    '  → Over 100 observations you get a summary unless full=true (max 500 rows).\n'
+    "  → Add sql=\"SELECT ... FROM data\" to compute over every row server-side.\n"
+)
+
+_KEY_WHICH_LEGACY = (
+    "WHICH CODES TO USE:\n"
+    "  - Use member IDs from get_cube_metadata() or SDMX codelist code IDs\n"
+    "  - WDS memberIds == SDMX codelist codes — same numbers, no translation needed\n"
+    "  - Do NOT use the positional index of a code within get_sdmx_structure() output\n"
+)
+_KEY_LEAF_LEGACY = (
+    "  get_sdmx_key_for_dimension(productId, dimension_position) → or_key of leaf codes.\n"
+    "  Large wildcards can exceed get_sdmx_data's 500-row cap — use query_sdmx instead.\n"
+)
+_KEY_OR_LEGACY = (
+    '  or_key from get_sdmx_key_for_dimension = "7+11+12+13+..." → paste at the right position:\n'
+    '  key = f"7.3.1.1.1.{or_key}.1"\n'
+)
+_KEY_INLINE_LEGACY = (
+    "INLINE ROWS VIA MCP TOOL (Claude.ai — use this instead of curl):\n"
+    '  get_sdmx_data(productId=<product-id>, key="<key>", lastNObservations=12)\n'
+    '  get_sdmx_data(productId=<product-id>, key="<key>", startPeriod="2020", endPeriod="2024")\n'
+    "  → Returns rows directly — no external URL fetch needed.\n"
+    '  → Rows are capped at 500. result["data"] is the list of dicts.\n'
+)
+
+
+def get_prompt_text(name: str, args: dict, toolset: str | None = None) -> str:
+    """Prompt text; the MCP tool names match the active toolset (legacy or core)."""
+    core = resolve_toolset(toolset) == "core"
     if name == "statcan-data-lookup":
         topic = args.get("topic", "<your topic>")
         goal = args.get("analysis_goal", "<your analysis goal>")
@@ -131,8 +251,9 @@ def get_prompt_text(name: str, args: dict) -> str:
             "Only the analysis output reaches the context window — not the raw CSV rows.\n"
             f"Adapt these patterns for: {goal}\n"
             "\n"
-            "━━━ Claude.ai web (Python script) ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n"
-            "\n"
+            + (_WEB_HEADER_CORE if core else "━━━ Claude.ai web (Python script) ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n")
+            + "\n"
+            + (_LOOKUP_WEB_CORE if core else (
             "Use MCP tools for discovery only — fetch data via script so it lands\n"
             "in a local file, not the context window.\n"
             "\n"
@@ -166,6 +287,7 @@ def get_prompt_text(name: str, args: dict) -> str:
             f"  # Goal: {goal}\n"
             "\n"
             "NOTE: wildcard (.) returns every member incl. totals; for sums/rankings use leaf codes (or_key)."
+            ))
         )
 
     elif name == "sdmx-key-builder":
@@ -177,22 +299,17 @@ def get_prompt_text(name: str, args: dict) -> str:
             '  "1+2.2.1"   = position-1 code 1 OR 2, position-2 code 2, position-3 code 1\n'
             '  ".2.1"      = wildcard position-1 (all values), position-2 code 2, position-3 code 1\n'
             "\n"
-            "WHICH CODES TO USE:\n"
-            "  - Use member IDs from get_cube_metadata() or SDMX codelist code IDs\n"
-            "  - WDS memberIds == SDMX codelist codes — same numbers, no translation needed\n"
-            "  - Do NOT use the positional index of a code within get_sdmx_structure() output\n"
-            "\n"
+            + (_KEY_WHICH_CORE if core else _KEY_WHICH_LEGACY)
+            + "\n"
             "WILDCARD vs LEAF CODES:\n"
             "  Wildcard (.) returns every member of the dimension, including totals and parent\n"
             "  aggregates (NOC: 309 codes = 162 leaves + subtotals). Fine for browsing; for sums or\n"
             "  rankings use leaf codes only, or totals get counted twice:\n"
-            "  get_sdmx_key_for_dimension(productId, dimension_position) → or_key of leaf codes.\n"
-            "  Large wildcards can exceed get_sdmx_data's 500-row cap — use query_sdmx instead.\n"
-            "\n"
+            + (_KEY_LEAF_CORE if core else _KEY_LEAF_LEGACY)
+            + "\n"
             "OR KEY USAGE:\n"
-            '  or_key from get_sdmx_key_for_dimension = "7+11+12+13+..." → paste at the right position:\n'
-            '  key = f"7.3.1.1.1.{or_key}.1"\n'
-            "\n"
+            + (_KEY_OR_CORE if core else _KEY_OR_LEGACY)
+            + "\n"
             "TIME PARAMETERS (use only one, not both):\n"
             "  lastNObservations=N  → last N periods per series\n"
             '  startPeriod="YYYY"   → from year (or "YYYY-MM" for monthly)\n'
@@ -203,12 +320,8 @@ def get_prompt_text(name: str, args: dict) -> str:
             '  statcan download <product-id> --key "1.2.1+2.1" --last 12 --output ./data.csv\n'
             '  statcan download <product-id> --key "1.1.1" --last 5 --dry-run   # preview SDMX URL before fetching\n'
             "\n"
-            "INLINE ROWS VIA MCP TOOL (Claude.ai — use this instead of curl):\n"
-            '  get_sdmx_data(productId=<product-id>, key="<key>", lastNObservations=12)\n'
-            '  get_sdmx_data(productId=<product-id>, key="<key>", startPeriod="2020", endPeriod="2024")\n'
-            "  → Returns rows directly — no external URL fetch needed.\n"
-            '  → Rows are capped at 500. result["data"] is the list of dicts.\n'
-            "\n"
+            + (_KEY_INLINE_CORE if core else _KEY_INLINE_LEGACY)
+            + "\n"
             "CLI (statcan CLI):\n"
             '  statcan download <product-id> --key "<key>" --last 12 --output ./data.csv'
         )
@@ -263,8 +376,9 @@ def get_prompt_text(name: str, args: dict) -> str:
             "\n"
             "Replace period_col, value_col, vector_col with actual column numbers from step 2.\n"
             "\n"
-            "━━━ Claude.ai web (Python script) ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n"
-            "\n"
+            + (_WEB_HEADER_CORE if core else "━━━ Claude.ai web (Python script) ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n")
+            + "\n"
+            + (_DOWNLOAD_WEB_CORE.format(pid=pid, last_n=last_n) if core else (
             "Step 1 — Get the table structure to build a key:\n"
             f"  get_sdmx_structure(productId={pid})\n"
             "  → For large dimensions (>30 codes):\n"
@@ -285,6 +399,7 @@ def get_prompt_text(name: str, args: dict) -> str:
             '  print("Rows:", len(rows), "Cols:", cols)\n'
             '  top10 = sorted(rows, key=lambda r: float(r.get("value","0") or 0), reverse=True)[:10]\n'
             '  for r in top10: print(r.get("period"), r.get("value"))'
+            ))
         )
 
     elif name == "statcan-vector-pipeline":
@@ -357,8 +472,9 @@ def get_prompt_text(name: str, args: dict) -> str:
             "# 6. Full download with the key you built\n"
             f'statcan download {pid} --key "1.1.1" --last 24 --output ./data_{_safe_pid}.csv\n'
             "\n"
-            "━━━ Claude.ai web (Python script) ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n"
-            "\n"
+            + (_WEB_HEADER_CORE if core else "━━━ Claude.ai web (Python script) ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n")
+            + "\n"
+            + (_EXPLORE_WEB_CORE.format(pid=pid) if core else (
             "Step 1 — Check structure without fetching data (MCP tool):\n"
             f"  get_sdmx_structure(productId={pid})\n"
             "  → Count dimensions and codes. Note large dims (>30 codes).\n"
@@ -378,6 +494,7 @@ def get_prompt_text(name: str, args: dict) -> str:
             "Step 3 — Estimate size and decide.\n"
             "  If projected rows are too large, narrow the key further.\n"
             "  Then call get_sdmx_data with lastNObservations=12 for the full fetch."
+            ))
         )
 
     raise ValueError(f"Unknown prompt: {name}")

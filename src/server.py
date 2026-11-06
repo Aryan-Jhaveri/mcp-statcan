@@ -46,18 +46,8 @@ from .api.core import register_core_tools
 from .api.sdmx import register_sdmx_tools
 from .db.queries import register_db_tools
 from .util.logger import log_server_debug
+from .toolset import TOOLSETS, resolve_toolset  # noqa: F401  (re-exported)
 from .util.registry import registry
-
-
-TOOLSETS = ("legacy", "core")
-
-
-def resolve_toolset(toolset: Optional[str] = None) -> str:
-    """The toolset to serve: the argument, else STATCAN_TOOLSET, else 'legacy'."""
-    name = (toolset or os.environ.get("STATCAN_TOOLSET") or "legacy").strip().lower()
-    if name not in TOOLSETS:
-        raise ValueError(f"Unknown STATCAN_TOOLSET {name!r}; use one of: {', '.join(TOOLSETS)}.")
-    return name
 
 
 def create_server(http_mode: bool = False, toolset: Optional[str] = None):
@@ -156,7 +146,7 @@ def create_server(http_mode: bool = False, toolset: Optional[str] = None):
             raise ValueError(f"Unknown prompt: {name}")
 
         args = dict(arguments) if arguments else {}
-        text = get_prompt_text(name, args)
+        text = get_prompt_text(name, args, toolset)
 
         return GetPromptResult(
             description=_PROMPTS[name].description,

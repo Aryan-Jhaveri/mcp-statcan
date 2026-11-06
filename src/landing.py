@@ -441,13 +441,14 @@ hr.section { border: none; border-top: 1px solid #CCCCCC; margin: 14px 0; }
     </div>
 
     <!-- TOOL INVENTORY -->
-    <h2>Registered Tools (18)</h2>
+    <h2>Registered Tools (5)</h2>
     <p>
-      All tools below are exposed over the <tt>/mcp</tt> endpoint. The hosted HTTP server
-      runs in <em>stateless</em> mode &mdash; composite and SQLite database tools are intentionally
+      The hosted server publishes the <tt>core</tt> toolset below over the <tt>/mcp</tt> endpoint
+      (about 939 tokens in <tt>tools/list</tt>, down from about 8,044 for the 17-tool <tt>legacy</tt> set).
+      It runs in <em>stateless</em> mode &mdash; composite and SQLite database tools are intentionally
       omitted here. To use those, run the server locally over stdio
-      (<tt>pip install statcan-mcp-server</tt>). For calculations on this server, use
-      <tt>query_sdmx</tt>: the SQL runs here and only the answer is sent back to the model.
+      (<tt>pip install statcan-mcp-server</tt>). For calculations on this server, pass <tt>sql</tt> to
+      <tt>get_sdmx_data</tt>: the SQL runs here and only the answer is sent back to the model.
     </p>
 
     <table class="tools">
@@ -456,24 +457,15 @@ hr.section { border: none; border-top: 1px solid #CCCCCC; margin: 14px 0; }
         <th>Category</th>
         <th>Description</th>
       </tr>
-      <tr class="odd"><td class="tool-name">search_cubes_by_title</td><td class="category">Discovery</td><td>Full-text keyword search across all StatCan tables, capped at 25 results</td></tr>
-      <tr class="even"><td class="tool-name">get_all_cubes_list</td><td class="category">Discovery</td><td>Paginated inventory of all tables (100/page)</td></tr>
-      <tr class="odd"><td class="tool-name">get_all_cubes_list_lite</td><td class="category">Discovery</td><td>Lightweight paginated list, 1-hour TTL cache</td></tr>
-      <tr class="even"><td class="tool-name">get_cube_metadata</td><td class="category">Metadata</td><td>Full table structure: dimensions, members, frequencies; summary mode caps members at 10</td></tr>
-      <tr class="odd"><td class="tool-name">get_code_sets</td><td class="category">Metadata</td><td>WDS attribute decoder tables (scalar type, UOM, frequency, status codes)</td></tr>
-      <tr class="even"><td class="tool-name">get_series_info</td><td class="category">Series</td><td>Resolve dimension coordinates to vectorId, frequency, UOM</td></tr>
-      <tr class="odd"><td class="tool-name">get_series_info_from_vector</td><td class="category">Series</td><td>Look up series metadata by vectorId</td></tr>
-      <tr class="even"><td class="tool-name">get_bulk_vector_data_by_range</td><td class="category">Vector</td><td>Fetch multiple vectors filtered by release-date range</td></tr>
-      <tr class="odd"><td class="tool-name">get_changed_series_data_from_vector</td><td class="category">Change Detection</td><td>Data points changed today for a vector (after 08:30 ET)</td></tr>
-      <tr class="even"><td class="tool-name">get_changed_series_data_from_cube_pid_coord</td><td class="category">Change Detection</td><td>Data points changed today for a series by coordinate</td></tr>
-      <tr class="odd"><td class="tool-name">get_changed_cube_list</td><td class="category">Change Detection</td><td>List all tables with data changes since a given date</td></tr>
-      <tr class="even"><td class="tool-name">get_changed_series_list</td><td class="category">Change Detection</td><td>List series updated today after 08:30 ET</td></tr>
-      <tr class="odd"><td class="tool-name">get_sdmx_structure</td><td class="category">SDMX</td><td>Data Structure Definition as JSON: dimension positions and codelists with hierarchy</td></tr>
-      <tr class="even"><td class="tool-name">get_sdmx_data</td><td class="category">SDMX</td><td>Server-side filtered observations by productId + SDMX key string</td></tr>
-      <tr class="odd"><td class="tool-name">query_sdmx</td><td class="category">SDMX + SQL</td><td>Fetch observations and run one read-only SQL query server-side in a temporary in-memory table; returns only the result (rank, compare, growth)</td></tr>
-      <tr class="even"><td class="tool-name">get_sdmx_vector_data</td><td class="category">SDMX</td><td>Single vectorId observations via SDMX</td></tr>
-      <tr class="odd"><td class="tool-name">get_sdmx_key_for_dimension</td><td class="category">SDMX</td><td>Returns the full OR-key for a large dimension (avoids wildcard sampling errors)</td></tr>
+      <tr class="odd"><td class="tool-name">search_cubes_by_title</td><td class="category">Discovery</td><td>Find tables by title keywords (English or French), paged; the top 3 results include the SDMX key template</td></tr>
+      <tr class="even"><td class="tool-name">get_sdmx_structure</td><td class="category">SDMX</td><td>Dimensions in key order with their codes; <tt>search</tt> finds codes by label, <tt>dimension</tt> lists one full dimension plus its <tt>leaf_key</tt></td></tr>
+      <tr class="odd"><td class="tool-name">get_sdmx_data</td><td class="category">SDMX + SQL</td><td>Observations by productId + key, or one vectorId; summary over 100 observations unless <tt>full</tt>; optional <tt>sql</tt> runs one read-only query server-side and returns only the result</td></tr>
+      <tr class="even"><td class="tool-name">get_series_info</td><td class="category">Series</td><td>productId + coordinates, or vectorIds: decoded frequency, unit and scalar, titles (English and French), SDMX key</td></tr>
+      <tr class="odd"><td class="tool-name">get_changes</td><td class="category">Change Detection</td><td>Tables released on a date (default today), or new data points for one series</td></tr>
     </table>
+    <p style="font-size:10pt;">
+      Set <tt>STATCAN_TOOLSET=legacy</tt> (or <tt>--toolset legacy</tt>) on a self-hosted server for the previous tool set.
+    </p>
 
     <hr class="section">
 
@@ -484,10 +476,10 @@ hr.section { border: none; border-top: 1px solid #CCCCCC; margin: 14px 0; }
       <tr><td>Upstream APIs</td><td>Statistics Canada WDS REST + SDMX 2.1 REST (data read as structure-specific XML)</td></tr>
       <tr><td>Authentication</td><td>OAuth 2.1/PKCE available (auto-approved, no credentials); open access also supported</td></tr>
       <tr><td>SSL Verification</td><td>On by default; <tt>STATCAN_VERIFY_SSL=false</tt> disables it for broken trust stores</td></tr>
-      <tr><td>Structured Output</td><td><tt>outputSchema</tt> + <tt>structuredContent</tt> on all SDMX tools; read-only tools carry <tt>readOnlyHint</tt></td></tr>
+      <tr><td>Structured Output</td><td><tt>outputSchema</tt> + <tt>structuredContent</tt> on the SDMX data and structure tools; read-only tools carry <tt>readOnlyHint</tt></td></tr>
       <tr><td>Max SDMX Rows</td><td>500 per <tt>get_sdmx_data</tt> call</td></tr>
-      <tr><td>Server-side SQL</td><td><tt>query_sdmx</tt>: SQLite in-memory, one SELECT per call, 2&nbsp;s limit, up to 50,000 fetched rows, 500 result rows; nothing stored</td></tr>
-      <tr><td>Cache</td><td>1-hour TTL on <tt>get_all_cubes_list_lite</tt></td></tr>
+      <tr><td>Server-side SQL</td><td><tt>get_sdmx_data</tt> with <tt>sql</tt>: SQLite in-memory, one SELECT per call, 2&nbsp;s limit, up to 50,000 fetched rows, 500 result rows; nothing stored</td></tr>
+      <tr><td>Cache</td><td>1-hour TTL on the cube list and on table structures</td></tr>
       <tr><td>Python</td><td>3.10+ &mdash; asyncio, httpx, Starlette, Uvicorn</td></tr>
       <tr><td>Install</td><td><tt>pip install statcan-mcp-server</tt></td></tr>
       <tr><td>Source</td><td><a href="https://github.com/Aryan-Jhaveri/mcp-statcan">github.com/Aryan-Jhaveri/mcp-statcan</a></td></tr>
@@ -500,8 +492,8 @@ hr.section { border: none; border-top: 1px solid #CCCCCC; margin: 14px 0; }
     <ul style="font-size:10pt; line-height:1.7;">
       <li><strong>lastNObservations + startPeriod/endPeriod</strong> &mdash; cannot be combined; StatCan returns HTTP&nbsp;406.</li>
       <li><strong>Wildcards include totals</strong> &mdash; <tt>.</tt> returns every member of a dimension, including totals and
-          parent aggregates. For sums or rankings use leaf codes from <tt>get_sdmx_key_for_dimension</tt>.</li>
-      <li><strong>vectorIds from metadata</strong> &mdash; <tt>get_cube_metadata</tt> returns member names but <em>not</em> vectorIds.
+          parent aggregates. For sums or rankings use the <tt>leaf_key</tt> from <tt>get_sdmx_structure(productId, dimension=N)</tt>.</li>
+      <li><strong>vectorIds from structure</strong> &mdash; <tt>get_sdmx_structure</tt> returns member names but <em>not</em> vectorIds.
           Use <tt>get_series_info</tt> to resolve coordinates to vectorIds.</li>
       <li><strong>Data format</strong> &mdash; SDMX data is read as structure-specific XML and labelled from the table&rsquo;s
           structure. StatCan&rsquo;s SDMX-JSON mis-indexes series and attributes, which previously caused missing wildcard rows,

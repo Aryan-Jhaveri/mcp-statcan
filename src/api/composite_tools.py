@@ -24,7 +24,7 @@ class FetchVectorsInput(BaseModel):
     vectorIds: List[str] = Field(
         ...,
         description="List of StatCan vector IDs to fetch (e.g. ['111', '222', '333']). "
-                    "Get these from get_cube_metadata → dimension members → vectorId field.",
+                    "Get these from get_series_info (productId + coordinates → vectorId).",
     )
     table_name: str = Field(
         ...,
@@ -75,7 +75,7 @@ def register_composite_tools(registry: ToolRegistry):
 
         Typical workflow:
           1. search_cubes_by_title("unemployment rate") → find productId
-          2. get_cube_metadata(productId=...) → find vectorIds for each series you want
+          2. get_series_info(productId=..., ...) → find vectorIds for each series you want
           3. fetch_vectors_to_database(
                vectorIds=["v111","v222","v333"],
                table_name="unemployment_by_province",
@@ -271,7 +271,7 @@ def register_composite_tools(registry: ToolRegistry):
         data to the context window.
 
         Use this when you need to browse all dimension members or look up vectorIds.
-        The summary returned by get_cube_metadata only shows 5 members per dimension —
+        Table structure tools (get_sdmx_structure) list only the first few members per dimension —
         call this tool first, then use SQL to drill into specific dimensions.
 
         Typical workflow:
