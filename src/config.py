@@ -48,7 +48,11 @@ SDMX_XML_ACCEPT = "application/vnd.sdmx.structure+xml;version=2.1"
 # keys and attributes (issue #90); the XML carries codes and attributes inline.
 SDMX_DATA_XML_ACCEPT = "application/vnd.sdmx.structurespecificdata+xml;version=2.1"
 SDMX_STRUCTURE_CACHE_TTL = 3600  # seconds; DSDs change only when a table is restructured
-SDMX_STRUCTURE_TIMEOUT = 20.0  # DSDs normally return in <1 s; fail fast on a hang and retry
+# httpx applies this per phase (connect, and each wait for bytes), not to the whole
+# download. A stalled DSD sends no headers for ~30 s, so it fails here and is retried;
+# the largest DSDs (98100023 is 37 MB, ~25 s) start in ~0.1 s and stream steadily (#145).
+SDMX_STRUCTURE_TIMEOUT = 8.0
+SDMX_STRUCTURE_ATTEMPTS = 3  # tries when StatCan returns a truncated DSD as HTTP 200
 MAX_SDMX_ROWS = 500  # Safety cap for flattened SDMX rows
 # Above this many observations, get_sdmx_data returns a summary unless full=true (#139)
 SDMX_SUMMARY_THRESHOLD = 100

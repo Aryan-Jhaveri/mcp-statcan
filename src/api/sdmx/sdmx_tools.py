@@ -11,6 +11,7 @@ Tools:
 """
 
 import asyncio
+import re
 import time
 import xml.etree.ElementTree as ET
 from typing import Any, Dict, List, Optional, Tuple
@@ -22,6 +23,7 @@ from ...config import (
     MAX_EPHEMERAL_ROWS,
     MAX_SDMX_ROWS,
     SDMX_BASE_URL,
+    SDMX_STRUCTURE_ATTEMPTS,
     SDMX_DATA_XML_ACCEPT,
     SDMX_STRUCTURE_CACHE_TTL,
     SDMX_SUMMARY_MAX_SERIES,
@@ -31,6 +33,7 @@ from ...config import (
 )
 from ..client import make_sdmx_get
 from ...db.ephemeral import run_ephemeral_query
+from ...util.logger import log_server_debug
 
 from ...models.sdmx_models import (
     SDMXDataInput,
@@ -162,15 +165,43 @@ def _parse_structure_xml(
 _structure_cache: Dict[int, Tuple[float, str]] = {}
 
 
+# A complete DSD ends with the closing root element (</mes:Structure>).
+_STRUCTURE_END = re.compile(r"</(?:\w+:)?Structure>\s*$")
+
+
+def _is_complete_structure(text: str) -> bool:
+    return bool(_STRUCTURE_END.search(text[-200:]))
+
+
 async def fetch_structure_xml(product_id: int) -> str:
-    """Fetch a table's Data Structure Definition (SDMX 2.1 XML), cached for an hour."""
+    """Fetch a table's Data Structure Definition (SDMX 2.1 XML), cached for an hour.
+
+    StatCan sometimes cuts a DSD short and still answers HTTP 200. Such a body is
+    retried and never cached; otherwise the table would stay broken for an hour (#145).
+    """
     cached = _structure_cache.get(product_id)
     if cached and time.monotonic() - cached[0] < SDMX_STRUCTURE_CACHE_TTL:
         return cached[1]
     url = f"{SDMX_BASE_URL}structure/Data_Structure_{product_id}"
-    response = await make_sdmx_get(url, headers={"Accept": SDMX_XML_ACCEPT}, timeout=SDMX_STRUCTURE_TIMEOUT)
-    _structure_cache[product_id] = (time.monotonic(), response.text)
-    return response.text
+    for attempt in range(SDMX_STRUCTURE_ATTEMPTS):
+        started = time.monotonic()
+        response = await make_sdmx_get(url, headers={"Accept": SDMX_XML_ACCEPT}, timeout=SDMX_STRUCTURE_TIMEOUT)
+        elapsed = time.monotonic() - started
+        if _is_complete_structure(response.text):
+            log_server_debug(f"DSD {product_id}: {len(response.text)} chars in {elapsed:.1f}s")
+            _structure_cache[product_id] = (time.monotonic(), response.text)
+            return response.text
+        log_server_debug(
+            f"DSD {product_id}: truncated body ({len(response.text)} chars, {elapsed:.1f}s), "
+            f"attempt {attempt + 1}/{SDMX_STRUCTURE_ATTEMPTS}"
+        )
+        if attempt < SDMX_STRUCTURE_ATTEMPTS - 1:
+            await asyncio.sleep(0.5 * (attempt + 1))
+    raise httpx.ReadError(
+        f"StatCan returned an incomplete structure (DSD) for table {product_id} "
+        f"{SDMX_STRUCTURE_ATTEMPTS} times. This is a temporary StatCan fault; try again shortly.",
+        request=response.request,
+    )
 
 
 def _period_params(
