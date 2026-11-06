@@ -136,6 +136,12 @@ async def test_data_argument_errors_explain_the_fix(server, args, match):
 
 
 @pytest.mark.asyncio
+async def test_numeric_key_is_explained(server):
+    with pytest.raises(ValueError, match='must be a string such as "2.2"'):
+        await registry.call_tool("get_sdmx_data", {"productId": 18100004, "key": 2.2})
+
+
+@pytest.mark.asyncio
 async def test_unknown_argument_is_rejected(server):
     with pytest.raises(ValueError, match="vector_id"):
         await registry.call_tool("get_sdmx_data", {"vector_id": 1})

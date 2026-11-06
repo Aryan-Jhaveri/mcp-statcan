@@ -7,7 +7,7 @@ anyOf [X, null]. Pydantic still validates the full types.
 
 from typing import Any, Dict, List, Optional
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 
 def _compact(node: Any) -> Any:
@@ -91,6 +91,13 @@ class CoreDataInput(_CoreInput):
     full: bool = Field(
         False, description="Every observation (max 500) instead of a summary when over 100."
     )
+
+    @field_validator("key", mode="before")
+    @classmethod
+    def _key_as_text(cls, v: Any) -> Any:
+        if isinstance(v, bool) or isinstance(v, float):
+            raise ValueError('key must be a string such as "2.2"; as a number it loses codes like "1.10"')
+        return str(v) if isinstance(v, int) else v
 
 
 class CoreSeriesInfoInput(_CoreInput):
