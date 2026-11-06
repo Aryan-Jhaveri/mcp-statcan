@@ -21,6 +21,7 @@ import logging
 import os
 import re
 import sys
+from typing import Optional
 
 _access_logger = logging.getLogger("statcan.access")
 
@@ -41,35 +42,55 @@ from .api.cube import register_cube_tools
 from .api.vector import register_vector_tools
 from .api.metadata_tools import register_metadata_tools
 from .api.composite_tools import register_composite_tools
+from .api.core import register_core_tools
 from .api.sdmx import register_sdmx_tools
 from .db.queries import register_db_tools
 from .util.logger import log_server_debug
 from .util.registry import registry
 
 
-def create_server(http_mode: bool = False):
+TOOLSETS = ("legacy", "core")
+
+
+def resolve_toolset(toolset: Optional[str] = None) -> str:
+    """The toolset to serve: the argument, else STATCAN_TOOLSET, else 'legacy'."""
+    name = (toolset or os.environ.get("STATCAN_TOOLSET") or "legacy").strip().lower()
+    if name not in TOOLSETS:
+        raise ValueError(f"Unknown STATCAN_TOOLSET {name!r}; use one of: {', '.join(TOOLSETS)}.")
+    return name
+
+
+def create_server(http_mode: bool = False, toolset: Optional[str] = None):
     """Create and configure the MCP server with all tools registered.
 
     Args:
         http_mode: If True, skip DB and composite tools (stateless HTTP proxy).
+        toolset: 'legacy' (default) or 'core' (#138: five merged tools). Falls back to
+            the STATCAN_TOOLSET env var.
     """
     log_server_debug("Inside create_server function.")
+    toolset = resolve_toolset(toolset)
 
     # Register all tools by module to the global registry
     try:
-        log_server_debug("Registering metadata tools...")
-        register_metadata_tools(registry)
-        log_server_debug("Registering cube tools...")
-        register_cube_tools(registry)
-        log_server_debug("Registering vector tools...")
-        register_vector_tools(registry)
+        if toolset == "core":
+            log_server_debug("Registering core tools...")
+            register_core_tools(registry)
+        else:
+            log_server_debug("Registering metadata tools...")
+            register_metadata_tools(registry)
+            log_server_debug("Registering cube tools...")
+            register_cube_tools(registry)
+            log_server_debug("Registering vector tools...")
+            register_vector_tools(registry)
 
         if not http_mode:
             log_server_debug("Registering composite tools...")
             register_composite_tools(registry)
 
-        log_server_debug("Registering SDMX tools...")
-        register_sdmx_tools(registry)
+        if toolset == "legacy":
+            log_server_debug("Registering SDMX tools...")
+            register_sdmx_tools(registry)
 
         if not http_mode:
             log_server_debug("Registering db tools...")
@@ -324,7 +345,14 @@ def main():
         "--db-path",
         help="Path to the SQLite database file (default: ~/.statcan-mcp/statcan_data.db)",
     )
+    parser.add_argument(
+        "--toolset",
+        choices=TOOLSETS,
+        help="Tools to serve: 'legacy' (default) or 'core' (five merged tools). Env: STATCAN_TOOLSET",
+    )
     args = parser.parse_args()
+    if args.toolset:
+        os.environ["STATCAN_TOOLSET"] = args.toolset
 
     # Override DB_FILE if --db-path was provided
     if args.db_path:
