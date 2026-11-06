@@ -312,8 +312,8 @@ hr.section { border: none; border-top: 1px solid #CCCCCC; margin: 14px 0; }
       <span class="new-badge">NEW</span> v0.19.0 &mdash; <tt>get_sdmx_data(format="csv")</tt> returns a compact CSV about 3&times; smaller to copy into files; <tt>key_template</tt> on every search result; labels fall back to WDS metadata when StatCan serves an incomplete structure<br>
       &bull; v0.18.0 &mdash; the 5-tool <tt>core</tt> toolset is now the default: about 939 tokens in <tt>tools/list</tt>, down from 17 tools / about 8,044 (<tt>STATCAN_TOOLSET=legacy</tt> restores the old set); retries for stalled StatCan requests; truncated table structures are no longer cached<br>
       &bull; v0.17.0 &mdash; search is paged (10 per page, <tt>offset</tt>) with SDMX key templates; <tt>get_sdmx_data</tt> summarizes results over 100 observations unless <tt>full=true</tt>; keys are validated against the table structure, so a bad key fails at once instead of hanging<br>
-      &bull; v0.16.0 &mdash; compact output: observations grouped by series, slimmer search results, <tt>get_code_sets</tt> summary by default; read-only annotations on every tool<br>
-      &bull; v0.15.0 &mdash; the interactive chart view was removed; agents get full rows; fixes for bulk vector range and changed-series requests; server now at mcp-statcan.com<br>
+      &bull; v0.16.0 &mdash; compact output: observations grouped by series, slimmer search results, <tt>get_code_sets</tt> summary by default; read-only annotations on every tool; fixes for bulk vector range and changed-series requests<br>
+      &bull; v0.15.0 &mdash; the interactive chart view was removed; agents get full rows; server now at mcp-statcan.com<br>
       &bull; v0.14.0 &mdash; experimental interactive chart and table view (MCP Apps), removed again in v0.15.0<br>
       &bull; v0.12.0 &mdash; data correctness: SDMX data now read as XML; wildcards return every series (previously a partial set), and <tt>VECTOR_ID</tt>, <tt>DGUID</tt> and <tt>UOM</tt> are correct per row<br>
       &bull; Listed on the MCP server registry<br>
