@@ -2,21 +2,42 @@ import asyncio
 import httpx
 from typing import Dict, List, Any, Optional, Union
 import json
-from ..config import BASE_URL, TIMEOUT_SMALL, TIMEOUT_MEDIUM, TIMEOUT_LARGE, VERIFY_SSL
+from ..config import (
+    BASE_URL,
+    HTTP_CONNECT_TIMEOUT,
+    HTTP_FIRST_BYTE_TIMEOUT,
+    TIMEOUT_SMALL,
+    TIMEOUT_MEDIUM,
+    TIMEOUT_LARGE,
+    VERIFY_SSL,
+)
 from ..util.logger import log_ssl_warning
 
 _RETRY_STATUSES = frozenset({429, 500, 502, 503, 504})
 _MAX_RETRY_ATTEMPTS = 3
 
 
+def _timeout(timeout: float, first_byte_timeout: Optional[float]) -> httpx.Timeout:
+    """Short connect and read (wait-for-bytes) limits so a stall fails fast and is retried (#161).
+
+    `timeout` stays the ceiling for every phase; `first_byte_timeout` overrides the read
+    limit for an endpoint that legitimately thinks before answering.
+    """
+    read = HTTP_FIRST_BYTE_TIMEOUT if first_byte_timeout is None else first_byte_timeout
+    return httpx.Timeout(timeout, connect=min(HTTP_CONNECT_TIMEOUT, timeout), read=min(read, timeout))
+
+
 async def make_get_request(endpoint: str, params: Optional[Dict[str, Any]] = None,
-                           timeout: float = TIMEOUT_SMALL) -> Any:
+                           timeout: float = TIMEOUT_SMALL,
+                           first_byte_timeout: Optional[float] = None) -> Any:
     """Make a GET request to the StatCan WDS API with retry on 5xx/429, timeouts and dropped connections."""
     if not VERIFY_SSL:
         log_ssl_warning(f"SSL verification disabled for {endpoint}.")
     for attempt in range(_MAX_RETRY_ATTEMPTS):
         try:
-            async with httpx.AsyncClient(base_url=BASE_URL, timeout=timeout, verify=VERIFY_SSL) as client:
+            async with httpx.AsyncClient(
+                base_url=BASE_URL, timeout=_timeout(timeout, first_byte_timeout), verify=VERIFY_SSL
+            ) as client:
                 response = await client.get(endpoint, params=params)
                 response.raise_for_status()
                 return response.json()
@@ -32,18 +53,27 @@ async def make_get_request(endpoint: str, params: Optional[Dict[str, Any]] = Non
 
 
 async def make_post_request(endpoint: str, data: Union[List[Dict[str, Any]], Dict[str, Any]],
-                            timeout: float = TIMEOUT_SMALL) -> Any:
-    """Make a POST request to the StatCan WDS API with retry on 5xx/429."""
+                            timeout: float = TIMEOUT_SMALL,
+                            first_byte_timeout: Optional[float] = None) -> Any:
+    """Make a POST request to the StatCan WDS API with retry on 5xx/429, timeouts and dropped connections."""
     if not VERIFY_SSL:
         log_ssl_warning(f"SSL verification disabled for {endpoint}.")
     for attempt in range(_MAX_RETRY_ATTEMPTS):
         try:
-            async with httpx.AsyncClient(base_url=BASE_URL, timeout=timeout, verify=VERIFY_SSL) as client:
+            async with httpx.AsyncClient(
+                base_url=BASE_URL, timeout=_timeout(timeout, first_byte_timeout), verify=VERIFY_SSL
+            ) as client:
                 response = await client.post(endpoint, json=data)
                 response.raise_for_status()
                 return response.json()
         except httpx.HTTPStatusError as exc:
             if exc.response.status_code not in _RETRY_STATUSES or attempt == _MAX_RETRY_ATTEMPTS - 1:
+                raise
+            await asyncio.sleep(min(1.0 * (2 ** attempt), 10.0))
+        except httpx.TransportError:
+            # Stalls and dropped connections. The WDS POST endpoints we call are read-only
+            # lookups (series info, changed-series data, vector data), so a retry is safe.
+            if attempt == _MAX_RETRY_ATTEMPTS - 1:
                 raise
             await asyncio.sleep(min(1.0 * (2 ** attempt), 10.0))
 
@@ -54,6 +84,7 @@ async def make_sdmx_get(
     headers: Optional[Dict[str, str]] = None,
     params: Optional[Dict[str, Any]] = None,
     timeout: float = TIMEOUT_MEDIUM,
+    first_byte_timeout: Optional[float] = None,
 ) -> httpx.Response:
     """GET request to an SDMX endpoint with retry on 5xx/429, timeouts and dropped
     connections. Returns raw response."""
@@ -61,7 +92,7 @@ async def make_sdmx_get(
         log_ssl_warning(f"SSL verification disabled for {url}.")
     for attempt in range(_MAX_RETRY_ATTEMPTS):
         try:
-            async with httpx.AsyncClient(timeout=timeout, verify=VERIFY_SSL) as client:
+            async with httpx.AsyncClient(timeout=_timeout(timeout, first_byte_timeout), verify=VERIFY_SSL) as client:
                 response = await client.get(url, params=params, headers=headers)
                 response.raise_for_status()
                 return response
