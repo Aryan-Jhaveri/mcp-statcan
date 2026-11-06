@@ -107,7 +107,16 @@ def create_server(http_mode: bool = False, toolset: Optional[str] = None):
 
             # Format result to MCP Content list. Compact JSON (no indentation, raw
             # non-ASCII such as French accents) is ~25-40% fewer characters than indent=2.
-            if isinstance(result, (list, dict)):
+            if isinstance(result, dict) and result.get("format") == "csv" and isinstance(result.get("csv"), str):
+                # The CSV goes in its own block, unescaped, so an agent can copy it
+                # verbatim into a file (#168); structuredContent still has the whole dict.
+                import json
+                meta = {k: v for k, v in result.items() if k != "csv"}
+                content = [
+                    TextContent(type="text", text=json.dumps(meta, separators=(",", ":"), ensure_ascii=False, default=str)),
+                    TextContent(type="text", text=result["csv"]),
+                ]
+            elif isinstance(result, (list, dict)):
                 import json
                 text = json.dumps(result, separators=(",", ":"), ensure_ascii=False, default=str)
                 content = [TextContent(type="text", text=text)]

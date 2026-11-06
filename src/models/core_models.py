@@ -5,7 +5,7 @@ compacted: no "title" keys, and Optional[X] is published as X rather than
 anyOf [X, null]. Pydantic still validates the full types.
 """
 
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Literal, Optional
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 
@@ -90,6 +90,13 @@ class CoreDataInput(_CoreInput):
     )
     full: bool = Field(
         False, description="Every observation (max 500) instead of a summary when over 100."
+    )
+    format: Literal["json", "csv"] = Field(
+        "json",
+        description=(
+            "csv: to save rows to a file, copy it verbatim. All observations (max 500), a row "
+            "per series, a column per period; shared fields as '# name: value' lines."
+        ),
     )
 
     @field_validator("key", mode="before")

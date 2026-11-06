@@ -24,8 +24,9 @@ from ...models.core_models import (
     CoreStructureInput,
     CoreStructureOutput,
 )
-from ...config import SDMX_BASE_URL, TIMEOUT_MEDIUM
+from ...config import MAX_SDMX_ROWS, SDMX_BASE_URL, TIMEOUT_MEDIUM
 from ...util.coordinate import pad_coordinate
+from ...util.csv_output import series_csv, table_csv
 from ...util.registry import READ_ONLY, ToolRegistry
 from ...util.truncation import DEFAULT_MEMBER_LIMIT
 from ..client import make_get_request, make_post_request
@@ -139,6 +140,33 @@ def _page(items: List[Any], offset: int, limit: int, what: str) -> Dict[str, Any
     return result
 
 
+def _rows_as_csv(rows: List[Dict[str, Any]], url: str, narrow: str) -> Dict[str, Any]:
+    """format='csv': every observation up to MAX_SDMX_ROWS (no summary; the point is to
+    save the rows), one row per series and one column per period (#168)."""
+    truncated = len(rows) > MAX_SDMX_ROWS
+    text, n_series = series_csv(rows[:MAX_SDMX_ROWS])
+    result: Dict[str, Any] = {
+        "_sdmx_url": url,
+        "format": "csv",
+        "row_count": len(rows),
+        "series_count": n_series,
+        "csv": text,
+        "_truncated": truncated,
+    }
+    if truncated:
+        result["_message"] = f"Capped at {MAX_SDMX_ROWS} observations (total: {len(rows)}). {narrow}"
+    if not rows:
+        result["_message"] = "No observations for this request. Check the key and period range."
+    return result
+
+
+def _sql_as_csv(result: Dict[str, Any]) -> Dict[str, Any]:
+    out = {k: v for k, v in result.items() if k not in ("columns", "rows", "table_columns")}
+    out["format"] = "csv"
+    out["csv"] = table_csv(result["columns"], result["rows"])
+    return out
+
+
 def register_core_tools(registry: ToolRegistry) -> None:
     """Register the core toolset."""
 
@@ -243,7 +271,10 @@ def register_core_tools(registry: ToolRegistry) -> None:
             raise ValueError("Pass productId + key, or vectorId.")
 
         if d.sql:
-            return await query_rows(rows, url, d.sql)
+            result = await query_rows(rows, url, d.sql)
+            return _sql_as_csv(result) if d.format == "csv" and "error" not in result else result
+        if d.format == "csv":
+            return _rows_as_csv(rows, url, narrow)
         return _series_result(
             rows, url, narrow, full=d.full,
             query_hint="To compute over all of it, call again with sql over table 'data'. ",
