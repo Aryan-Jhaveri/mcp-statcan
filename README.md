@@ -514,7 +514,6 @@ src/
 
 Thanks to everyone who has contributed code, fixes and bug reports:
 
-- [@Aryan-Jhaveri](https://github.com/Aryan-Jhaveri): creator and maintainer
 - [@dannyward630](https://github.com/dannyward630): fixed `get_changed_series_list` to use StatCan's undated endpoint ([#130](https://github.com/Aryan-Jhaveri/mcp-statcan/pull/130))
 
 Want to help? See [CONTRIBUTING.md](CONTRIBUTING.md).
