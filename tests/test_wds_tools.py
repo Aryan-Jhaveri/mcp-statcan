@@ -135,7 +135,7 @@ async def test_search_is_slim_current_first_and_always_an_envelope(server):
 
 @pytest.mark.asyncio
 @respx.mock
-async def test_search_pages_and_templates_only_top_hits(server):
+async def test_search_pages_and_every_hit_has_template(server):
     from src.util import cache
 
     cache.invalidate_cache()
@@ -145,11 +145,32 @@ async def test_search_pages_and_templates_only_top_hits(server):
     try:
         first = await registry.call_tool("search_cubes_by_title", {"search_term": "labour"})
         assert first["total_matches"] == 25 and first["showing"] == 10 and first["next_offset"] == 10
-        assert [("key_template" in c) for c in first["data"]] == [True] * 3 + [False] * 7
+        assert all(c["key_template"] == "Geography.Products_and_product_groups" for c in first["data"])
 
         last = await registry.call_tool("search_cubes_by_title", {"search_term": "labour", "offset": 20})
         assert [c["productId"] for c in last["data"]] == list(range(21, 26))
         assert "next_offset" not in last and "message" not in last
+        assert len(last["data"]) == 5 and all("key_template" in c for c in last["data"])
+
+        mid = await registry.call_tool("search_cubes_by_title", {"search_term": "labour", "offset": 5, "max_results": 3})
+        assert [c["productId"] for c in mid["data"]] == [6, 7, 8]
+        assert all("key_template" in c for c in mid["data"])
+    finally:
+        cache.invalidate_cache()
+
+
+@pytest.mark.asyncio
+@respx.mock
+async def test_search_cube_without_dimensions_has_no_template(server):
+    from src.util import cache
+
+    cache.invalidate_cache()
+    bare = {**_cube(1, "Labour bare", "2"), "dimensions": None}
+    respx.get(f"{WDS}/getAllCubesList").mock(return_value=Response(200, json=[bare, _cube(2, "Labour full", "2")]))
+    try:
+        result = await registry.call_tool("search_cubes_by_title", {"search_term": "labour"})
+        by_id = {c["productId"]: c for c in result["data"]}
+        assert "key_template" not in by_id[1] and "key_template" in by_id[2]
     finally:
         cache.invalidate_cache()
 
