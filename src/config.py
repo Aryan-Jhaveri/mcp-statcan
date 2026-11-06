@@ -62,7 +62,7 @@ SDMX_STRUCTURE_CACHE_TTL = 3600  # seconds; DSDs change only when a table is res
 SDMX_STRUCTURE_TIMEOUT = 8.0
 SDMX_STRUCTURE_ATTEMPTS = 3  # tries when StatCan returns a truncated DSD as HTTP 200
 # When the DSD stays truncated, labels come from WDS metadata instead (#175). Kept briefly,
-# so the real DSD is tried again soon (StatCan's bad copy lasted hours on 6 Nov 2026).
+# so the real DSD is tried again soon (on 6 Nov 2026 StatCan served a bad copy for at least 10–15 minutes).
 SDMX_STRUCTURE_FALLBACK_TTL = 300
 MAX_SDMX_ROWS = 500  # Safety cap for flattened SDMX rows
 # Above this many observations, get_sdmx_data returns a summary unless full=true (#139)
