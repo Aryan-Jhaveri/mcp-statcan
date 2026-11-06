@@ -104,7 +104,7 @@ _LOOKUP_WEB_CORE = (
     "\n"
     "Step 1 — Find the table:\n"
     '  search_cubes_by_title(search_term="<keywords>")\n'
-    "  → Note the productId; the top results include key_template (the key's dimension order).\n"
+    "  → Note the productId; each result includes key_template (the key's dimension order).\n"
     "\n"
     "Step 2 — Find the codes for the slice you want (small payload, no data):\n"
     '  get_sdmx_structure(productId=<id>, search="Ontario;Employment")\n'

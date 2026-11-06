@@ -16,8 +16,6 @@ from ...util.truncation import truncate_response
 
 _SEARCH_FIELDS = ("productId", "cubeTitleEn", "cubeStartDate", "cubeEndDate", "frequencyCode", "releaseTime")
 _DATE_FIELDS = ("cubeStartDate", "cubeEndDate", "releaseTime")
-# Search results that also get the table's SDMX key layout, so the agent can often skip get_sdmx_structure
-_KEY_TEMPLATE_HITS = 3
 
 
 def _cache_cube(cube: Dict[str, Any]) -> Dict[str, Any]:
@@ -31,14 +29,15 @@ def _cache_cube(cube: Dict[str, Any]) -> Dict[str, Any]:
     return kept
 
 
-def _slim_cube(cube: Dict[str, Any], with_key_template: bool = False) -> Dict[str, Any]:
+def _slim_cube(cube: Dict[str, Any]) -> Dict[str, Any]:
     """Search result fields: enough to pick a table; get_cube_metadata has the rest."""
     slim = {k: cube.get(k) for k in _SEARCH_FIELDS}
     for k in _DATE_FIELDS:
         if isinstance(slim[k], str):
             slim[k] = slim[k][:10]  # YYYY-MM-DD; the time of day doesn't help pick a table
     slim["archived"] = cube.get("archived") == "1"  # WDS: "1" = archived, "2" = current
-    if with_key_template and cube.get("key_template"):
+    # The table's SDMX key layout, so the agent can often skip get_sdmx_structure
+    if cube.get("key_template"):
         slim["key_template"] = cube["key_template"]
     return slim
 
@@ -87,9 +86,7 @@ async def search_cubes(search_term: str, max_results: int, offset: int) -> Dict[
 
     page = matching_cubes[offset:offset + max_results]
     result: Dict[str, Any] = {
-        "data": [
-            _slim_cube(c, with_key_template=offset + i < _KEY_TEMPLATE_HITS) for i, c in enumerate(page)
-        ],
+        "data": [_slim_cube(c) for c in page],
         "total_matches": total_found,
         "showing": len(page),
     }
@@ -167,7 +164,7 @@ def register_cube_discovery_tools(registry: ToolRegistry):
         Returns {"data": [...], "total_matches": N, "showing": M, ?"next_offset"}. Each
         result has productId, cubeTitleEn, cubeStartDate, cubeEndDate, frequencyCode,
         releaseTime and archived (true = discontinued table); current tables come first.
-        The top 3 also have key_template: the table's SDMX dimensions in key order
+        Each also has key_template: the table's SDMX dimensions in key order
         (e.g. "Geography.Products_and_product_groups"), one key position each.
 
         IMPORTANT: In your final response to the user, you MUST cite the source of your data.

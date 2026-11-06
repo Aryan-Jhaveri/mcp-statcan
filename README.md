@@ -359,7 +359,7 @@ Five tools, in the default `core` toolset:
 
 | Tool | Description |
 |---|---|
-| `search_cubes_by_title` | Find tables by title keywords (English or French; all must appear). Paged (`offset`, `max_results`, default 10); the top 3 results include `key_template`, the dimension order of the SDMX key. |
+| `search_cubes_by_title` | Find tables by title keywords (English or French; all must appear). Paged (`offset`, `max_results`, default 10); every result includes `key_template`, the dimension order of the SDMX key. |
 | `get_sdmx_structure` | A table's dimensions in key order with their codes (id, name, parent). `search="Ontario;Employment"` finds codes by label across all dimensions; `dimension=<position>` lists one full dimension plus its `leaf_key` (lowest-level codes as a `+` OR). |
 | `get_sdmx_data` | Observations for `productId` + `key`, or one `vectorId`. Over 100 observations you get a per-series summary unless `full=true` (max 500 rows). Pass `sql` to run one read-only SELECT over the table `data` server-side (growth, averages, rankings) and get back only the result. |
 | `get_series_info` | `productId` + `coordinates`, or `vectorIds`: decoded frequency, unit and scalar, English and French title, and the SDMX key. |

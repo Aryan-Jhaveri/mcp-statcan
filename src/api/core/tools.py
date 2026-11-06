@@ -145,7 +145,7 @@ def register_core_tools(registry: ToolRegistry) -> None:
     @registry.tool(annotations=READ_ONLY)
     async def search_cubes_by_title(search_input: CoreSearchInput) -> Dict[str, Any]:
         """Find StatCan tables by title keywords. Returns productId, title, dates and
-        frequency; the top 3 include key_template, the dimension order of the SDMX key."""
+        frequency; each includes key_template, the dimension order of the SDMX key."""
         return await search_cubes(search_input.search_term, search_input.max_results, search_input.offset)
 
     @registry.tool(output_model=CoreStructureOutput, annotations=READ_ONLY)
