@@ -251,13 +251,13 @@ awk -F',' 'NR>1 && $1=="Canada"' ./lfs.csv | sort -t',' -rn -k5 | head -10
 
 ## MCP Prompts
 
-The server ships five prompts accessible as slash commands in supported clients. Each has dual instructions — Claude Code (bash) and Claude.ai web (Python script).
+The server ships five prompts accessible as slash commands in supported clients. Each has two sets of instructions: Claude Code (the `statcan` CLI in bash) and Claude.ai web (the MCP tools, with `sql` and `format="csv"` to keep rows out of context).
 
 | Prompt | What it teaches |
 |---|---|
-| `/statcan-data-lookup` | End-to-end: search → structure → build key → fetch to local file → analyze |
+| `/statcan-data-lookup` | End-to-end: search → structure → build key → fetch (CLI to a file, or MCP tools with `sql`) → analyze |
 | `/sdmx-key-builder` | SDMX key syntax: wildcards, OR keys, time parameters, download URL format |
-| `/statcan-download` | Download a specific table: CLI commands + Python script alternative |
+| `/statcan-download` | Download a specific table: CLI commands, or the MCP tools on Claude.ai |
 | `/statcan-explore` | Sample before committing: 3-period fetch, column layout, size estimate |
 | `/statcan-vector-pipeline` | Multi-series download and cross-series comparison |
 
