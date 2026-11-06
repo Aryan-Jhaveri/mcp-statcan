@@ -292,7 +292,7 @@ hr.section { border: none; border-top: 1px solid #CCCCCC; margin: 14px 0; }
 
   <!-- STATUS BAR -->
   <div id="statusbar">
-    SERVER STATUS: ONLINE &nbsp;|&nbsp; VERSION %%VERSION%% &nbsp;|&nbsp; TOOLS: 18 REGISTERED
+    SERVER STATUS: ONLINE &nbsp;|&nbsp; VERSION %%VERSION%% &nbsp;|&nbsp; TOOLS: 5 REGISTERED
   </div>
 
   <!-- CONTENT -->
@@ -309,17 +309,13 @@ hr.section { border: none; border-top: 1px solid #CCCCCC; margin: 14px 0; }
 
     <div class="news-box">
       <strong>Announcements:</strong><br>
-      <span class="new-badge">NEW</span> v0.13.0 &mdash; local installs: fetched data accumulates in one observation store (upserts with new/revised counts, shared across SDMX and WDS, cross-table joins); more resilient to StatCan timeouts<br>
+      <span class="new-badge">NEW</span> v0.19.0 &mdash; <tt>get_sdmx_data(format="csv")</tt> returns a compact CSV about 3&times; smaller to copy into files; <tt>key_template</tt> on every search result; labels fall back to WDS metadata when StatCan serves an incomplete structure<br>
+      &bull; v0.18.0 &mdash; the 5-tool <tt>core</tt> toolset is now the default: about 939 tokens in <tt>tools/list</tt>, down from 17 tools / about 8,044 (<tt>STATCAN_TOOLSET=legacy</tt> restores the old set); retries for stalled StatCan requests; truncated table structures are no longer cached<br>
+      &bull; v0.17.0 &mdash; search is paged (10 per page, <tt>offset</tt>) with SDMX key templates; <tt>get_sdmx_data</tt> summarizes results over 100 observations unless <tt>full=true</tt>; keys are validated against the table structure, so a bad key fails at once instead of hanging<br>
+      &bull; v0.16.0 &mdash; compact output: observations grouped by series, slimmer search results, <tt>get_code_sets</tt> summary by default; read-only annotations on every tool; fixes for bulk vector range and changed-series requests<br>
+      &bull; v0.15.0 &mdash; the interactive chart view was removed; agents get full rows; server now at mcp-statcan.com<br>
+      &bull; v0.14.0 &mdash; experimental interactive chart and table view (MCP Apps), removed again in v0.15.0<br>
       &bull; v0.12.0 &mdash; data correctness: SDMX data now read as XML; wildcards return every series (previously a partial set), and <tt>VECTOR_ID</tt>, <tt>DGUID</tt> and <tt>UOM</tt> are correct per row<br>
-      &bull; v0.11.0 &mdash; <tt>statcan</tt> CLI for agents: <tt>--json</tt> envelopes, stable exit codes with hints, <tt>statcan describe</tt>; fixes for single-period monthly dates and frequency labels<br>
-      &bull; v0.10.0 &mdash; structured output: SDMX tools publish an <tt>outputSchema</tt> and return typed <tt>structuredContent</tt>; failures are flagged <tt>isError</tt>; responses are 25&ndash;40% smaller<br>
-      &bull; v0.9.0 &mdash; <tt>query_sdmx</tt> on this server: fetch a table slice and run one read-only SQL query server-side; only the answer is returned, with no 500-row cap on the fetch<br>
-      &bull; v0.8.0 &mdash; <tt>fetch_sdmx_to_database</tt> (local install): store a full SDMX slice in SQLite without passing rows through the model; values stored as numbers<br>
-      &bull; v0.7.16 &mdash; <tt>statcan download</tt> now requires <tt>--key</tt>; StatCan SDMX no longer accepts the <tt>all</tt> shortcut<br>
-      &bull; v0.7.15 &mdash; OAuth 2.1/PKCE support: Claude.ai web connector now routes tool calls correctly<br>
-      &bull; v0.7.14 &mdash; fixed 307 redirect loop on <tt>POST /mcp</tt>; Claude.ai IPs now receive 200 OK<br>
-      &bull; v0.7.9 &mdash; automated CI/CD: version bumps on push, landing announcement workflow<br>
-      &bull; v0.7.8 &mdash; tool-level request logging and <tt>/.well-known/mcp.json</tt> discovery<br>
       &bull; Listed on the MCP server registry<br>
     </div>
 
@@ -457,9 +453,9 @@ hr.section { border: none; border-top: 1px solid #CCCCCC; margin: 14px 0; }
         <th>Category</th>
         <th>Description</th>
       </tr>
-      <tr class="odd"><td class="tool-name">search_cubes_by_title</td><td class="category">Discovery</td><td>Find tables by title keywords (English or French), paged; the top 3 results include the SDMX key template</td></tr>
+      <tr class="odd"><td class="tool-name">search_cubes_by_title</td><td class="category">Discovery</td><td>Find tables by title keywords (English or French), paged; every result on the page includes the SDMX key template</td></tr>
       <tr class="even"><td class="tool-name">get_sdmx_structure</td><td class="category">SDMX</td><td>Dimensions in key order with their codes; <tt>search</tt> finds codes by label, <tt>dimension</tt> lists one full dimension plus its <tt>leaf_key</tt></td></tr>
-      <tr class="odd"><td class="tool-name">get_sdmx_data</td><td class="category">SDMX + SQL</td><td>Observations by productId + key, or one vectorId; summary over 100 observations unless <tt>full</tt>; optional <tt>sql</tt> runs one read-only query server-side and returns only the result</td></tr>
+      <tr class="odd"><td class="tool-name">get_sdmx_data</td><td class="category">SDMX + SQL</td><td>Observations by productId + key, or one vectorId; summary over 100 observations unless <tt>full</tt>; <tt>format="csv"</tt> returns every observation as a compact CSV (about 3&times; smaller to copy into a file); optional <tt>sql</tt> runs one read-only query server-side and returns only the result</td></tr>
       <tr class="even"><td class="tool-name">get_series_info</td><td class="category">Series</td><td>productId + coordinates, or vectorIds: decoded frequency, unit and scalar, titles (English and French), SDMX key</td></tr>
       <tr class="odd"><td class="tool-name">get_changes</td><td class="category">Change Detection</td><td>Tables released on a date (default today), or new data points for one series</td></tr>
     </table>
@@ -498,6 +494,10 @@ hr.section { border: none; border-top: 1px solid #CCCCCC; margin: 14px 0; }
       <li><strong>Data format</strong> &mdash; SDMX data is read as structure-specific XML and labelled from the table&rsquo;s
           structure. StatCan&rsquo;s SDMX-JSON mis-indexes series and attributes, which previously caused missing wildcard rows,
           wrong OR-key labels and misplaced <tt>VECTOR_ID</tt>/<tt>UOM</tt> values (fixed in v0.12.0).</li>
+      <li><strong>claude.ai keeps a saved tool list</strong> &mdash; after an update, disconnect and reconnect the connector
+          (Settings &rarr; Connectors) to see new tools and parameters.</li>
+      <li><strong>claude.ai&rsquo;s code sandbox cannot reach StatCan</strong> &mdash; data arrives through the connector, so to build
+          a file the model copies the tool result. Use <tt>get_sdmx_data(format="csv")</tt> to keep that copy small.</li>
     </ul>
 
     <hr class="section">
