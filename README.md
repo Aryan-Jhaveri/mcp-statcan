@@ -225,7 +225,7 @@ Claude.ai (web) has no bash sandbox — it can't run shell commands. Instead, it
 1. MCP tools (small payloads — metadata only):
    search_cubes_by_title("labour force")  → productId
    get_sdmx_structure(productId=...)      → dimension layout + codes
-   get_sdmx_key_for_dimension(...)        → OR key for large dimensions
+   get_sdmx_structure(productId=..., search="Ontario;Employment")  → codes by label
 
 2. Python script (data never enters context):
    url = "https://mcp-statcan.com/files/sdmx/<pid>/<key>?lastNObservations=12"
@@ -236,7 +236,7 @@ Claude.ai (web) has no bash sandbox — it can't run shell commands. Instead, it
    → filter / sort / aggregate → print only the result
 ```
 
-For questions that need computation (rank, compare, growth), `query_sdmx` runs the SQL on the server and returns only the answer, so raw rows never enter the context window.
+For questions that need computation (rank, compare, growth), `get_sdmx_data(..., sql=...)` runs the SQL on the server and returns only the answer, so raw rows never enter the context window.
 
 **Claude Code (bash sandbox)** uses the `statcan` CLI instead:
 
@@ -260,6 +260,8 @@ The server ships five prompts accessible as slash commands in supported clients.
 | `/statcan-download` | Download a specific table: CLI commands + Python script alternative |
 | `/statcan-explore` | Sample before committing: 3-period fetch, column layout, size estimate |
 | `/statcan-vector-pipeline` | Multi-series download and cross-series comparison |
+
+The tool calls in the prompts follow the active [toolset](#toolsets).
 
 **Usage in Claude Code:**
 ```
@@ -349,47 +351,56 @@ For the complete CLI reference see [src/cli/README.md](src/cli/README.md).
 
 ## Features & Tools
 
-### SDMX Tools — server-side filtered data fetch
+### Tools
 
-Only the slice you request is returned. No downloading full tables.
+Five tools, in the default `core` toolset:
 
 | Tool | Description |
 |---|---|
-| `get_sdmx_structure` | Dimension codelists + key syntax for a table. Call before `get_sdmx_data`. |
-| `get_sdmx_data` | Filtered observations by `productId` + key, returned inline and grouped by series: each series' labels, `VECTOR_ID` and `UOM` once, then numeric `[period, value]` pairs (capped at 500 observations). |
-| `query_sdmx` | Fetch observations and run one read-only SQL query server-side in a temporary in-memory table — returns only the result. Works on the hosted server; no row cap on the fetch. |
-| `get_sdmx_vector_data` | Observations for a single vectorId via SDMX (same series-grouped output). |
-| `get_sdmx_key_for_dimension` | All leaf member IDs for a dimension as a ready-to-paste OR key — excludes totals and subtotals, so sums and rankings don't double-count (e.g. NOC, CMAs). |
+| `search_cubes_by_title` | Find tables by title keywords (English or French; all must appear). Paged (`offset`, `max_results`, default 10); the top 3 results include `key_template`, the dimension order of the SDMX key. |
+| `get_sdmx_structure` | A table's dimensions in key order with their codes (id, name, parent). `search="Ontario;Employment"` finds codes by label across all dimensions; `dimension=<position>` lists one full dimension plus its `leaf_key` (lowest-level codes as a `+` OR). |
+| `get_sdmx_data` | Observations for `productId` + `key`, or one `vectorId`. Over 100 observations you get a per-series summary unless `full=true` (max 500 rows). Pass `sql` to run one read-only SELECT over the table `data` server-side (growth, averages, rankings) and get back only the result. |
+| `get_series_info` | `productId` + `coordinates`, or `vectorIds`: decoded frequency, unit and scalar, English and French title, and the SDMX key. |
+| `get_changes` | Tables released on a date (default today), or the new data points for one series (`vectorId`, or `productId` + `coordinate`). |
 
 **Key syntax** (passed to `get_sdmx_data`):
 - `"1.2.1"` — Geography=1, Gender=2, Age=1
 - `".2.1"` — all geographies (wildcard), Gender=2, Age=1
 - `"1+2.2.1"` — Geography 1 or 2, Gender=2, Age=1
 
-> **Note:** Wildcard (`.`) returns every member of the dimension, including totals and parent aggregates. For sums or rankings use leaf codes from `get_sdmx_key_for_dimension`. Large wildcards can exceed `get_sdmx_data`'s 500-row cap; use `query_sdmx` for those.
+> **Note:** Wildcard (`.`) returns every member of the dimension, including totals and parent aggregates. For sums or rankings use the `leaf_key` from `get_sdmx_structure(productId, dimension=N)`, and pass `sql` to compute over large result sets.
 
-### WDS Discovery & Metadata
+### Toolsets
 
-| Tool | Description |
+The server publishes one of two toolsets, chosen at startup. `core` is the default; `legacy` is the previous 17-tool set (hosted).
+
+```bash
+STATCAN_TOOLSET=legacy uvx statcan-mcp-server      # or: uvx statcan-mcp-server --toolset legacy
+```
+
+Smaller tool lists leave more of the context window for data. Sizes of the `tools/list` response, including `outputSchema` (o200k tokens):
+
+| Transport | legacy | core |
+|---|---|---|
+| Hosted (HTTP) | 17 tools, about 8,044 tokens | 5 tools, about 939 tokens |
+| stdio (adds the database tools) | 26 tools, about 11,407 tokens | 14 tools, about 4,302 tokens |
+
+Legacy tool to core replacement:
+
+| Legacy | Core |
 |---|---|
-| `search_cubes_by_title` | Full-text search across all StatCan tables. AND logic, capped at 25 results; current tables before archived ones. |
-| `get_all_cubes_list` / `_lite` | Paginated table inventory (`offset`/`limit`, default 100/page). |
-| `get_cube_metadata` | Dimension info, member lists, date ranges. `summary=True` caps members at 10 per dimension. |
-| `get_code_sets` | Decode StatCan numeric codes. Summary by default; `code_set="uom", search="percent"` for large sets. |
+| `get_all_cubes_list`, `get_all_cubes_list_lite` | `search_cubes_by_title` (paged) |
+| `get_cube_metadata` | `get_sdmx_structure` (`search`, `dimension`) |
+| `get_code_sets` | decoded in `get_series_info` output |
+| `get_sdmx_key_for_dimension` | `get_sdmx_structure(dimension=N)` returns `leaf_key` |
+| `get_sdmx_vector_data` | `get_sdmx_data(vectorId=...)` |
+| `query_sdmx` | `get_sdmx_data(..., sql=...)` |
+| `get_series_info_from_vector` | `get_series_info(vectorIds=[...])` |
+| `get_bulk_vector_data_by_range` | `get_sdmx_data(vectorId=..., startPeriod=..., endPeriod=...)` per series |
+| `get_changed_cube_list`, `get_changed_series_list` | `get_changes(date=...)` |
+| `get_changed_series_data_from_vector`, `get_changed_series_data_from_cube_pid_coord` | `get_changes(vectorId=...)` or `get_changes(productId=..., coordinate=...)` |
 
-### WDS Series Resolution & Change Detection
-
-| Tool | Description |
-|---|---|
-| `get_series_info` | Resolve `{productId, coordinate}` pairs to vectorId + metadata. |
-| `get_series_info_from_vector` | Resolve a vectorId to productId, coordinate, titles, frequency. |
-| `get_changed_cube_list` | Tables updated on a specific date. |
-| `get_changed_series_list` | Series updated today (available after 08:30 ET); for historical dates, use `get_changed_cube_list(date)`. |
-| `get_changed_series_data_from_cube_pid_coord` | Data points that changed **today** for a coordinate (`changed: false` before 08:30 ET or if unchanged). |
-| `get_changed_series_data_from_vector` | Data points that changed **today** for a vectorId (`changed: false` before 08:30 ET or if unchanged). |
-| `get_bulk_vector_data_by_range` | Multiple vectors filtered by release date range. |
-
-### Composite & Database Tools *(local/stdio mode only)*
+### Composite & Database Tools *(local/stdio mode only, both toolsets)*
 
 These tools are not available on the hosted Render server — SQLite is per-process and not shared across users.
 
@@ -432,13 +443,12 @@ ORDER BY ref_date DESC;
 2. get_sdmx_structure(productId=14100287)
    → dimension positions + sample codes
 
-3. get_sdmx_key_for_dimension(productId=14100287, dimension_position=3)
-   → or_key for large dimensions
+3. get_sdmx_structure(productId=14100287, search="Ontario;Employment")
+   → ids of the codes you want, by label
 
-4. get_sdmx_data(productId=14100287, key=".2.1", lastNObservations=24)
-   → returns download_csv URL
-
-5. Python script: validate URL domain → write to ./statcan_14100287.csv → analyze → print summary
+4. get_sdmx_data(productId=14100287, key=".2.1", lastNObservations=24,
+                 sql="SELECT ... FROM data")
+   → server-side SQL: only the result comes back (omit sql for the observations)
 ```
 
 **Claude Code (bash sandbox):**
@@ -456,16 +466,15 @@ awk -F',' 'NR>1 && $1=="Canada"' ./lfs.csv | sort -t',' -rn -k5 | head -10
 ```
 src/
 ├── api/
-│   ├── cube/
-│   │   ├── discovery.py         # search_cubes_by_title, get_all_cubes_list
-│   │   ├── metadata.py          # get_cube_metadata
-│   │   └── series.py            # get_series_info, change detection
+│   ├── core/
+│   │   └── tools.py             # core toolset (default): the five merged tools
+│   ├── cube/                    # legacy toolset: search/list cubes, metadata, series, change detection
 │   ├── vector/
-│   │   └── vector_tools.py      # vector series, bulk range fetch
+│   │   └── vector_tools.py      # legacy toolset: vector series, bulk range fetch
 │   ├── sdmx/
-│   │   └── sdmx_tools.py        # get_sdmx_structure, get_sdmx_data, query_sdmx, get_sdmx_key_for_dimension
+│   │   └── sdmx_tools.py        # legacy toolset: SDMX structure/data/query_sdmx; shared fetch helpers
 │   ├── composite_tools.py       # fetch_sdmx_to_database, fetch_vectors_to_database, store_cube_metadata (stdio only)
-│   └── metadata_tools.py        # get_code_sets
+│   └── metadata_tools.py        # get_code_sets (legacy toolset)
 ├── cli/
 │   ├── main.py                  # statcan CLI entry point (Typer app)
 │   ├── output.py                # write_output, format helpers
@@ -475,7 +484,7 @@ src/
 │       ├── download.py          # statcan download
 │       ├── vector.py            # statcan vector
 │       └── codeset.py           # statcan codeset
-├── db/                          # SQLite: observation store (store.py), per-request SQL for query_sdmx (ephemeral.py), schema, queries
+├── db/                          # SQLite: observation store (store.py), per-request SQL for get_sdmx_data(sql=) (ephemeral.py), schema, queries
 ├── models/                      # Pydantic input models
 ├── util/
 │   ├── registry.py              # ToolRegistry — @decorator → MCP Tool schema
@@ -483,6 +492,7 @@ src/
 │   ├── sdmx_xml.py              # SDMX-ML (structure-specific XML) → labelled tabular rows
 │   └── cache.py                 # 1-hour TTL cache for cube list
 ├── config.py                    # BASE_URL, SDMX_BASE_URL, RENDER_BASE_URL, TRANSPORT, PORT
+├── toolset.py                   # resolve_toolset(): STATCAN_TOOLSET / --toolset
 └── server.py                    # create_server(), MCP Prompts, resources, HTTP transport, CLI
 ```
 
@@ -496,7 +506,7 @@ src/
 | **SSL verification on broken trust stores** | Configurable | Verification is on by default; set `STATCAN_VERIFY_SSL=false` only if your system can't validate StatCan's certificate |
 | **`lastNObservations` + `startPeriod`/`endPeriod` → 406** | Active | Use one or the other, not both |
 | **Wildcard/OR rows missing or mislabelled; wrong `VECTOR_ID`/`UOM`** | Fixed in v0.12.0 | Caused by StatCan's SDMX-JSON index encoding; data is now read as structure-specific XML ([#90](https://github.com/Aryan-Jhaveri/mcp-statcan/issues/90)) |
-| **Context overflow may cause data fabrication** | Mitigated | Use `query_sdmx` (hosted) or `fetch_sdmx_to_database` (local) so raw rows never enter context; `get_sdmx_data` caps inline rows at 500 |
+| **Context overflow may cause data fabrication** | Mitigated | Use `get_sdmx_data` with `sql` (hosted) or `fetch_sdmx_to_database` (local) so raw rows never enter context; `get_sdmx_data` caps inline rows at 500 |
 
 ---
 
