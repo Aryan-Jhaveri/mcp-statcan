@@ -93,6 +93,9 @@ def create_server(http_mode: bool = False, toolset: Optional[str] = None):
         raise
 
     from .prompts import _PROMPTS, get_prompt_text
+    from .util import csv_handoff
+
+    csv_handoff_mode = csv_handoff.handoff_mode() if toolset == "core" else "off"
 
     # ── v2 handler callables (ctx, params) → Result models ────────────────
     async def _on_list_tools(ctx, params) -> ListToolsResult:
@@ -112,10 +115,14 @@ def create_server(http_mode: bool = False, toolset: Optional[str] = None):
                 # verbatim into a file (#168); structuredContent still has the whole dict.
                 import json
                 meta = {k: v for k, v in result.items() if k != "csv"}
-                content = [
-                    TextContent(type="text", text=json.dumps(meta, separators=(",", ":"), ensure_ascii=False, default=str)),
-                    TextContent(type="text", text=result["csv"]),
-                ]
+                meta_text = json.dumps(meta, separators=(",", ":"), ensure_ascii=False, default=str)
+                if csv_handoff_mode != "off":  # experimental, #169
+                    content = csv_handoff.content_blocks(meta_text, result["csv"], arguments, csv_handoff_mode)
+                else:
+                    content = [
+                        TextContent(type="text", text=meta_text),
+                        TextContent(type="text", text=result["csv"]),
+                    ]
             elif isinstance(result, (list, dict)):
                 import json
                 text = json.dumps(result, separators=(",", ":"), ensure_ascii=False, default=str)
@@ -182,6 +189,8 @@ def create_server(http_mode: bool = False, toolset: Optional[str] = None):
         on_call_tool=_on_call_tool,
         on_list_prompts=_on_list_prompts,
         on_get_prompt=_on_get_prompt,
+        # statcan://csv/ resources only exist in the experimental link mode (#169)
+        **(csv_handoff.resource_handlers(registry) if csv_handoff_mode == "link" else {}),
     )
     log_server_debug("MCP Server instance created.")
 
