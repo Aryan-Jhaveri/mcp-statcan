@@ -76,7 +76,22 @@ jobs:
               f.write("\n")
           PY
 
+      - name: Skip if a bump is already pending
+        id: pending
+        if: github.event_name == 'push'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          # Each src/ push recomputes the same next version; once bump-X.Y.Z exists, the
+          # pending bump PR already covers this push, so don't fail trying to push it again.
+          open=$(gh pr list --state open --search "chore: bump version in:title" --json number --jq 'length')
+          if [ "$open" != "0" ] || git ls-remote --exit-code --heads origin "bump-${{ steps.ver.outputs.new }}" >/dev/null; then
+            echo "::notice::A version bump PR is already pending; it covers this push."
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+          fi
+
       - name: Create PR
+        if: steps.pending.outputs.skip != 'true'
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
