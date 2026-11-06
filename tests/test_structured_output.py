@@ -26,7 +26,7 @@ class _EchoOutput(BaseModel):
 def server():
     registry._tools.clear()
     registry._handlers.clear()
-    srv = create_server(http_mode=True)
+    srv = create_server(http_mode=True, toolset="legacy")
 
     @registry.tool(
         output_model=_EchoOutput,

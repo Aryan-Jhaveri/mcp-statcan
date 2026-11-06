@@ -108,7 +108,7 @@ async def test_last_n_with_period_range_rejected(registry):
 def test_registered_in_http_mode():
     server_registry._tools.clear()
     server_registry._handlers.clear()
-    create_server(http_mode=True)
+    create_server(http_mode=True, toolset="legacy")
     names = {t.name for t in server_registry._tools}
     assert "query_sdmx" in names
     assert "fetch_sdmx_to_database" not in names

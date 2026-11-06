@@ -44,14 +44,14 @@ async def _call(server, name, args, expect_error=False):
 # ── Toolset selection ──────────────────────────────────────────────────────
 
 def test_env_var_selects_toolset(monkeypatch):
-    monkeypatch.setenv("STATCAN_TOOLSET", "core")
+    monkeypatch.delenv("STATCAN_TOOLSET", raising=False)
     _fresh(True)
-    assert {t.name for t in registry.get_tools()} == CORE
+    assert {t.name for t in registry.get_tools()} == CORE  # core is the default
 
-    monkeypatch.delenv("STATCAN_TOOLSET")
+    monkeypatch.setenv("STATCAN_TOOLSET", "legacy")
     _fresh(True)
     names = {t.name for t in registry.get_tools()}
-    assert "query_sdmx" in names and "get_changes" not in names  # legacy is the default
+    assert "query_sdmx" in names and "get_changes" not in names
 
     monkeypatch.setenv("STATCAN_TOOLSET", "nope")
     with pytest.raises(ValueError, match="legacy, core"):

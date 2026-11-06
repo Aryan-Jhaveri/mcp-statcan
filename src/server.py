@@ -55,7 +55,7 @@ def create_server(http_mode: bool = False, toolset: Optional[str] = None):
 
     Args:
         http_mode: If True, skip DB and composite tools (stateless HTTP proxy).
-        toolset: 'legacy' (default) or 'core' (#138: five merged tools). Falls back to
+        toolset: 'core' (default, #138: five merged tools) or 'legacy'. Falls back to
             the STATCAN_TOOLSET env var.
     """
     log_server_debug("Inside create_server function.")
@@ -338,7 +338,7 @@ def main():
     parser.add_argument(
         "--toolset",
         choices=TOOLSETS,
-        help="Tools to serve: 'legacy' (default) or 'core' (five merged tools). Env: STATCAN_TOOLSET",
+        help="Tools to serve: 'core' (default, five merged tools) or 'legacy'. Env: STATCAN_TOOLSET",
     )
     args = parser.parse_args()
     if args.toolset:

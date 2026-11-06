@@ -17,7 +17,7 @@ WDS = BASE_URL.rstrip("/")
 def server():
     registry._tools.clear()
     registry._handlers.clear()
-    yield create_server(http_mode=True)
+    yield create_server(http_mode=True, toolset="legacy")
     registry._tools.clear()
     registry._handlers.clear()
 
@@ -84,7 +84,7 @@ async def test_empty_network_error_names_exception_type(server):
 def test_every_tool_has_annotations(http_mode):
     registry._tools.clear()
     registry._handlers.clear()
-    create_server(http_mode=http_mode)
+    create_server(http_mode=http_mode, toolset="legacy")
     missing = [t.name for t in registry.get_tools() if t.annotations is None]
     assert missing == []
     wds_read_only = {"search_cubes_by_title", "get_cube_metadata", "get_series_info", "get_code_sets"}

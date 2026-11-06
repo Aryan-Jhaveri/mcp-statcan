@@ -53,7 +53,7 @@ def _structure_xml(n_products: int = 12) -> str:
 def _fresh_server(http_mode: bool):
     registry._tools.clear()
     registry._handlers.clear()
-    return create_server(http_mode=http_mode)
+    return create_server(http_mode=http_mode, toolset="legacy")
 
 
 async def _call(server, name, args):
