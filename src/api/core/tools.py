@@ -39,6 +39,7 @@ from ..sdmx.sdmx_tools import (
     fetch_sdmx_vector_rows,
     fetch_structure_xml,
     query_rows,
+    with_fallback_note,
 )
 
 # Codes listed for one dimension before asking for `search` instead
@@ -246,7 +247,7 @@ def register_core_tools(registry: ToolRegistry) -> None:
         if messages:
             result["_message"] = " ".join(messages)
         result["_sdmx_url"] = f"{SDMX_BASE_URL}structure/Data_Structure_{product_id}"
-        return result
+        return with_fallback_note(result)
 
     @registry.tool(output_model=CoreDataOutput, annotations=READ_ONLY)
     async def get_sdmx_data(data_input: CoreDataInput) -> Dict[str, Any]:
@@ -272,13 +273,13 @@ def register_core_tools(registry: ToolRegistry) -> None:
 
         if d.sql:
             result = await query_rows(rows, url, d.sql)
-            return _sql_as_csv(result) if d.format == "csv" and "error" not in result else result
+            return with_fallback_note(_sql_as_csv(result) if d.format == "csv" and "error" not in result else result)
         if d.format == "csv":
-            return _rows_as_csv(rows, url, narrow)
-        return _series_result(
+            return with_fallback_note(_rows_as_csv(rows, url, narrow))
+        return with_fallback_note(_series_result(
             rows, url, narrow, full=d.full,
             query_hint="To compute over all of it, call again with sql over table 'data'. ",
-        )
+        ))
 
     @registry.tool(annotations=READ_ONLY)
     async def get_series_info(info_input: CoreSeriesInfoInput) -> Dict[str, Any]:

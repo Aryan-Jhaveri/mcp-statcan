@@ -11,6 +11,7 @@ Tools:
 """
 
 import asyncio
+import contextvars
 import re
 import time
 import xml.etree.ElementTree as ET
@@ -26,6 +27,7 @@ from ...config import (
     SDMX_STRUCTURE_ATTEMPTS,
     SDMX_DATA_XML_ACCEPT,
     SDMX_STRUCTURE_CACHE_TTL,
+    SDMX_STRUCTURE_FALLBACK_TTL,
     SDMX_SUMMARY_MAX_SERIES,
     SDMX_SUMMARY_THRESHOLD,
     SDMX_STRUCTURE_TIMEOUT,
@@ -47,7 +49,16 @@ from ...models.sdmx_models import (
     SDMXVectorInput,
 )
 from ...util.registry import READ_ONLY as _READ_ONLY, ToolRegistry
-from ...util.sdmx_xml import check_sdmx_key, dataflow_id, flatten_sdmx_xml, group_rows_by_series, parse_dsd_labels, summarize_series
+from ...util.sdmx_xml import (
+    align_dimension_ids,
+    check_sdmx_key,
+    dataflow_id,
+    flatten_sdmx_xml,
+    group_rows_by_series,
+    parse_dsd_labels,
+    summarize_series,
+)
+from .wds_fallback import fetch_wds_structure_xml, is_fallback_structure
 from ...util.sql_helpers import to_number
 from ...util.truncation import DEFAULT_MEMBER_LIMIT
 
@@ -173,35 +184,85 @@ def _is_complete_structure(text: str) -> bool:
     return bool(_STRUCTURE_END.search(text[-200:]))
 
 
+# productId → (built_at, structure XML from WDS metadata), used while StatCan's DSD is
+# truncated (#175). Short-lived so the real DSD is tried again soon.
+_fallback_structure_cache: Dict[int, Tuple[float, str]] = {}
+
+# Set when this request's labels came from WDS metadata, so tools can say so (#175).
+# Each MCP request runs in its own task, so this doesn't leak between requests.
+_used_fallback: contextvars.ContextVar[bool] = contextvars.ContextVar("statcan_dsd_fallback", default=False)
+
+STRUCTURE_FALLBACK_NOTE = (
+    "Labels come from WDS metadata because StatCan's SDMX structure for this table was incomplete."
+)
+
+
+def used_structure_fallback() -> bool:
+    """Whether a structure fetched in this request came from WDS metadata (#175)."""
+    return _used_fallback.get()
+
+
+def with_fallback_note(result: Dict[str, Any]) -> Dict[str, Any]:
+    """Add STRUCTURE_FALLBACK_NOTE to a tool result's _message when labels came from WDS."""
+    if used_structure_fallback() and isinstance(result, dict) and "error" not in result:
+        result["_message"] = " ".join(m for m in (result.get("_message"), STRUCTURE_FALLBACK_NOTE) if m)
+    return result
+
+
 async def fetch_structure_xml(product_id: int) -> str:
     """Fetch a table's Data Structure Definition (SDMX 2.1 XML), cached for an hour.
 
     StatCan sometimes cuts a DSD short and still answers HTTP 200. Such a body is
     retried and never cached; otherwise the table would stay broken for an hour (#145).
+    If it stays truncated (or the request keeps stalling), an equivalent structure is
+    built from WDS metadata and kept for a few minutes (#175).
     """
     cached = _structure_cache.get(product_id)
     if cached and time.monotonic() - cached[0] < SDMX_STRUCTURE_CACHE_TTL:
         return cached[1]
+    fallback = _fallback_structure_cache.get(product_id)
+    if fallback and time.monotonic() - fallback[0] < SDMX_STRUCTURE_FALLBACK_TTL:
+        _used_fallback.set(True)
+        return fallback[1]
+
     url = f"{SDMX_BASE_URL}structure/Data_Structure_{product_id}"
-    for attempt in range(SDMX_STRUCTURE_ATTEMPTS):
-        started = time.monotonic()
-        response = await make_sdmx_get(url, headers={"Accept": SDMX_XML_ACCEPT}, timeout=SDMX_STRUCTURE_TIMEOUT)
-        elapsed = time.monotonic() - started
-        if _is_complete_structure(response.text):
-            log_server_debug(f"DSD {product_id}: {len(response.text)} chars in {elapsed:.1f}s")
-            _structure_cache[product_id] = (time.monotonic(), response.text)
-            return response.text
-        log_server_debug(
-            f"DSD {product_id}: truncated body ({len(response.text)} chars, {elapsed:.1f}s), "
-            f"attempt {attempt + 1}/{SDMX_STRUCTURE_ATTEMPTS}"
-        )
-        if attempt < SDMX_STRUCTURE_ATTEMPTS - 1:
-            await asyncio.sleep(0.5 * (attempt + 1))
-    raise httpx.ReadError(
-        f"StatCan returned an incomplete structure (DSD) for table {product_id} "
-        f"{SDMX_STRUCTURE_ATTEMPTS} times. This is a temporary StatCan fault; try again shortly.",
-        request=response.request,
-    )
+    try:
+        for attempt in range(SDMX_STRUCTURE_ATTEMPTS):
+            started = time.monotonic()
+            response = await make_sdmx_get(url, headers={"Accept": SDMX_XML_ACCEPT}, timeout=SDMX_STRUCTURE_TIMEOUT)
+            elapsed = time.monotonic() - started
+            if _is_complete_structure(response.text):
+                log_server_debug(f"DSD {product_id}: {len(response.text)} chars in {elapsed:.1f}s")
+                _structure_cache[product_id] = (time.monotonic(), response.text)
+                return response.text
+            log_server_debug(
+                f"DSD {product_id}: truncated body ({len(response.text)} chars, {elapsed:.1f}s), "
+                f"attempt {attempt + 1}/{SDMX_STRUCTURE_ATTEMPTS}"
+            )
+            if attempt < SDMX_STRUCTURE_ATTEMPTS - 1:
+                await asyncio.sleep(0.5 * (attempt + 1))
+        problem = f"StatCan returned an incomplete structure (DSD) for table {product_id} {SDMX_STRUCTURE_ATTEMPTS} times"
+        request = response.request
+    except httpx.TransportError as exc:  # stalls / dropped connections, after make_sdmx_get's retries
+        problem = f"StatCan's structure (DSD) request for table {product_id} kept failing ({type(exc).__name__})"
+        try:
+            request = exc.request
+        except RuntimeError:  # httpx raises when the error has no request attached
+            request = None
+
+    try:
+        text = await fetch_wds_structure_xml(product_id)
+    except (httpx.HTTPError, ValueError, KeyError) as exc:
+        log_server_debug(f"DSD {product_id}: WDS fallback failed: {exc!r}")
+        raise httpx.ReadError(
+            f"{problem}, and building it from WDS metadata failed too ({type(exc).__name__}). "
+            "This is a temporary StatCan fault; try again shortly.",
+            request=request,
+        ) from exc
+    log_server_debug(f"DSD {product_id}: {problem}; using WDS metadata ({len(text)} chars)")
+    _fallback_structure_cache[product_id] = (time.monotonic(), text)
+    _used_fallback.set(True)
+    return text
 
 
 def _period_params(
@@ -242,7 +303,8 @@ async def fetch_sdmx_rows(
         make_sdmx_get(url, params=params, headers={"Accept": SDMX_DATA_XML_ACCEPT})
     )
     try:
-        dsd = parse_dsd_labels(await fetch_structure_xml(product_id))
+        structure_xml = await fetch_structure_xml(product_id)
+        dsd = parse_dsd_labels(structure_xml)
         # A bad key can hang StatCan for over a minute, so stop the data request early
         problem = check_sdmx_key(key, dsd, product_id)
         if problem:
@@ -256,6 +318,8 @@ async def fetch_sdmx_rows(
             data_task.cancel()
         elif not data_task.cancelled():
             data_task.exception()  # mark retrieved, so asyncio doesn't log it at GC
+    if is_fallback_structure(structure_xml):
+        dsd = align_dimension_ids(dsd, response.text)
     rows = flatten_sdmx_xml(response.text, dsd)
     return rows, str(response.url)
 
@@ -292,7 +356,10 @@ async def fetch_sdmx_vector_rows(
     if flow is None:
         return [], str(response.url)
     structure_xml = await fetch_structure_xml(int(flow.removeprefix("DF_")))
-    rows = flatten_sdmx_xml(response.text, parse_dsd_labels(structure_xml))
+    dsd = parse_dsd_labels(structure_xml)
+    if is_fallback_structure(structure_xml):
+        dsd = align_dimension_ids(dsd, response.text)
+    rows = flatten_sdmx_xml(response.text, dsd)
     return rows, str(response.url)
 
 
