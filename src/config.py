@@ -38,6 +38,14 @@ BASE_URL = "https://www150.statcan.gc.ca/t1/wds/rest"
 TIMEOUT_SMALL = 30.0  # For simple queries
 TIMEOUT_MEDIUM = 60.0  # For list endpoints
 TIMEOUT_LARGE = 120.0  # For bulk data endpoints
+# Fail fast on a stall (#161). StatCan sometimes accepts a request and then sends nothing
+# for 20-30 s; an identical retry usually answers in under a second. httpx applies these
+# per phase: connect, and each wait for bytes (not the whole download), so large
+# responses that stream steadily still load. Measured 6 Nov 2026: WDS lookups and SDMX
+# data answer in <1 s (broad SDMX wildcards up to ~3 s, gaps between chunks <0.6 s).
+# One stall now costs ~FIRST_BYTE + 1 s before the retry; all 3 attempts stalling ~33 s.
+HTTP_CONNECT_TIMEOUT = 5.0
+HTTP_FIRST_BYTE_TIMEOUT = 10.0
 # Set STATCAN_VERIFY_SSL=false to disable verification on broken trust stores.
 VERIFY_SSL = os.environ.get("STATCAN_VERIFY_SSL", "true").lower() != "false"
 
