@@ -173,6 +173,21 @@ async def test_structure_dimension_lists_codes_and_leaf_key(server):
         await registry.call_tool("get_sdmx_structure", {"productId": 18100004, "dimension": 5})
 
 
+@pytest.mark.asyncio
+@respx.mock
+async def test_structure_omits_a_leaf_key_too_long_for_a_url(server, monkeypatch):
+    from src.api.core import tools
+
+    monkeypatch.setattr(tools, "_MAX_LEAF_KEY", 1)  # the fixture's leaf_key "2" is 1 char
+    respx.get(STRUCTURE_URL).mock(return_value=Response(200, text=DSD_XML))
+    assert (await _call(server, "get_sdmx_structure", {"productId": 18100004, "dimension": 1}))["leaf_key"] == "2"
+
+    monkeypatch.setattr(tools, "_MAX_LEAF_KEY", 0)
+    sc = await _call(server, "get_sdmx_structure", {"productId": 18100004, "dimension": 1})
+    assert "leaf_key" not in sc
+    assert "position 1 empty" in sc["_message"] and "sql" in sc["_message"]
+
+
 # ── get_series_info ─────────────────────────────────────────────────────────
 
 _CODE_SETS = {"status": "SUCCESS", "object": {
@@ -212,7 +227,7 @@ async def test_series_info_by_coordinate_and_vector(server, monkeypatch):
     }
     assert json.loads(by_vector.calls[0].request.content) == [{"vectorId": 41690973}]
     assert result["series"][0] == {
-        "vectorId": 41691919, "productId": 18100004, "key": "14.2", "title": "Ontario;All-items",
+        "vectorId": 41691919, "productId": 18100004, "key": "14.2", "title": "Ontario;All-items", "title_fr": "Ontario;Ensemble",
         "frequency": "Monthly", "uom": "2002=100", "scalar": "units", "decimals": 1,
     }
     assert result["series"][1]["key"] == "2.2"
@@ -273,14 +288,32 @@ async def test_changes_for_one_series(server):
 
 
 @pytest.mark.asyncio
-@respx.mock
-async def test_changes_in_one_table_today(server):
-    respx.get(f"{WDS}/getChangedSeriesList").mock(return_value=Response(200, json={
-        "status": "SUCCESS",
-        "object": [{"vectorId": v, "productId": p} for v, p in ((1, 18100004), (2, 14100287), (3, 18100004))],
-    }))
-    result = await registry.call_tool("get_changes", {"productId": 18100004})
-    assert [s["vectorId"] for s in result["series"]] == [1, 3] and result["total"] == 2
+async def test_changes_product_without_coordinate_points_elsewhere(server):
+    with pytest.raises(ValueError, match="needs a coordinate.*date.*get_sdmx_data"):
+        await registry.call_tool("get_changes", {"productId": 18100004})
 
-    with pytest.raises(ValueError, match="only available for today"):
-        await registry.call_tool("get_changes", {"productId": 18100004, "date": "2026-11-05"})
+
+@pytest.mark.asyncio
+@respx.mock
+async def test_series_info_cancels_decoders_when_wds_fails(server, monkeypatch):
+    import asyncio
+
+    from src.api.core import tools
+
+    started = []
+    real_ensure_future = asyncio.ensure_future
+
+    def capture(coro):
+        started.append(real_ensure_future(coro))
+        return started[-1]
+
+    async def slow_decoders():
+        await asyncio.sleep(60)
+
+    monkeypatch.setattr(tools, "_decoders", slow_decoders)
+    monkeypatch.setattr(tools.asyncio, "ensure_future", capture)
+    respx.post(f"{WDS}/getSeriesInfoFromVector").mock(return_value=Response(400))
+    with pytest.raises(Exception):
+        await registry.call_tool("get_series_info", {"vectorIds": [1]})
+    await asyncio.sleep(0)  # let the cancellation land
+    assert len(started) == 1 and started[0].cancelled()

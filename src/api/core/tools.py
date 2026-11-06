@@ -24,7 +24,7 @@ from ...models.core_models import (
     CoreStructureInput,
     CoreStructureOutput,
 )
-from ...config import SDMX_BASE_URL, TIMEOUT_LARGE, TIMEOUT_MEDIUM
+from ...config import SDMX_BASE_URL, TIMEOUT_MEDIUM
 from ...util.coordinate import pad_coordinate
 from ...util.registry import READ_ONLY, ToolRegistry
 from ...util.truncation import DEFAULT_MEMBER_LIMIT
@@ -42,6 +42,9 @@ from ..sdmx.sdmx_tools import (
 
 # Codes listed for one dimension before asking for `search` instead
 _MAX_DIMENSION_CODES = 200
+# Longest leaf_key returned. Measured 2026-11-06 on 18100004: StatCan answered keys up to
+# 7.5k chars (slowly) and 414 at 10k, so keep well under the ~8 KB request-line limit
+_MAX_LEAF_KEY = 4000
 
 _NO_CHANGE_TODAY = (
     "No change today for this series. This lists only today's changes (StatCan publishes "
@@ -93,6 +96,7 @@ def _slim_series(info: Dict[str, Any], dec: Dict[str, Dict[int, str]]) -> Dict[s
         "productId": info.get("productId"),
         "key": _coordinate_to_key(coordinate),
         "title": info.get("SeriesTitleEn"),
+        "title_fr": info.get("SeriesTitleFr"),
         "frequency": dec.get("frequency", {}).get(info.get("frequencyCode"), info.get("frequencyCode")),
         "uom": dec.get("uom", {}).get(info.get("memberUomCode"), info.get("memberUomCode")),
         "scalar": dec.get("scalar", {}).get(info.get("scalarFactorCode"), info.get("scalarFactorCode")),
@@ -160,6 +164,7 @@ def register_core_tools(registry: ToolRegistry) -> None:
             "productId": product_id,
             "key_template": ".".join(d["id"] for d in dims),
         }
+        messages: List[str] = []
         if position is not None:
             dims = [d for d in dims if d["position"] == position]
             if not dims:
@@ -167,7 +172,14 @@ def register_core_tools(registry: ToolRegistry) -> None:
                     f"No dimension at position {position} in table {product_id}; "
                     f"it has {len(parsed['dimensions'])} (key_template {result['key_template']})."
                 )
-            result["leaf_key"] = _leaf_key(dims[0]["codes"])
+            leaf_key = _leaf_key(dims[0]["codes"])
+            if len(leaf_key) <= _MAX_LEAF_KEY:
+                result["leaf_key"] = leaf_key
+            else:
+                messages.append(
+                    f"leaf_key omitted: {len(leaf_key):,} chars is too long for a StatCan URL. Leave "
+                    f"position {position} empty (all codes) and use sql to exclude totals."
+                )
 
         out_dims = []
         for d in dims:
@@ -191,18 +203,20 @@ def register_core_tools(registry: ToolRegistry) -> None:
             entry["codes"] = codes
             out_dims.append(entry)
         result["dimensions"] = out_dims
-        if any(d.get("_truncated") for d in out_dims):
-            result["_message"] = (
-                "Some code lists are cut short. Pass search='<label>' to find codes by name, or "
-                "dimension=<position> for one full list. An empty key position means all codes."
-            )
         if terms and all(d.get("_no_match") for d in out_dims):
-            result["_message"] = f"No code names contain {structure_input.search!r}; try a shorter term."
+            messages.append(f"No code names contain {structure_input.search!r}; try a shorter term.")
         elif any(d.get("_no_match") for d in out_dims):
-            result["_message"] = (
+            messages.append(
                 "Dimensions marked _no_match had no code matching search; their first codes "
                 "are shown instead (totals first)."
             )
+        elif any(d.get("_truncated") for d in out_dims):
+            messages.append(
+                "Some code lists are cut short. Pass search='<label>' to find codes by name, or "
+                "dimension=<position> for one full list. An empty key position means all codes."
+            )
+        if messages:
+            result["_message"] = " ".join(messages)
         result["_sdmx_url"] = f"{SDMX_BASE_URL}structure/Data_Structure_{product_id}"
         return result
 
@@ -248,17 +262,21 @@ def register_core_tools(registry: ToolRegistry) -> None:
         found: List[Dict[str, Any]] = []
         failures: List[Dict[str, Any]] = []
         decoders = asyncio.ensure_future(_decoders())  # cached for an hour; fetch alongside
-        if i.coordinates:
-            payload = [{"productId": i.productId, "coordinate": pad_coordinate(c)} for c in i.coordinates]
-            given = [{"productId": i.productId, "coordinate": c} for c in i.coordinates]
-            ok, bad = _split_wds(await make_post_request("/getSeriesInfoFromCubePidCoord", payload, timeout=TIMEOUT_MEDIUM), given)
-            found += ok
-            failures += bad
-        if i.vectorIds:
-            payload = [{"vectorId": v} for v in i.vectorIds]
-            ok, bad = _split_wds(await make_post_request("/getSeriesInfoFromVector", payload, timeout=TIMEOUT_MEDIUM), payload)
-            found += ok
-            failures += bad
+        try:
+            if i.coordinates:
+                payload = [{"productId": i.productId, "coordinate": pad_coordinate(c)} for c in i.coordinates]
+                given = [{"productId": i.productId, "coordinate": c} for c in i.coordinates]
+                ok, bad = _split_wds(await make_post_request("/getSeriesInfoFromCubePidCoord", payload, timeout=TIMEOUT_MEDIUM), given)
+                found += ok
+                failures += bad
+            if i.vectorIds:
+                payload = [{"vectorId": v} for v in i.vectorIds]
+                ok, bad = _split_wds(await make_post_request("/getSeriesInfoFromVector", payload, timeout=TIMEOUT_MEDIUM), payload)
+                found += ok
+                failures += bad
+        except BaseException:
+            decoders.cancel()  # don't leave it pending when a WDS POST fails
+            raise
 
         dec = await decoders
         if not found:
@@ -270,9 +288,8 @@ def register_core_tools(registry: ToolRegistry) -> None:
 
     @registry.tool(annotations=READ_ONLY)
     async def get_changes(changes_input: CoreChangesInput) -> Dict[str, Any]:
-        """What StatCan released: tables updated on a date (default today), today's changed
-        series in one table (productId), or today's new data points for one series
-        (vectorId, or productId + coordinate)."""
+        """What StatCan released: tables updated on a date (default today), or today's new
+        data points for one series (vectorId, or productId + coordinate)."""
         c = changes_input
         if c.vectorId is not None or c.coordinate is not None:
             if c.vectorId is not None:
@@ -291,18 +308,10 @@ def register_core_tools(registry: ToolRegistry) -> None:
             return {"changed": True, **ok[0]}
 
         if c.productId is not None:
-            if c.date:
-                raise ValueError("Per-table changes are only available for today; omit date.")
-            try:
-                result = await make_get_request("/getChangedSeriesList", timeout=TIMEOUT_LARGE)
-            except httpx.HTTPStatusError as exc:
-                if exc.response.status_code == 409:
-                    raise ValueError("Today's changes are not released yet (StatCan publishes at 08:30 ET).")
-                raise
-            series = [s for s in result.get("object", []) if s.get("productId") == c.productId]
-            out = _page(series, c.offset, c.limit, "series")
-            out["productId"] = c.productId
-            return out
+            raise ValueError(
+                "productId needs a coordinate (one series). For tables released on a day pass "
+                "date only; for a table's values use get_sdmx_data."
+            )
 
         date = c.date or _statcan_today()
         try:

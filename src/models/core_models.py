@@ -112,9 +112,7 @@ class CoreChangesInput(_CoreInput):
     date: Optional[str] = Field(
         None, description="YYYY-MM-DD: tables released that day (default today)."
     )
-    productId: Optional[int] = Field(
-        None, description="Alone: today's changed series in this table. With coordinate: one series."
-    )
+    productId: Optional[int] = Field(None, description="With coordinate: one series.")
     coordinate: Optional[str] = None
     vectorId: Optional[int] = Field(None, description="Today's changed data points for this series.")
     offset: int = 0
