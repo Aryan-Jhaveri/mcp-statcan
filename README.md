@@ -16,6 +16,10 @@ MCP server and CLI for Statistics Canada's [Web Data Service (WDS)](https://www.
 
 **⚠️ LLMs may fabricate data. Always verify important figures against [official Statistics Canada sources](https://www.statcan.gc.ca/).**
 
+<img src="assets/cli-explore.gif" alt="Terminal recording: statcan search, statcan metadata and statcan download for the Consumer Price Index table" width="800">
+
+*The `statcan` CLI searching, inspecting and downloading a table. See [statcan CLI](#statcan-cli).*
+
 ---
 
 ## Table of Contents
@@ -275,9 +279,7 @@ The tool calls in the prompts follow the active [toolset](#toolsets).
 
 A standalone CLI for downloading StatCan data without an LLM. Outputs pipe-friendly CSV/JSON to stdout; progress and errors go to stderr.
 
-**Exploring a table** (search, then metadata, then download):
-
-<img src="assets/cli-explore.gif" alt="Terminal recording: statcan search, statcan metadata and statcan download for the Consumer Price Index table" width="800">
+**Exploring a table** (search, then metadata, then download): see the recording at the [top of this page](#statistics-canada-mcp-server).
 
 **Agent mode** (`--json` envelopes, typed exit codes, `statcan describe`):
 
