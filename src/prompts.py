@@ -11,7 +11,7 @@ _PROMPTS = {
         description=(
             "End-to-end workflow for finding and analyzing Statistics Canada data. "
             "Claude Code (bash): statcan CLI + awk pipelines. "
-            "Claude.ai web: MCP tools for discovery, Python script fetches data to a local file — never floods context."
+            "Claude.ai web: MCP tools fetch the data; sql computes server-side so rows stay out of context."
         ),
         arguments=[
             PromptArgument(
@@ -38,7 +38,7 @@ _PROMPTS = {
         description=(
             "Download a Statistics Canada table to CSV and analyze it. "
             "Claude Code (bash): statcan CLI + awk. "
-            "Claude.ai web: Python script fetches to a local file — data never enters context."
+            "Claude.ai web: MCP tools fetch; sql or a narrow key keeps rows out of context."
         ),
         arguments=[
             PromptArgument(
@@ -82,7 +82,7 @@ _PROMPTS = {
         description=(
             "Sample and inspect a Statistics Canada table before committing to a full download. "
             "Claude Code (bash): statcan CLI. "
-            "Claude.ai web: Python script samples to a local file — see column layout without flooding context."
+            "Claude.ai web: MCP tools sample 3 periods to show the layout without flooding context."
         ),
         arguments=[
             PromptArgument(
@@ -95,9 +95,12 @@ _PROMPTS = {
 }
 
 
+_WEB_HEADER_CORE = "━━━ Claude.ai web (MCP tools) ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n"
+
+
 _LOOKUP_WEB_CORE = (
-    "Use MCP tools for discovery only — fetch data via script so it lands\n"
-    "in a local file, not the context window.\n"
+    "The claude.ai sandbox can't reach StatCan, so the MCP tools do the fetching.\n"
+    "Keep data out of context: compute with sql, and request rows only when you need them.\n"
     "\n"
     "Step 1 — Find the table:\n"
     '  search_cubes_by_title(search_term="<keywords>")\n'
@@ -248,8 +251,8 @@ def get_prompt_text(name: str, args: dict, toolset: str | None = None) -> str:
             "Only the analysis output reaches the context window — not the raw CSV rows.\n"
             f"Adapt these patterns for: {goal}\n"
             "\n"
-            "━━━ Claude.ai web (Python script) ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n"
-            "\n"
+            + (_WEB_HEADER_CORE if core else "━━━ Claude.ai web (Python script) ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n")
+            + "\n"
             + (_LOOKUP_WEB_CORE if core else (
             "Use MCP tools for discovery only — fetch data via script so it lands\n"
             "in a local file, not the context window.\n"
@@ -373,8 +376,8 @@ def get_prompt_text(name: str, args: dict, toolset: str | None = None) -> str:
             "\n"
             "Replace period_col, value_col, vector_col with actual column numbers from step 2.\n"
             "\n"
-            "━━━ Claude.ai web (Python script) ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n"
-            "\n"
+            + (_WEB_HEADER_CORE if core else "━━━ Claude.ai web (Python script) ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n")
+            + "\n"
             + (_DOWNLOAD_WEB_CORE.format(pid=pid, last_n=last_n) if core else (
             "Step 1 — Get the table structure to build a key:\n"
             f"  get_sdmx_structure(productId={pid})\n"
@@ -469,8 +472,8 @@ def get_prompt_text(name: str, args: dict, toolset: str | None = None) -> str:
             "# 6. Full download with the key you built\n"
             f'statcan download {pid} --key "1.1.1" --last 24 --output ./data_{_safe_pid}.csv\n'
             "\n"
-            "━━━ Claude.ai web (Python script) ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n"
-            "\n"
+            + (_WEB_HEADER_CORE if core else "━━━ Claude.ai web (Python script) ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n")
+            + "\n"
             + (_EXPLORE_WEB_CORE.format(pid=pid) if core else (
             "Step 1 — Check structure without fetching data (MCP tool):\n"
             f"  get_sdmx_structure(productId={pid})\n"
